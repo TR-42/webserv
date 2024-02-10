@@ -1,4 +1,4 @@
-NAME	=	tetris
+NAME	=	webserv
 
 SRCS_DIR	=	./srcs
 OBJS_DIR	=	./objs
