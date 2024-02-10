@@ -14,7 +14,6 @@ SRC_FILES	=\
 	$(SRCS_OTHER)\
 
 LINKS	=\
-	-lncurses\
 
 INCLUDES	=\
 	-I./headers\
