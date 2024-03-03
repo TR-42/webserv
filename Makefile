@@ -66,4 +66,12 @@ fclean: clean
 	$(RM) $(NAME)
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re dir test
+
+#region Test Rules
+
+test:
+	mkdir -p ./tests_build
+	cd ./tests_build && cmake ..
+	make -C ./tests_build
+	./tests_build/webserv-test --output-on-failure
