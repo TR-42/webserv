@@ -4,12 +4,16 @@ SRCS_DIR	=	./srcs
 OBJS_DIR	=	./objs
 DEPS_DIR	=	./deps
 
+SRCS_UTILS	=\
+	url_decode.cpp\
+
 SRCS_MAIN	=\
 	main.cpp\
 
 SRCS_OTHER	=\
 
 SRC_FILES	=\
+	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
 
@@ -32,9 +36,14 @@ $(NAME): $(OBJS)
 	$(CXX) $(LINKS) $(CFLAGS) $(INCLUDES) $^ -o $@
 
 $(OBJS_DIR):
-	@mkdir -p $@
+	mkdir -p $@/$(shell dirname $(SRC_FILES))
 $(DEPS_DIR):
-	@mkdir -p $@
+	mkdir -p $@/$(shell dirname $(SRC_FILES))
+
+dir:
+	mkdir -p\
+		$(OBJS_DIR)/$(shell dirname $(SRC_FILES))\
+		$(DEPS_DIR)/$(shell dirname $(SRC_FILES))
 
 $(DEPS):
 -include $(DEPS)
