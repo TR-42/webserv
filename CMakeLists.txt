@@ -22,6 +22,7 @@ file(GLOB SOURCES
 add_executable(${PROGRAM}
 	${SOURCES}
 	${TEST_SOURCES}
+	./tests/leaks.cpp
 )
 
 target_link_libraries(${PROGRAM}
