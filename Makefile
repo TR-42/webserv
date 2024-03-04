@@ -4,6 +4,9 @@ SRCS_DIR	=	./srcs
 OBJS_DIR	=	./objs
 DEPS_DIR	=	./deps
 
+SRCS_ENV	=\
+	EnvManager.cpp\
+
 SRCS_UTILS	=\
 	url_decode.cpp\
 
@@ -13,6 +16,7 @@ SRCS_MAIN	=\
 SRCS_OTHER	=\
 
 SRC_FILES	=\
+	$(addprefix env/, $(SRCS_ENV))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
