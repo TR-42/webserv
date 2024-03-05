@@ -1,41 +1,65 @@
 #include <EnvManager.hpp>
 #include <cstring>
 
-EnvManager::EnvManager(const char *envp[])
+extern char **environ;
+
+static void _set_env_map(
+		std::map<std::string, std::string> &env,
+		const char *envp[]
+)
 {
-	this->env.clear();
+	if (envp == NULL) {
+		return;
+	}
+
 	while (*envp != NULL) {
-		std::string envKeyValuePair(*envp);
+		const std::string envKeyValuePair(*envp);
 		size_t pos = envKeyValuePair.find('=');
-		if (pos == std::string::npos) {
-			throw std::runtime_error("Invalid environment variable: " + envKeyValuePair);
+		if (pos != std::string::npos) {
+			env[envKeyValuePair.substr(0, pos)] = envKeyValuePair.substr(pos + 1);
 		}
 
-		this->env[envKeyValuePair.substr(0, pos)] = envKeyValuePair.substr(pos + 1);
 		envp++;
 	}
 }
 
-EnvManager::~EnvManager()
+webserv::env::EnvManager::EnvManager()
+{
+	this->env.clear();
+	_set_env_map(this->env, (const char **)environ);
+}
+
+webserv::env::EnvManager::EnvManager(const char *envp[])
+{
+	this->env.clear();
+	_set_env_map(this->env, envp);
+}
+
+webserv::env::EnvManager::~EnvManager()
 {
 }
 
-const std::string &EnvManager::get(const std::string &key) const
+size_t webserv::env::EnvManager::size() const
+{
+	return this->env.size();
+}
+
+const std::string &webserv::env::EnvManager::get(const std::string &key) const
 {
 	return this->env.at(key);
 }
 
-void EnvManager::set(const std::string &key, const std::string &value)
+void webserv::env::EnvManager::set(const std::string &key, const std::string &value)
 {
 	this->env[key] = value;
 }
 
-std::string &EnvManager::operator[](const std::string &key)
+std::string &webserv::env::EnvManager::operator[](const std::string &key)
 {
 	return this->env[key];
 }
 
-char **EnvManager::toEnvp() const
+char **webserv::env::EnvManager::toEnvp() const
 {
 	const size_t envpSize = this->env.size();
 	char **envp = new char *[envpSize + 1];
