@@ -4,7 +4,11 @@ project(webserv-test CXX)
 
 set(PROGRAM webserv-test)
 
-SET(CMAKE_CXX_FLAGS "-fsanitize=address -g")
+if(APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
+	SET(CMAKE_CXX_FLAGS "-fsanitize=address -g")
+else()
+	SET(CMAKE_CXX_FLAGS "-fsanitize=leak -g")
+endif()
 
 # Google Testの不要なキャッシュ変数をオフにしておく
 option(BUILD_GMOCK "Builds the googlemock subprojects" OFF)
@@ -22,7 +26,6 @@ file(GLOB SOURCES
 add_executable(${PROGRAM}
 	${SOURCES}
 	${TEST_SOURCES}
-	./tests/leaks.cpp
 )
 
 target_link_libraries(${PROGRAM}
