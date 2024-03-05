@@ -56,6 +56,9 @@ std::string webserv::utils::url_decode(
 		memcpy(decoded_c_str + c_str_index, str.c_str() + str_index, copy_len);
 		c_str_index += copy_len;
 		if (str[percent_index] == URL_ENCODE_ESCAPE_CHAR) {
+			if (str_len <= percent_index + 2) {
+				throw std::invalid_argument("Invalid percent encoding");
+			}
 			decoded_c_str[c_str_index++] = _hex_to_char(str[percent_index + 1], str[percent_index + 2]);
 			percent_index += 3;
 		}
