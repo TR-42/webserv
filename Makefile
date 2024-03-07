@@ -40,14 +40,14 @@ $(NAME): $(OBJS)
 	$(CXX) $(LINKS) $(CFLAGS) $(INCLUDES) $^ -o $@
 
 $(OBJS_DIR):
-	mkdir -p $@/$(shell dirname $(SRC_FILES))
+	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
 $(DEPS_DIR):
-	mkdir -p $@/$(shell dirname $(SRC_FILES))
+	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
 
 dir:
 	mkdir -p\
-		$(OBJS_DIR)/$(shell dirname $(SRC_FILES))\
-		$(DEPS_DIR)/$(shell dirname $(SRC_FILES))
+		$(addprefix $(OBJS_DIR)/, $(shell dirname $(SRC_FILES)))\
+		$(addprefix $(DEPS_DIR)/, $(shell dirname $(SRC_FILES)))
 
 $(DEPS):
 -include $(DEPS)
