@@ -8,7 +8,7 @@
 #endif
 
 static uint8_t _hex_to_uint8(
-		const char c
+	const char c
 )
 {
 	if ('0' <= c && c <= '9') {
@@ -23,15 +23,15 @@ static uint8_t _hex_to_uint8(
 }
 
 static char _hex_to_char(
-		const char upper,
-		const char lower
+	const char upper,
+	const char lower
 )
 {
 	return (char)(_hex_to_uint8(upper) << 4 | _hex_to_uint8(lower));
 }
 
 std::string webserv::utils::url_decode(
-		const std::string &str
+	const std::string &str
 )
 {
 	size_t percent_count = 0;

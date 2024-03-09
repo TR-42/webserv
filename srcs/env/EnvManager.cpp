@@ -4,8 +4,8 @@
 extern char **environ;
 
 static void _set_env_map(
-		std::map<std::string, std::string> &env,
-		const char *envp[]
+	std::map<std::string, std::string> &env,
+	const char *envp[]
 )
 {
 	if (envp == NULL) {

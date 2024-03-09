@@ -7,3 +7,6 @@ AlignAfterOpenBracket: BlockIndent
 AlwaysBreakTemplateDeclarations: Yes
 SpaceBeforeParens: ControlStatementsExceptControlMacros
 BreakBeforeBraces: Linux
+ContinuationIndentWidth: 2
+Standard: Cpp03
+AlignEscapedNewlines: DontAlign
