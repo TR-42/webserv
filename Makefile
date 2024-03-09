@@ -4,6 +4,9 @@ SRCS_DIR	=	./srcs
 OBJS_DIR	=	./objs
 DEPS_DIR	=	./deps
 
+OBJS_DEBUG_DIR	=	./objs_debug
+DEPS_DEBUG_DIR	=	./deps_debug
+
 SRCS_ENV	=\
 	EnvManager.cpp\
 
@@ -26,11 +29,15 @@ LINKS	=\
 INCLUDES	=\
 	-I./headers\
 
-CFLAGS	=	-Wall -Wextra -Werror -std=c++98 -fsanitize=address -g -MMD -MP -MF $(DEPS_DIR)/$*.d
+CFLAGS_BASE	=	-Wall -Wextra -Werror -std=c++98
+CFLAGS_DEBUG	=	$(CFLAGS_BASE) -fsanitize=address -g -DDEBUG -MMD -MP -MF $(DEPS_DEBUG_DIR)/$*.d
+CFLAGS	=	$(CFLAGS_BASE) -MMD -MP -MF $(DEPS_DIR)/$*.d
 
 SRCS	=	$(addprefix $(SRCS_DIR)/, $(SRC_FILES))
 OBJS	=	$(addprefix $(OBJS_DIR)/, $(SRC_FILES:.cpp=.o))
 DEPS	=	$(addprefix $(DEPS_DIR)/, $(SRC_FILES:.cpp=.d))
+OBJS_DEBUG	=	$(addprefix $(OBJS_DEBUG_DIR)/, $(SRC_FILES:.cpp=.o))
+DEPS_DEBUG	=	$(addprefix $(DEPS_DEBUG_DIR)/, $(SRC_FILES:.cpp=.d))
 
 # ref: https://qiita.com/dmystk/items/3f82b1eb763c9b9b47e8
 
@@ -39,38 +46,75 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	$(CXX) $(LINKS) $(CFLAGS) $(INCLUDES) $^ -o $@
 
+debug: $(OBJS_DEBUG)
+	$(CXX) $(LINKS) $(CFLAGS_DEBUG) $(INCLUDES) $^ -o $@
+
 $(OBJS_DIR):
 	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
+$(OBJS_DEBUG_DIR):
+	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
 $(DEPS_DIR):
+	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
+$(DEPS_DEBUG_DIR):
 	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
 
 dir:
 	mkdir -p\
 		$(addprefix $(OBJS_DIR)/, $(shell dirname $(SRC_FILES)))\
-		$(addprefix $(DEPS_DIR)/, $(shell dirname $(SRC_FILES)))
+		$(addprefix $(OBJS_DEBUG_DIR)/, $(shell dirname $(SRC_FILES)))\
+		$(addprefix $(DEPS_DIR)/, $(shell dirname $(SRC_FILES)))\
+		$(addprefix $(DEPS_DEBUG_DIR)/, $(shell dirname $(SRC_FILES)))
 
 $(DEPS):
+$(DEPS_DEBUG):
+-include $(DEPS_DEBUG)
 -include $(DEPS)
 
 $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPS_DIR)/%.d | $(OBJS_DIR) $(DEPS_DIR)
 	$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-clean: cleanobjs cleandeps cleandir
+$(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPS_DEBUG_DIR)/%.d | $(OBJS_DEBUG_DIR) $(DEPS_DEBUG_DIR)
+	$(CXX) $(CFLAGS_DEBUG) $(INCLUDES) -c $< -o $@
+
+clean: cleanobjs cleanobjs_debug cleandeps cleandir
 cleanobjs:
 	$(RM) $(OBJS)
+cleanobjs_debug:
+	$(RM) $(OBJS_DEBUG)
 cleandeps:
 	$(RM) $(DEPS)
+cleandeps_debug:
+	$(RM) $(DEPS_DEBUG)
 cleandir:
-	if [ -z "$(shell ls -A $(OBJS_DIR))" ]; then rmdir $(OBJS_DIR); fi
-	if [ -z "$(shell ls -A $(DEPS_DIR))" ]; then rmdir $(DEPS_DIR); fi
+	if [ -d "$(OBJS_DIR)" ] && [ -z `ls -A $(OBJS_DIR)` ]; then rmdir $(OBJS_DIR); fi
+	if [ -d "$(OBJS_DEBUG_DIR)" ] && [ -z `ls -A $(OBJS_DEBUG_DIR)` ]; then rmdir $(OBJS_DEBUG_DIR); fi
+	if [ -d "$(DEPS_DIR)" ] && [ -z `ls -A $(DEPS_DIR)` ]; then rmdir $(DEPS_DIR); fi
+	if [ -d "$(DEPS_DEBUG_DIR)" ] && [ -z `ls -A $(DEPS_DEBUG_DIR)` ]; then rmdir $(DEPS_DEBUG_DIR); fi
+
 cleanf:	cleanobjs cleandeps
-	$(RM) -r $(OBJS_DIR) $(DEPS_DIR)
+	$(RM) -r\
+		$(OBJS_DIR)\
+		$(OBJS_DEBUG_DIR)\
+		$(DEPS_DIR)\
+		$(DEPS_DEBUG_DIR)
 
 fclean: clean
 	$(RM) $(NAME)
 re: fclean all
 
-.PHONY: all clean fclean re dir test
+.PHONY:\
+	all\
+	clean\
+	fclean\
+	re\
+	dir\
+	test\
+	cleanobjs\
+	cleanobjs_debug\
+	cleandeps\
+	cleandeps_debug\
+	cleandir\
+	cleanf\
 
 #region Test Rules
 

@@ -1,5 +1,13 @@
 webserv
+webserv.dSYM
 tests_build
+debug
+debug.dSYM
+
+objs
+deps
+objs_debug
+deps_debug
 
 # Prerequisites
 *.d
