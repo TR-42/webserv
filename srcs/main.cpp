@@ -1,8 +1,38 @@
+#include <Logger.hpp>
 #include <iostream>
 
-int main(void) {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+class mainClass
+{
+ private:
+	webserv::Logger logger;
+
+ public:
+	void testLogger(void);
+};
+
+void mainClass::testLogger()
+{
+	C_LOG("Hello, World!");
+	C_DEBUG("Hello, World!");
+	C_INFO("Hello, World!");
+	C_WARN("Hello, World!");
+	C_ERROR("Hello, World!");
+	C_FATAL("Hello, World!");
+}
+
+int main(void)
+{
+	webserv::Logger logger;
+
+	std::cout << "Hello, World!" << std::endl;
+	L_LOG("Hello, World!");
+	L_DEBUG("Hello, World!");
+	L_INFO("Hello, World!");
+	L_WARN("Hello, World!");
+	L_ERROR("Hello, World!");
+	L_FATAL("Hello, World!");
+	mainClass().testLogger();
+	return 0;
 }
 
 #ifdef DEBUG

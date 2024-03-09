@@ -10,6 +10,9 @@ DEPS_DEBUG_DIR	=	./deps_debug
 SRCS_ENV	=\
 	EnvManager.cpp\
 
+SRCS_LOGGER	=\
+	Logger.cpp\
+
 SRCS_UTILS	=\
 	url_decode.cpp\
 
@@ -20,6 +23,7 @@ SRCS_OTHER	=\
 
 SRC_FILES	=\
 	$(addprefix env/, $(SRCS_ENV))\
+	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
