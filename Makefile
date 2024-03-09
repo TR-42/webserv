@@ -33,8 +33,8 @@ LINKS	=\
 INCLUDES	=\
 	-I./headers\
 
-CFLAGS_BASE	=	-Wall -Wextra -Werror -std=c++98
-CFLAGS_DEBUG	=	$(CFLAGS_BASE) -fsanitize=address -g -DDEBUG -MMD -MP -MF $(DEPS_DEBUG_DIR)/$*.d
+CFLAGS_BASE	=	-Wall -Wextra -Werror -std=c++98 -g
+CFLAGS_DEBUG	=	$(CFLAGS_BASE) -fsanitize=address -DDEBUG -MMD -MP -MF $(DEPS_DEBUG_DIR)/$*.d
 CFLAGS	=	$(CFLAGS_BASE) -MMD -MP -MF $(DEPS_DIR)/$*.d
 
 SRCS	=	$(addprefix $(SRCS_DIR)/, $(SRC_FILES))
@@ -49,6 +49,11 @@ all: $(NAME)
 
 $(NAME): $(OBJS)
 	$(CXX) $(LINKS) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+# ARGS="abc \"def ghi\"" で実行すると、argv: [0]:'./webserv' [1]:'abc' [2]:'def ghi' になる
+leaks: $(NAME)
+	@echo "=== Running leaks on $(NAME) ==="
+	@leaks -q --atExit -- ./$(NAME) $(ARGS)
 
 debug: $(OBJS_DEBUG)
 	$(CXX) $(LINKS) $(CFLAGS_DEBUG) $(INCLUDES) $^ -o $@
@@ -108,6 +113,7 @@ re: fclean all
 
 .PHONY:\
 	all\
+	leaks\
 	clean\
 	fclean\
 	re\

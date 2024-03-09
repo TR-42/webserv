@@ -20,11 +20,25 @@ void mainClass::testLogger()
 	C_FATAL("Hello, World!");
 }
 
-int main(void)
+static std::string get_argv_str(int argc, const char *argv[])
+{
+	std::string str;
+	for (int i = 0; i < argc; i++) {
+		if (i != 0) {
+			str += " ";
+		}
+		str += "[" + std::to_string(i) + "]:'" + argv[i] + "'";
+	}
+	return str;
+}
+
+int main(int argc, const char *argv[])
 {
 	webserv::Logger logger;
 
 	std::cout << "Hello, World!" << std::endl;
+	L_LOG("argv: " + get_argv_str(argc, argv));
+
 	L_LOG("Hello, World!");
 	L_DEBUG("Hello, World!");
 	L_INFO("Hello, World!");
@@ -34,30 +48,3 @@ int main(void)
 	mainClass().testLogger();
 	return 0;
 }
-
-#ifdef DEBUG
-
-// - getpid
-// - system
-#include <unistd.h>
-
-// - getenv
-#include <stdlib.h>
-
-// - sprintf
-#include <stdio.h>
-
-#define DEBUG_LEAKS_CMD_LEN (64)
-
-extern "C" {
-
-__attribute__((destructor)) static void destructor(void)
-{
-	char cmd[DEBUG_LEAKS_CMD_LEN];
-
-	snprintf(cmd, DEBUG_LEAKS_CMD_LEN, "leaks -quiet %d > /dev/stderr", getpid());
-	system(cmd);
-}
-}
-
-#endif
