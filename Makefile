@@ -7,6 +7,12 @@ DEPS_DIR	=	./deps
 OBJS_DEBUG_DIR	=	./objs_debug
 DEPS_DEBUG_DIR	=	./deps_debug
 
+SRCS_CONFIG	=\
+	HttpRedirectConfig.cpp\
+	HttpRouteConfig.cpp\
+	ListenConfig.cpp\
+	ServerConfig.cpp\
+
 SRCS_ENV	=\
 	EnvManager.cpp\
 
@@ -22,6 +28,7 @@ SRCS_MAIN	=\
 SRCS_OTHER	=\
 
 SRC_FILES	=\
+	$(addprefix config/, $(SRCS_CONFIG))\
 	$(addprefix env/, $(SRCS_ENV))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix utils/, $(SRCS_UTILS))\
