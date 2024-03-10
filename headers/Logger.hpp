@@ -8,12 +8,12 @@
 		int line, \
 		const char *func, \
 		std::string const &message \
-	); \
+	) const; \
 	std::ostream &name( \
 		const char *file, \
 		int line, \
 		const char *func \
-	);
+	) const;
 
 // ##__VA_ARGS__ ref: https://tyfkda.github.io/blog/2015/03/04/va_args.html
 // 引数が0個の場合にコンパイルエラーになるのを防ぐために##を使う
@@ -110,18 +110,17 @@ class Logger
 		const char *file,
 		int line,
 		const char *func
-	);
+	) const;
 	std::ostream &_print(
 		std::string const &level,
 		const char *file,
 		int line,
 		const char *func
-	);
+	) const;
 
  public:
 	Logger();
 	Logger(std::ostream &os);
-	~Logger();
 
 	LOGGER_FUNC_DECL(log);
 	LOGGER_FUNC_DECL(debug);

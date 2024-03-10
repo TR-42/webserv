@@ -85,14 +85,19 @@ void webserv::Logger::_print(
 	const char *file,
 	int line,
 	const char *func
-)
+) const
 {
 	this->_print(level, file, line, func)
 		<< message
 		<< std::endl;
 }
 
-std::ostream &webserv::Logger::_print(std::string const &level, const char *file, int line, const char *func)
+std::ostream &webserv::Logger::_print(
+	std::string const &level,
+	const char *file,
+	int line,
+	const char *func
+) const
 {
 	return (
 		this->_os
@@ -112,17 +117,13 @@ webserv::Logger::Logger(std::ostream &os) : _os(os)
 {
 }
 
-webserv::Logger::~Logger()
-{
-}
-
 #define LOGGER_FUNC_IMPL(name) \
 	void webserv::Logger::name( \
 		const char *file, \
 		int line, \
 		const char *func, \
 		std::string const &message \
-	) \
+	) const \
 	{ \
 		this->_print(message, LEVEL_##name, file, line, func); \
 	}; \
@@ -130,7 +131,7 @@ webserv::Logger::~Logger()
 		const char *file, \
 		int line, \
 		const char *func \
-	) \
+	) const \
 	{ \
 		return this->_print(LEVEL_##name, file, line, func); \
 	};
