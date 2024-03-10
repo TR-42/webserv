@@ -18,6 +18,13 @@ void mainClass::testLogger()
 	C_WARN("Hello, World!");
 	C_ERROR("Hello, World!");
 	C_FATAL("Hello, World!");
+
+	C_LOG() << "Hello, Stream World!" << std::endl;
+	C_DEBUG() << "Hello, Stream World!" << std::endl;
+	C_INFO() << "Hello, Stream World!" << std::endl;
+	C_WARN() << "Hello, Stream World!" << std::endl;
+	C_ERROR() << "Hello, Stream World!" << std::endl;
+	C_FATAL() << "Hello, Stream World!" << std::endl;
 }
 
 static std::string get_argv_str(int argc, const char *argv[])
@@ -45,6 +52,12 @@ int main(int argc, const char *argv[])
 	L_WARN("Hello, World!");
 	L_ERROR("Hello, World!");
 	L_FATAL("Hello, World!");
+	L_LOG() << "Hello, Stream World!" << std::endl;
+	L_DEBUG() << "Hello, Stream World!" << std::endl;
+	L_INFO() << "Hello, Stream World!" << std::endl;
+	L_WARN() << "Hello, Stream World!" << std::endl;
+	L_ERROR() << "Hello, Stream World!" << std::endl;
+	L_FATAL() << "Hello, Stream World!" << std::endl;
 	mainClass().testLogger();
 	return 0;
 }
