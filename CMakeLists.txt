@@ -1,6 +1,6 @@
 # ref: https://komorinfo.com/blog/add-gtest-and-gmock-into-your-project/
-cmake_minimum_required(VERSION 3.0)
-project(webserv-test CXX)
+cmake_minimum_required(VERSION 3.13)
+project(webserv-test LANGUAGES CXX)
 
 set(PROGRAM webserv-test)
 
