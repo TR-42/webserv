@@ -96,7 +96,7 @@ void webserv::Logger::_print(
 		<< std::endl;
 }
 
-webserv::Logger::Logger() : _os(std::cout)
+webserv::Logger::Logger() : _os(std::clog)
 {
 }
 
