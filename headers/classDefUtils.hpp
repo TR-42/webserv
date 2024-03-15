@@ -6,25 +6,37 @@
 \
  public: \
 	type get##name() const; \
-	void set##name(const type& name);
+	void set##name(const type &name);
+
+#define DECL_PTR_GETTER_SETTER(type, name) \
+ private: \
+	const type *_##name; \
+\
+ public: \
+	const type *get##name() const; \
+	void set##name(const type *name);
 
 #define DECL_VAR_REF_GETTER_SETTER(type, name) \
  private: \
 	type _##name; \
 \
  public: \
-	const type& get##name() const; \
-	void set##name(const type& name);
+	const type &get##name() const; \
+	void set##name(const type &name);
 
 #define DECL_PURE_VIRTUAL_GETTER(type, name) \
 	virtual type get##name() const = 0;
 #define DECL_PURE_VIRTUAL_REF_GETTER(type, name) \
-	DECL_PURE_VIRTUAL_GETTER(const type&, name)
+	DECL_PURE_VIRTUAL_GETTER(const type &, name)
 
 #define IMPL_GETTER_SETTER_NS(type, name, ns) \
 	type ns get##name() const { return this->_##name; } \
-	void ns set##name(const type& name) { this->_##name = name; }
+	void ns set##name(const type &name) { this->_##name = name; }
 
 #define IMPL_REF_GETTER_SETTER_NS(type, name, ns) \
-	const type& ns get##name() const { return this->_##name; } \
-	void ns set##name(const type& name) { this->_##name = name; }
+	const type &ns get##name() const { return this->_##name; } \
+	void ns set##name(const type &name) { this->_##name = name; }
+
+#define IMPL_PTR_GETTER_SETTER_NS(type, name, ns) \
+	const type *ns get##name() const { return this->_##name; } \
+	void ns set##name(const type *name) { this->_##name = name; }

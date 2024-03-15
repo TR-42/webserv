@@ -10,3 +10,5 @@ BreakBeforeBraces: Linux
 ContinuationIndentWidth: 2
 Standard: Cpp03
 AlignEscapedNewlines: DontAlign
+DerivePointerAlignment: false
+PointerAlignment: Right
