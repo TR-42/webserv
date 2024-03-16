@@ -5,13 +5,15 @@
 #include <vector>
 
 #include "../classDefUtils.hpp"
-#include "./IHttpRouteConfig.hpp"
-#include "./IServerConfig.hpp"
+#include "./HttpRouteConfig.hpp"
 
 namespace webserv
 {
 
-class ServerConfig : public IServerConfig
+typedef std::map<std::uint16_t, std::string> ErrorPageMapType;
+typedef std::vector<HttpRouteConfig> RouteListType;
+
+class ServerConfig
 {
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, ServerNameList)
 	DECL_VAR_REF_GETTER_SETTER(std::string, Host)
@@ -44,8 +46,6 @@ class ServerConfig : public IServerConfig
 		const ErrorPageMapType &errorPages,
 		const RouteListType &routeList
 	);
-
-	virtual IServerConfig *clone() const;
 };
 
 }	 // namespace webserv

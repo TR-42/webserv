@@ -18,11 +18,11 @@ webserv::HttpRouteConfig::HttpRouteConfig(
 
 void HttpRouteConfig::setProps(
 	const std::vector<std::string> &methods,
-	const IHttpRedirectConfig &redirect
+	const HttpRedirectConfig &redirect
 )
 {
 	this->_Methods = methods;
-	this->_Redirect = redirect.clone();
+	this->_Redirect = redirect;
 }
 
 HttpRouteConfig &webserv::HttpRouteConfig::operator=(
@@ -34,7 +34,7 @@ HttpRouteConfig &webserv::HttpRouteConfig::operator=(
 
 	this->setProps(
 		from._Methods,
-		*from._Redirect
+		from._Redirect
 	);
 
 	return *this;
@@ -42,16 +42,9 @@ HttpRouteConfig &webserv::HttpRouteConfig::operator=(
 
 webserv::HttpRouteConfig::~HttpRouteConfig()
 {
-	delete this->_Redirect;
-	this->_Redirect = NULL;
-}
-
-IHttpRouteConfig *webserv::HttpRouteConfig::clone() const
-{
-	return new HttpRouteConfig(*this);
 }
 
 IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, Methods, HttpRouteConfig::)
-IMPL_PTR_GETTER_SETTER_NS(IHttpRedirectConfig, Redirect, HttpRouteConfig::)
+IMPL_REF_GETTER_SETTER_NS(HttpRedirectConfig, Redirect, HttpRouteConfig::)
 
 }	 // namespace webserv

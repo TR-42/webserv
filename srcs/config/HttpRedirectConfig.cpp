@@ -52,11 +52,6 @@ webserv::HttpRedirectConfig::~HttpRedirectConfig()
 {
 }
 
-IHttpRedirectConfig *webserv::HttpRedirectConfig::clone() const
-{
-	return new HttpRedirectConfig(*this);
-}
-
 IMPL_REF_GETTER_SETTER_NS(std::string, To, HttpRedirectConfig::)
 IMPL_GETTER_SETTER_NS(std::uint16_t, Code, HttpRedirectConfig::)
 

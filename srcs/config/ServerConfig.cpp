@@ -24,14 +24,6 @@ webserv::ServerConfig::ServerConfig(
 
 ServerConfig::~ServerConfig()
 {
-	for (
-		RouteListType::iterator itRouteList = this->_RouteList.begin();
-		itRouteList != this->_RouteList.end();
-		++itRouteList
-	) {
-		delete *itRouteList;
-	}
-	this->_RouteList.clear();
 }
 
 ServerConfig &webserv::ServerConfig::operator=(
@@ -83,19 +75,7 @@ void ServerConfig::setProps(
 	this->_Port = port;
 	this->_RequestBodyLimit = requestBodyLimit;
 	this->_ErrorPageMap = errorPages;
-
-	for (
-		RouteListType::const_iterator itRouteList = routeList.begin();
-		itRouteList != routeList.end();
-		++itRouteList
-	) {
-		this->_RouteList.push_back((*itRouteList)->clone());
-	}
-}
-
-IServerConfig *webserv::ServerConfig::clone() const
-{
-	return new ServerConfig(*this);
+	this->_RouteList = routeList;
 }
 
 IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, ServerNameList, ServerConfig::)

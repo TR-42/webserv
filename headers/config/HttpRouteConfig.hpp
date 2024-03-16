@@ -6,20 +6,19 @@
 
 #include "../classDefUtils.hpp"
 #include "./HttpRedirectConfig.hpp"
-#include "./IHttpRouteConfig.hpp"
 
 namespace webserv
 {
 
-class HttpRouteConfig : public IHttpRouteConfig
+class HttpRouteConfig
 {
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, Methods)
-	DECL_PTR_GETTER_SETTER(IHttpRedirectConfig, Redirect)
+	DECL_VAR_REF_GETTER_SETTER(HttpRedirectConfig, Redirect)
 
  private:
 	void setProps(
 		const std::vector<std::string> &methods,
-		const IHttpRedirectConfig &redirect
+		const HttpRedirectConfig &redirect
 	);
 
  public:
@@ -27,8 +26,6 @@ class HttpRouteConfig : public IHttpRouteConfig
 	HttpRouteConfig(const HttpRouteConfig &from);
 	virtual ~HttpRouteConfig();
 	HttpRouteConfig &operator=(const HttpRouteConfig &from);
-
-	virtual IHttpRouteConfig *clone() const;
 };
 
 }	 // namespace webserv

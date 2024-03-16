@@ -42,57 +42,19 @@ void webserv::ListenConfig::setProps(
 	const ListenMapType &srcListenMap
 )
 {
-	for (
-		ListenMapType::const_iterator itSrcListenMap = srcListenMap.begin();
-		itSrcListenMap != srcListenMap.end();
-		++itSrcListenMap
-	) {
-		const ServerConfigListType &srcServerConfigList = itSrcListenMap->second;
-		ServerConfigListType dstServerConfigList;
-
-		for (
-			ServerConfigListType::const_iterator itSrcServerConfigList = srcServerConfigList.begin();
-			itSrcServerConfigList != srcServerConfigList.end();
-			++itSrcServerConfigList
-		) {
-			dstServerConfigList.push_back((*itSrcServerConfigList)->clone());
-		}
-
-		this->_ListenMap.insert(std::make_pair(itSrcListenMap->first, dstServerConfigList));
-	}
+	this->_ListenMap = srcListenMap;
 }
 
 ListenConfig::~ListenConfig()
 {
-	for (
-		ListenMapType::iterator itListenMap = this->_ListenMap.begin();
-		itListenMap != this->_ListenMap.end();
-		++itListenMap
-	) {
-		for (
-			ServerConfigListType::iterator itServerConfigList = itListenMap->second.begin();
-			itServerConfigList != itListenMap->second.end();
-			++itServerConfigList
-		) {
-			delete *itServerConfigList;
-		}
-
-		itListenMap->second.clear();
-	}
-
 	this->_ListenMap.clear();
 }
 
 void ListenConfig::addServerConfig(
-	const IServerConfig &serverConfig
+	const ServerConfig &serverConfig
 )
 {
-	this->_ListenMap.at(serverConfig.getPort()).push_back(serverConfig.clone());
-}
-
-IListenConfig *ListenConfig::clone() const
-{
-	return new ListenConfig(*this);
+	this->_ListenMap.at(serverConfig.getPort()).push_back(serverConfig);
 }
 
 IMPL_REF_GETTER_SETTER_NS(ListenMapType, ListenMap, ListenConfig::)

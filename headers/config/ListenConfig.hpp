@@ -2,13 +2,16 @@
 
 #include <map>
 
-#include "./IListenConfig.hpp"
+#include "./ServerConfig.hpp"
 #include "./classDefUtils.hpp"
 
 namespace webserv
 {
 
-class ListenConfig : public IListenConfig
+typedef std::vector<ServerConfig> ServerConfigListType;
+typedef std::map<std::uint16_t, ServerConfigListType> ListenMapType;
+
+class ListenConfig
 {
  private:
 	void setProps(
@@ -32,9 +35,8 @@ class ListenConfig : public IListenConfig
 	DECL_VAR_REF_GETTER_SETTER(ListenMapType, ListenMap)
 
 	void addServerConfig(
-		const IServerConfig &serverConfig
+		const ServerConfig &serverConfig
 	);
-	IListenConfig *clone() const;
 };
 
 }	 // namespace webserv
