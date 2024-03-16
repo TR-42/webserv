@@ -46,5 +46,9 @@ webserv::HttpRouteConfig::~HttpRouteConfig()
 
 IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, Methods, HttpRouteConfig::)
 IMPL_REF_GETTER_SETTER_NS(HttpRedirectConfig, Redirect, HttpRouteConfig::)
+IMPL_REF_GETTER_SETTER_NS(std::string, DocumentRoot, HttpRouteConfig::)
+IMPL_GETTER_SETTER_NS(bool, IsDocumentListingEnabled, HttpRouteConfig::)
+IMPL_REF_GETTER_SETTER_NS(std::string, IndexFile, HttpRouteConfig::)
+IMPL_REF_GETTER_SETTER_NS(CgiConfigMapType, CgiConfigMap, HttpRouteConfig::)
 
 }	 // namespace webserv

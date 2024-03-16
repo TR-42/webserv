@@ -8,6 +8,7 @@ OBJS_DEBUG_DIR	=	./objs_debug
 DEPS_DEBUG_DIR	=	./deps_debug
 
 SRCS_CONFIG	=\
+	CgiConfig.cpp\
 	HttpRedirectConfig.cpp\
 	HttpRouteConfig.cpp\
 	ListenConfig.cpp\
