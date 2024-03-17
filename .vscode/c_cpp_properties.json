@@ -1,0 +1,29 @@
+{
+	"configurations": [
+		{
+			"name": "Mac",
+			"includePath": ["${default}", "${workspaceFolder}/headers"],
+			"defines": [],
+			"macFrameworkPath": [
+				"/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks"
+			],
+			"cStandard": "c11",
+			"cppStandard": "c++98"
+		},
+		{
+			"name": "GTest",
+			"includePath": [
+				"${default}",
+				"${workspaceFolder}/headers",
+				"${workspaceFolder}/googletest/googletest/include"
+			],
+			"defines": [],
+			"macFrameworkPath": [
+				"/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/System/Library/Frameworks"
+			],
+			"cStandard": "c11",
+			"cppStandard": "c++14"
+		}
+	],
+	"version": 4
+}
