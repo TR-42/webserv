@@ -17,6 +17,9 @@ SRCS_CONFIG	=\
 SRCS_ENV	=\
 	EnvManager.cpp\
 
+SRCS_HTTP	=\
+	HttpRequest.cpp\
+
 SRCS_LOGGER	=\
 	Logger.cpp\
 
@@ -31,6 +34,7 @@ SRCS_OTHER	=\
 SRC_FILES	=\
 	$(addprefix config/, $(SRCS_CONFIG))\
 	$(addprefix env/, $(SRCS_ENV))\
+	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
