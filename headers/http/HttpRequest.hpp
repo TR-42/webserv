@@ -41,6 +41,10 @@ class HttpRequest
 	bool parseRequestLine(
 		const std::vector<uint8_t> &requestRawLine
 	);
+
+	bool parseRequestHeader(
+		const std::vector<uint8_t> &requestRawLine
+	);
 	Logger logger;
 };
 

@@ -24,6 +24,7 @@ SRCS_LOGGER	=\
 	Logger.cpp\
 
 SRCS_UTILS	=\
+	strtrim.cpp\
 	url_decode.cpp\
 
 SRCS_MAIN	=\

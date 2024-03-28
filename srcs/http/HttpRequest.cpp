@@ -1,6 +1,8 @@
 #include <http/HttpRequest.hpp>
 #include <iostream>
 
+#include "utils.hpp"
+
 static std::vector<uint8_t> *_pickLine(
 	std::vector<uint8_t> &unparsedRequestRaw
 )
@@ -41,28 +43,56 @@ bool webserv::HttpRequest::pushRequestRaw(
 	}
 
 	_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
-	C_INFO("pickLine executing...");
-	std::vector<uint8_t> *requestRawLine = _pickLine(_UnparsedRequestRaw);
-	if (requestRawLine == NULL) {
-		C_INFO("NewLine not found");
-		return true;
-	}
-	C_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
 
 	if (_IsRequestHeaderParsed == false) {
 		C_DEBUG("_IsRequestHeaderParsed was false");
+
+		C_INFO("pickLine executing...");
+		std::vector<uint8_t> *requestRawLine = _pickLine(_UnparsedRequestRaw);
+		if (requestRawLine == NULL) {
+			C_INFO("NewLine not found");
+			return true;
+		}
+		C_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
+
 		// リクエストラインの解析
 		if (_IsRequestLineParsed == false) {
 			C_DEBUG("_IsRequestLineParsed was false");
 			_IsRequestLineParsed = parseRequestLine(*requestRawLine);
 			delete requestRawLine;
 			C_DEBUG() << "_IsRequestLineParsed result: " << _IsRequestLineParsed << std::endl;
-			return _IsRequestLineParsed;
+			if (_IsRequestLineParsed == false) {
+				return false;
+			}
+			requestRawLine = _pickLine(_UnparsedRequestRaw);
+			if (requestRawLine == NULL) {
+				C_INFO("NewLine not found");
+				return true;
+			}
 		}
+
+		// リクエストヘッダの解析
+		while (requestRawLine->empty() == false) {
+			bool result = parseRequestHeader(*requestRawLine);
+			delete requestRawLine;
+			if (result == false) {
+				return false;
+			}
+			requestRawLine = _pickLine(_UnparsedRequestRaw);
+			if (requestRawLine == NULL) {
+				C_INFO("NewLine not found");
+				return true;
+			}
+			C_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
+		}
+		_IsRequestHeaderParsed = true;
+		delete requestRawLine;
+		C_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
+		return _IsRequestHeaderParsed;
 	}
 
-	delete requestRawLine;
 	C_DEBUG("return true");
+
 	return true;
 }
 
@@ -102,5 +132,39 @@ bool webserv::HttpRequest::parseRequestLine(
 		return false;
 	}
 	_Version = std::string((const char *)versionSegment, versionStringLength);
+	return true;
+}
+
+bool webserv::HttpRequest::parseRequestHeader(
+	const std::vector<uint8_t> &requestRawLine
+)
+{
+	const uint8_t *requestRawData = requestRawLine.data();
+	size_t newlinePos = requestRawLine.size();
+	const uint8_t *separatorPos = (const uint8_t *)std::memchr(requestRawData, ':', newlinePos);
+	if (separatorPos == NULL) {
+		C_WARN("separatorPos was NULL");
+		return false;
+	}
+	C_INFO("separatorPos was not null");
+	size_t lenToSeparatorPos = separatorPos - requestRawData;
+	if (lenToSeparatorPos == 0) {
+		return false;
+	}
+	std::string _Key = std::string((const char *)requestRawData, lenToSeparatorPos);
+	size_t keyLen = _Key.size();
+	C_DEBUG() << "keyLen: " << keyLen << " Key: " << _Key << std::endl;
+	// TODO: keyのバリデーションの実装
+	if (std::isspace(_Key[keyLen - 1])) {
+		C_DEBUG("isspace(_Key[keyLen - 1]) was true");
+		return false;
+	}
+	std::string _Value = utils::strtrim(std::string((const char *)separatorPos + 1, newlinePos - lenToSeparatorPos - 1));
+	C_DEBUG() << "Value: " << _Value << std::endl;
+	if (_Headers.find(_Key) == _Headers.end()) {
+		_Headers[_Key] = std::vector<std::string>();
+		C_DEBUG() << "Key: " << _Key << " was not found" << std::endl;
+	}
+	_Headers[_Key].push_back(_Value);
 	return true;
 }
