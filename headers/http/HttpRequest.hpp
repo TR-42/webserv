@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Logger.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -24,6 +25,7 @@ class HttpRequest
 	// chunkは後で実装
 
  public:
+	HttpRequest();
 	/**
 	 * @brief 今までに受け取ったパケットとともに、HTTPリクエストを解析する
 	 *
@@ -34,6 +36,12 @@ class HttpRequest
 	bool pushRequestRaw(
 		const std::vector<uint8_t> &requestRaw
 	);
+
+ private:
+	bool parseRequestLine(
+		const std::vector<uint8_t> &requestRawLine
+	);
+	Logger logger;
 };
 
 }	 // namespace webserv
