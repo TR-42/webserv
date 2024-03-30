@@ -110,28 +110,41 @@ bool webserv::HttpRequest::parseRequestLine(
 	C_INFO("spacePos1 was not null");
 	size_t lenToSpacePos1 = spacePos1 - requestRawData;
 	if (lenToSpacePos1 == 0) {
+		C_WARN("lenToSpacePos1 was 0");
 		return false;
 	}
+	C_DEBUG() << "lenToSpacePos1: " << lenToSpacePos1 << std::endl;
 	_Method = std::string((const char *)requestRawData, lenToSpacePos1);
+	C_DEBUG() << "Method: " << _Method << std::endl;
 	const uint8_t *pathSegment = spacePos1 + 1;
 	const uint8_t *spacePos2 = (const uint8_t *)std::memchr(pathSegment, ' ', newlinePos - (lenToSpacePos1 + 1));
 	if (spacePos2 == NULL) {
+		C_WARN("spacePos2 was NULL");
 		return false;
 	}
+	C_INFO("spacePos2 was not null");
 	size_t lenToSpacePos2 = spacePos2 - pathSegment;
 	if (lenToSpacePos2 == 0) {
+		C_WARN("lenToSpacePos2 was 0");
 		return false;
 	}
+	C_DEBUG() << "lenToSpacePos2: " << lenToSpacePos2 << std::endl;
 	_Path = std::string((const char *)pathSegment, lenToSpacePos2);
+	C_DEBUG() << "Path: " << _Path << std::endl;
 	const uint8_t *versionSegment = spacePos2 + 1;
 	size_t versionStringLength = newlinePos - lenToSpacePos2 - lenToSpacePos1 - 2;
+	C_DEBUG() << "versionStringLength: " << versionStringLength << std::endl;
 	if (std::memchr(versionSegment, ' ', versionStringLength) != NULL) {
+		C_WARN("versionSegment contains space");
 		return false;
 	}
+	C_DEBUG("versionSegment does not contain space");
 	if (versionStringLength == 0) {
+		C_WARN("versionStringLength was 0");
 		return false;
 	}
 	_Version = std::string((const char *)versionSegment, versionStringLength);
+	C_DEBUG() << "Version: " << _Version << std::endl;
 	return true;
 }
 
