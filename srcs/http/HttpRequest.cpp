@@ -114,7 +114,7 @@ bool webserv::HttpRequest::parseRequestLine(
 	}
 	_Method = std::string((const char *)requestRawData, lenToSpacePos1);
 	const uint8_t *pathSegment = spacePos1 + 1;
-	const uint8_t *spacePos2 = (const uint8_t *)std::memchr(pathSegment, ' ', newlinePos - lenToSpacePos1);
+	const uint8_t *spacePos2 = (const uint8_t *)std::memchr(pathSegment, ' ', newlinePos - (lenToSpacePos1 + 1));
 	if (spacePos2 == NULL) {
 		return false;
 	}
