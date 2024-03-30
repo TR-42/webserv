@@ -27,9 +27,13 @@ std::vector<uint8_t> HttpResponse::generateResponsePacket() const
 		responsePacket.push_back(':');
 		responsePacket.push_back(' ');
 		// fixme: set-cookie headerは個別に設定する必要がある
+
+		std::vector<std::string>::const_iterator it2_begin = it->second.begin();
 		for (std::vector<std::string>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+			if (it2 != it2_begin) {
+				responsePacket.push_back(',');
+			}
 			responsePacket.insert(responsePacket.end(), it2->begin(), it2->end());
-			responsePacket.push_back(',');
 		}
 		responsePacket.push_back('\r');
 		responsePacket.push_back('\n');
