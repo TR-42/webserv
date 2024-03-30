@@ -19,6 +19,7 @@ SRCS_ENV	=\
 
 SRCS_HTTP	=\
 	HttpRequest.cpp\
+	HttpResponse.cpp\
 
 SRCS_LOGGER	=\
 	Logger.cpp\
