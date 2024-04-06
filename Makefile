@@ -35,6 +35,8 @@ SRCS_UTILS	=\
 	strtrim.cpp\
 	to_string.cpp\
 	url_decode.cpp\
+	UUID.cpp\
+	UUIDv7.cpp\
 
 SRCS_MAIN	=\
 	main.cpp\
