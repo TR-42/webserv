@@ -17,10 +17,15 @@ SRCS_CONFIG	=\
 SRCS_ENV	=\
 	EnvManager.cpp\
 
+SRCS_HTTP	=\
+	HttpRequest.cpp\
+	HttpResponse.cpp\
+
 SRCS_LOGGER	=\
 	Logger.cpp\
 
 SRCS_UTILS	=\
+	strtrim.cpp\
 	url_decode.cpp\
 
 SRCS_MAIN	=\
@@ -31,10 +36,13 @@ SRCS_OTHER	=\
 SRC_FILES	=\
 	$(addprefix config/, $(SRCS_CONFIG))\
 	$(addprefix env/, $(SRCS_ENV))\
+	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
+
+SRC_FILES_DIRNAME_LIST = $(dir $(SRC_FILES))
 
 LINKS	=\
 
@@ -67,20 +75,20 @@ debug: $(OBJS_DEBUG)
 	$(CXX) $(LINKS) $(CFLAGS_DEBUG) $(INCLUDES) $^ -o $@
 
 $(OBJS_DIR):
-	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
+	mkdir -p $(addprefix $@/, $(SRC_FILES_DIRNAME_LIST))
 $(OBJS_DEBUG_DIR):
-	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
+	mkdir -p $(addprefix $@/, $(SRC_FILES_DIRNAME_LIST))
 $(DEPS_DIR):
-	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
+	mkdir -p $(addprefix $@/, $(SRC_FILES_DIRNAME_LIST))
 $(DEPS_DEBUG_DIR):
-	mkdir -p $(addprefix $@/, $(shell dirname $(SRC_FILES)))
+	mkdir -p $(addprefix $@/, $(SRC_FILES_DIRNAME_LIST))
 
 dir:
 	mkdir -p\
-		$(addprefix $(OBJS_DIR)/, $(shell dirname $(SRC_FILES)))\
-		$(addprefix $(OBJS_DEBUG_DIR)/, $(shell dirname $(SRC_FILES)))\
-		$(addprefix $(DEPS_DIR)/, $(shell dirname $(SRC_FILES)))\
-		$(addprefix $(DEPS_DEBUG_DIR)/, $(shell dirname $(SRC_FILES)))
+		$(addprefix $(OBJS_DIR)/, $(SRC_FILES_DIRNAME_LIST))\
+		$(addprefix $(OBJS_DEBUG_DIR)/, $(SRC_FILES_DIRNAME_LIST))\
+		$(addprefix $(DEPS_DIR)/, $(SRC_FILES_DIRNAME_LIST))\
+		$(addprefix $(DEPS_DEBUG_DIR)/, $(SRC_FILES_DIRNAME_LIST))
 
 $(DEPS):
 $(DEPS_DEBUG):

@@ -3,12 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 project(webserv-test LANGUAGES CXX)
 
 set(PROGRAM webserv-test)
-
-if(APPLE AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
-	SET(CMAKE_CXX_FLAGS "-fsanitize=address -g")
-else()
-	SET(CMAKE_CXX_FLAGS "-fsanitize=leak -g")
-endif()
+SET(CMAKE_CXX_FLAGS "-fsanitize=address -g")
 
 # Google Testの不要なキャッシュ変数をオフにしておく
 option(BUILD_GMOCK "Builds the googlemock subprojects" OFF)
