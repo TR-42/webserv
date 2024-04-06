@@ -29,10 +29,10 @@ TEST(HttpRequest, RequestLine)
 	std::vector<uint8_t> reqPacket(reqLine.begin(), reqLine.end());
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
-	EXPECT_EQ(request._IsRequestLineParsed, true);
-	EXPECT_EQ(request._Method, "GET");
-	EXPECT_EQ(request._Path, "/index.html");
-	EXPECT_EQ(request._Version, "HTTP/1.1");
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.getMethod(), "GET");
+	EXPECT_EQ(request.getPath(), "/index.html");
+	EXPECT_EQ(request.getVersion(), "HTTP/1.1");
 }
 
 TEST(HttpRequest, RequestHeader)
@@ -42,9 +42,9 @@ TEST(HttpRequest, RequestHeader)
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
-	EXPECT_EQ(request._IsRequestLineParsed, true);
-	EXPECT_EQ(request._Headers.empty(), false);
-	EXPECT_EQ(request._Headers["TestKey"][0], "TestValue");
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.getHeaders().empty(), false);
+	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
 }
 
 TEST(HttpRequest, RequestHeader2)
@@ -54,8 +54,8 @@ TEST(HttpRequest, RequestHeader2)
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
-	EXPECT_EQ(request._IsRequestLineParsed, true);
-	EXPECT_EQ(request._IsRequestHeaderParsed, true);
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.isRequestHeaderParsed(), true);
 }
 
 TEST(HttpRequest, RequestHeader_MultiKey)
@@ -65,10 +65,10 @@ TEST(HttpRequest, RequestHeader_MultiKey)
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
-	EXPECT_EQ(request._IsRequestLineParsed, true);
-	EXPECT_EQ(request._Headers.empty(), false);
-	EXPECT_EQ(request._Headers["TestKey"][0], "TestValue");
-	EXPECT_EQ(request._Headers["TestKey2"][0], "TestValue2");
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.getHeaders().empty(), false);
+	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().at("TestKey2")[0], "TestValue2");
 }
 
 TEST(HttpRequest, RequestHeader_MultiValue)
@@ -78,10 +78,10 @@ TEST(HttpRequest, RequestHeader_MultiValue)
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
-	EXPECT_EQ(request._IsRequestLineParsed, true);
-	EXPECT_EQ(request._Headers.empty(), false);
-	EXPECT_EQ(request._Headers["TestKey"][0], "TestValue");
-	EXPECT_EQ(request._Headers["TestKey"][1], "TestValue2");
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.getHeaders().empty(), false);
+	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().at("TestKey")[1], "TestValue2");
 }
 
 TEST(HttpRequest, RequestHeader5_NoSPC)
@@ -91,8 +91,8 @@ TEST(HttpRequest, RequestHeader5_NoSPC)
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
-	EXPECT_EQ(request._IsRequestLineParsed, true);
-	EXPECT_EQ(request._Headers["TestKey"][0], "TestValue");
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
 }
 
 TEST(HttpRequest, RequestHeader6_MultiSPC)
@@ -102,8 +102,8 @@ TEST(HttpRequest, RequestHeader6_MultiSPC)
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
-	EXPECT_EQ(request._IsRequestLineParsed, true);
-	EXPECT_EQ(request._Headers["TestKey"][0], "TestValue");
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
 }
 
 #define TEST_REQ_LINE_ERROR_CASE(CASE) \
@@ -113,7 +113,7 @@ TEST(HttpRequest, RequestHeader6_MultiSPC)
 		std::string reqLine = CASE; \
 		std::vector<uint8_t> reqPacket(reqLine.begin(), reqLine.end()); \
 		EXPECT_EQ(request.pushRequestRaw(reqPacket), false); \
-		EXPECT_EQ(request._IsRequestLineParsed, false); \
+		EXPECT_EQ(request.isRequestLineParsed(), false); \
 	}
 TEST_REQ_LINE_ERROR_CASE(REQ_LINE_ERR_CASE_1)
 TEST_REQ_LINE_ERROR_CASE(REQ_LINE_ERR_CASE_2)

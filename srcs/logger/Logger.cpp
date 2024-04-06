@@ -1,7 +1,7 @@
 #include <Logger.hpp>
+#include <cstring>
 #include <ctime>
 #include <iostream>
-
 #define FMT_RESET "\033[0m"
 #define FMT_BOLD "\033[1m"
 #define FMT_DIM "\033[2m"

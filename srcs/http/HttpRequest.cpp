@@ -1,7 +1,16 @@
+#include <cstring>
 #include <http/HttpRequest.hpp>
 #include <iostream>
 
 #include "utils.hpp"
+
+const std::string &webserv::HttpRequest::getMethod() const { return _Method; }
+const std::string &webserv::HttpRequest::getPath() const { return _Path; }
+const std::string &webserv::HttpRequest::getVersion() const { return _Version; }
+const webserv::RequestHeaderMap &webserv::HttpRequest::getHeaders() const { return _Headers; }
+const std::vector<uint8_t> &webserv::HttpRequest::getBody() const { return _Body; }
+bool webserv::HttpRequest::isRequestLineParsed() const { return _IsRequestLineParsed; }
+bool webserv::HttpRequest::isRequestHeaderParsed() const { return _IsRequestHeaderParsed; }
 
 static std::vector<uint8_t> *_pickLine(
 	std::vector<uint8_t> &unparsedRequestRaw
