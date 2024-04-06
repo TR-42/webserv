@@ -1,7 +1,9 @@
 #pragma once
+
 #include <classDefUtils.hpp>
 #include <map>
 #include <string>
+#include <types.hpp>
 #include <vector>
 
 namespace webserv
@@ -14,11 +16,11 @@ class HttpResponse
 	DECL_VAR_GETTER_SETTER(std::string, Version)
 	DECL_VAR_GETTER_SETTER(std::string, StatusCode)
 	DECL_VAR_GETTER_SETTER(std::string, ReasonPhrase)
-	DECL_VAR_GETTER_SETTER(ResponseHeaderMap, Headers)
-	DECL_VAR_GETTER_SETTER(std::vector<uint8_t>, Body)
+	DECL_VAR_REF_NO_CONST_GETTER_SETTER(ResponseHeaderMap, Headers)
+	DECL_VAR_REF_NO_CONST_GETTER_SETTER(std::vector<uint8_t>, Body)
 
  public:
-	std::vector<u_int8_t> generateResponsePacket() const;
+	std::vector<uint8_t> generateResponsePacket() const;
 };
 
 }	 // namespace webserv

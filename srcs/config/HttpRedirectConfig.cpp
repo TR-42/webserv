@@ -1,5 +1,4 @@
 #include <config/HttpRedirectConfig.hpp>
-
 namespace webserv
 {
 
@@ -18,7 +17,7 @@ webserv::HttpRedirectConfig::HttpRedirectConfig(
 
 HttpRedirectConfig::HttpRedirectConfig(
 	const std::string &to,
-	std::uint16_t code
+	uint16_t code
 ) : _To(to),
 		_Code(code)
 {
@@ -41,7 +40,7 @@ HttpRedirectConfig &webserv::HttpRedirectConfig::operator=(
 
 void webserv::HttpRedirectConfig::setProps(
 	const std::string &to,
-	std::uint16_t code
+	uint16_t code
 )
 {
 	this->_To = to;
@@ -53,6 +52,6 @@ webserv::HttpRedirectConfig::~HttpRedirectConfig()
 }
 
 IMPL_REF_GETTER_SETTER_NS(std::string, To, HttpRedirectConfig::)
-IMPL_GETTER_SETTER_NS(std::uint16_t, Code, HttpRedirectConfig::)
+IMPL_GETTER_SETTER_NS(uint16_t, Code, HttpRedirectConfig::)
 
 }	 // namespace webserv

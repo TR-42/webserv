@@ -6,8 +6,8 @@ namespace webserv
 IMPL_GETTER_SETTER_NS(std::string, Version, HttpResponse::)
 IMPL_GETTER_SETTER_NS(std::string, StatusCode, HttpResponse::)
 IMPL_GETTER_SETTER_NS(std::string, ReasonPhrase, HttpResponse::)
-IMPL_GETTER_SETTER_NS(ResponseHeaderMap, Headers, HttpResponse::)
-IMPL_GETTER_SETTER_NS(std::vector<uint8_t>, Body, HttpResponse::)
+IMPL_REF_NO_CONST_GETTER_SETTER_NS(ResponseHeaderMap, Headers, HttpResponse::)
+IMPL_REF_NO_CONST_GETTER_SETTER_NS(std::vector<uint8_t>, Body, HttpResponse::)
 
 std::vector<uint8_t> HttpResponse::generateResponsePacket() const
 {

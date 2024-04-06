@@ -67,7 +67,7 @@ char **webserv::env::EnvManager::toEnvp() const
 
 	size_t i = 0;
 	try {
-		for (std::map<std::string, std::string>::const_iterator it = this->env.cbegin(); it != this->env.cend(); ++it) {
+		for (std::map<std::string, std::string>::const_iterator it = this->env.begin(); it != this->env.end(); ++it) {
 			const std::string envKeyValuePair = it->first + "=" + it->second;
 			const size_t envKeyValuePairSize = envKeyValuePair.length();
 			envp[i] = new char[envKeyValuePairSize + 1];

@@ -3,6 +3,7 @@
 #include <Logger.hpp>
 #include <map>
 #include <string>
+#include <types.hpp>
 #include <vector>
 
 namespace webserv
