@@ -56,10 +56,9 @@ bool HttpRequest::pushRequestRaw(
 		return true;
 	}
 
-	_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
-
 	if (_IsRequestHeaderParsed == false) {
 		C_DEBUG("_IsRequestHeaderParsed was false");
+		_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
 
 		C_INFO("pickLine executing...");
 		std::vector<uint8_t> *requestRawLine = _pickLine(_UnparsedRequestRaw);
@@ -102,7 +101,19 @@ bool HttpRequest::pushRequestRaw(
 		_IsRequestHeaderParsed = true;
 		delete requestRawLine;
 		CS_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
+		_Body = _UnparsedRequestRaw;
 		return _IsRequestHeaderParsed;
+	} else if (isRequestBodyLengthEnough()) {
+		CS_DEBUG()
+			<< "too much request body("
+			<< "BodySize: " << _Body.size() << ", "
+			<< "ContentLength: " << getContentLength() << ", "
+			<< "RequestRawSize: " << requestRaw.size()
+			<< ")" << std::endl;
+		return false;
+	} else {
+		_Body.insert(_Body.end(), requestRaw.begin(), requestRaw.end());
+		return true;
 	}
 
 	C_DEBUG("return true");
@@ -213,6 +224,16 @@ size_t HttpRequest::getContentLength()
 		return 0;
 	_ContentLength = result;
 	return result;
+}
+
+bool HttpRequest::isRequestBodyLengthEnough()
+{
+	return _IsRequestHeaderParsed && getContentLength() <= _Body.size();
+}
+
+bool HttpRequest::isRequestBodyLengthTooMuch()
+{
+	return _IsRequestHeaderParsed && getContentLength() < _Body.size();
 }
 
 }	 // namespace webserv
