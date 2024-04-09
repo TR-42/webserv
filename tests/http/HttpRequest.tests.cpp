@@ -10,6 +10,7 @@
 #define REQ_HEADER_CASE_4 REQ_HEADER_CASE_1 "TestKey: TestValue2\r\n"
 #define REQ_HEADER_CASE_5 REQ_LINE_CASE_1 "TestKey:TestValue\r\n"
 #define REQ_HEADER_CASE_6 REQ_LINE_CASE_1 "TestKey:  TestValue  \r\n"
+#define CONTENT_LENGTH_CASE_1 REQ_LINE_CASE_1 "Content-Length: 10\r\n\r\n"
 
 #define REQ_LINE_ERR_CASE_1 "GET  /index.html HTTP/1.1\r\n"
 #define REQ_LINE_ERR_CASE_2 "GET /index.html  HTTP/1.1\r\n"
@@ -104,6 +105,18 @@ TEST(HttpRequest, RequestHeader6_MultiSPC)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+}
+
+TEST(HttpRequest, RequestHeader_ContentLength)
+{
+	webserv::HttpRequest request;
+	std::string reqStr = CONTENT_LENGTH_CASE_1;
+	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
+
+	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.isRequestHeaderParsed(), true);
+	EXPECT_EQ(request.getContentLength(), 10);
 }
 
 #define TEST_REQ_LINE_ERROR_CASE(CASE) \

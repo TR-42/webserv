@@ -41,7 +41,9 @@ static std::vector<uint8_t> *_pickLine(
 
 HttpRequest::HttpRequest()
 		: _IsRequestLineParsed(false),
-			_IsRequestHeaderParsed(false)
+			_IsRequestHeaderParsed(false),
+			_IsContentLengthHeaderParsed(false),
+			_ContentLength(0)
 {
 }
 
@@ -194,17 +196,23 @@ bool HttpRequest::parseRequestHeader(
 	return true;
 }
 
-size_t HttpRequest::getContentLength() const
+size_t HttpRequest::getContentLength()
 {
-	if (_Method != "POST")
+	if (_IsRequestHeaderParsed == false)
 		return 0;
+	if (_IsContentLengthHeaderParsed)
+		return _ContentLength;
+	_IsContentLengthHeaderParsed = true;
 	if (_Headers.find("Content-Length") == _Headers.end())
 		return 0;
 	const std::vector<std::string> &contentLengths = _Headers.at("Content-Length");
 	if (contentLengths.size() != 1)
 		return 0;
-	return std::stoul(contentLengths[0]);
-	//TODO: Content-Lengthよりも長いパケットが来た場合の処理
+	unsigned long result;
+	if (webserv::utils::stoul(contentLengths[0], result) == false)
+		return 0;
+	_ContentLength = result;
+	return result;
 }
 
 }	 // namespace webserv
