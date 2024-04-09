@@ -194,4 +194,17 @@ bool HttpRequest::parseRequestHeader(
 	return true;
 }
 
+size_t HttpRequest::getContentLength() const
+{
+	if (_Method != "POST")
+		return 0;
+	if (_Headers.find("Content-Length") == _Headers.end())
+		return 0;
+	const std::vector<std::string> &contentLengths = _Headers.at("Content-Length");
+	if (contentLengths.size() != 1)
+		return 0;
+	return std::stoul(contentLengths[0]);
+	//TODO: Content-Lengthよりも長いパケットが来た場合の処理
+}
+
 }	 // namespace webserv

@@ -46,6 +46,7 @@ class HttpRequest
 	const std::vector<uint8_t> &getBody() const;
 	bool isRequestLineParsed() const;
 	bool isRequestHeaderParsed() const;
+	size_t getContentLength() const;
 
  private:
 	bool parseRequestLine(
