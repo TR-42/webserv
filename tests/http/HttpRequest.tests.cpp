@@ -138,6 +138,26 @@ TEST(HttpRequest, RequestBody)
 	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1, 10), 0);
 }
 
+TEST(HttpRequest, RequestBody_Partially)
+{
+	webserv::HttpRequest request;
+	std::string reqStr = BODY_CASE_1;
+	size_t reqStrSize = reqStr.size();
+	for (size_t i = 0; i < reqStrSize; ++i) {
+		std::vector<uint8_t> reqPacket(1);
+		reqPacket[0] = reqStr[i];
+		EXPECT_TRUE(request.pushRequestRaw(reqPacket));
+	}
+
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.isRequestHeaderParsed(), true);
+	EXPECT_EQ(request.getContentLength(), 10);
+	EXPECT_EQ(request.isRequestBodyLengthEnough(), true);
+	EXPECT_EQ(request.isRequestBodyLengthTooMuch(), false);
+	EXPECT_EQ(request.getBody().size(), 10);
+	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1, 10), 0);
+}
+
 TEST(HttpRequest, RequestBody_TooMuch)
 {
 	webserv::HttpRequest request;
