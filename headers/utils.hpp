@@ -22,6 +22,11 @@ std::string url_decode(
 	const std::string &str
 );
 
+bool stoul(
+	const std::string &str,
+	unsigned long &result
+);
+
 }	 // namespace utils
 
 }	 // namespace webserv

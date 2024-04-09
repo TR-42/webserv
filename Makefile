@@ -24,7 +24,12 @@ SRCS_HTTP	=\
 SRCS_LOGGER	=\
 	Logger.cpp\
 
+SRCS_MATH =\
+	can_add.cpp\
+	can_mul.cpp\
+
 SRCS_UTILS	=\
+	stoul.cpp\
 	strtrim.cpp\
 	url_decode.cpp\
 
@@ -38,6 +43,7 @@ SRC_FILES	=\
 	$(addprefix env/, $(SRCS_ENV))\
 	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
+	$(addprefix math/, $(SRCS_MATH))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
