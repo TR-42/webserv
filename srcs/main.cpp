@@ -72,47 +72,57 @@ int main(int argc, const char *argv[])
 			<< ", "
 			<< "client_port: " << ntohs(((struct sockaddr_in *)&client_addr)->sin_port)
 			<< std::endl;
-		size_t buf_size = 1024;
-		char buf[buf_size];
-		ssize_t recv_size = 0;
-		// ssize_t recv_size = recv(client_fd, buf, buf_size, 0);
-
-		webserv::HttpRequest request;
-		while (request.isRequestHeaderParsed() == false &&
-					 (recv_size = recv(client_fd, buf, buf_size, 0)) > 0) {
-			std::string str(buf, recv_size);
-			std::cout << "recv: " << str << std::endl;
-			request.pushRequestRaw(std::vector<uint8_t>(buf, buf + recv_size));
-		}
-		if (recv_size < 0) {
-			perror("recv");
-			close(client_fd);
-			close(fd);
-			return 1;
-		}
-
-		webserv::HttpResponse response;
-		std::string body = "Hello, World!\n";
-		std::vector<uint8_t> body_vec(body.begin(), body.end());
-		response.setVersion("HTTP/1.1");
-		response.setStatusCode("200");
-		response.setReasonPhrase("OK");
-		response.setBody(body_vec);
-		response.getHeaders()["Content-Type"].push_back("text/plain");
-		response.getHeaders()["Content-Length"].push_back(to_string(body_vec.size()));
-
-		std::vector<uint8_t> response_packet = response.generateResponsePacket();
-		ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
-		L_INFO("send_size: " + to_string(send_size));
-		if (send_size < 0) {
-			perror("send");
-			close(client_fd);
-			close(fd);
-			return 1;
-		}
-
+		bool request_result = process_http_request(client_fd, logger);
 		close(client_fd);
+		if (request_result == false) {
+			close(fd);
+			return 1;
+		}
 	}
 
 	return 0;
+}
+
+bool process_http_request(int client_fd, const webserv::Logger &logger)
+{
+	size_t buf_size = 1024;
+	char buf[buf_size];
+	ssize_t recv_size = 0;
+
+	webserv::HttpRequest request;
+	while (request.isRequestBodyLengthEnough() == false &&
+				 (recv_size = recv(client_fd, buf, buf_size, 0)) > 0) {
+		std::string str(buf, recv_size);
+		std::cout << "recv: " << str << std::endl;
+		if (request.pushRequestRaw(std::vector<uint8_t>(buf, buf + recv_size)) == false) {
+			L_WARN("request pushRequestRaw failed");
+			return true;
+		}
+	}
+	if (recv_size < 0) {
+		perror("recv");
+		return false;
+	} else if (request.isRequestBodyLengthTooMuch()) {
+		L_WARN("request body too much");
+		return true;
+	}
+
+	webserv::HttpResponse response;
+	std::string body = "Hello, World!\n";
+	std::vector<uint8_t> body_vec(body.begin(), body.end());
+	response.setVersion("HTTP/1.1");
+	response.setStatusCode("200");
+	response.setReasonPhrase("OK");
+	response.setBody(body_vec);
+	response.getHeaders()["Content-Type"].push_back("text/plain");
+	response.getHeaders()["Content-Length"].push_back(to_string(body_vec.size()));
+
+	std::vector<uint8_t> response_packet = response.generateResponsePacket();
+	ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
+	L_INFO("send_size: " + to_string(send_size));
+	if (send_size < 0) {
+		perror("send");
+		return false;
+	}
+	return true;
 }
