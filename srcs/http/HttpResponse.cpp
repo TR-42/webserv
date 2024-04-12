@@ -9,6 +9,11 @@ IMPL_GETTER_SETTER_NS(std::string, ReasonPhrase, HttpResponse::)
 IMPL_REF_NO_CONST_GETTER_SETTER_NS(ResponseHeaderMap, Headers, HttpResponse::)
 IMPL_REF_NO_CONST_GETTER_SETTER_NS(std::vector<uint8_t>, Body, HttpResponse::)
 
+void HttpResponse::setBody(const std::string &body)
+{
+	this->_Body = std::vector<uint8_t>(body.begin(), body.end());
+}
+
 std::vector<uint8_t> HttpResponse::generateResponsePacket() const
 {
 	std::vector<uint8_t> responsePacket;

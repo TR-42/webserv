@@ -27,6 +27,10 @@ bool stoul(
 	unsigned long &result
 );
 
+std::string to_string(
+	int i
+);
+
 }	 // namespace utils
 
 }	 // namespace webserv

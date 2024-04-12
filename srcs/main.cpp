@@ -9,13 +9,9 @@
 
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
+#include "utils.hpp"
 
-static std::string to_string(int i)
-{
-	char buf[16];
-	snprintf(buf, sizeof(buf), "%d", i);
-	return std::string(buf);
-}
+bool process_http_request(int client_fd, const webserv::Logger &logger);
 static std::string get_argv_str(int argc, const char *argv[])
 {
 	std::string str;
@@ -23,7 +19,7 @@ static std::string get_argv_str(int argc, const char *argv[])
 		if (i != 0) {
 			str += " ";
 		}
-		str += "[" + to_string(i) + "]:'" + argv[i] + "'";
+		str += "[" + webserv::utils::to_string(i) + "]:'" + argv[i] + "'";
 	}
 	return str;
 }
@@ -61,7 +57,7 @@ int main(int argc, const char *argv[])
 		struct sockaddr client_addr;
 		socklen_t client_addr_len = sizeof(client_addr);
 		int client_fd = accept(fd, &client_addr, &client_addr_len);
-		L_INFO("client_fd: " + to_string(client_fd));
+		L_INFO("client_fd: " + webserv::utils::to_string(client_fd));
 		if (client_fd < 0) {
 			perror("accept");
 			close(fd);
@@ -115,11 +111,11 @@ bool process_http_request(int client_fd, const webserv::Logger &logger)
 	response.setReasonPhrase("OK");
 	response.setBody(body_vec);
 	response.getHeaders()["Content-Type"].push_back("text/plain");
-	response.getHeaders()["Content-Length"].push_back(to_string(body_vec.size()));
+	response.getHeaders()["Content-Length"].push_back(webserv::utils::to_string(body_vec.size()));
 
 	std::vector<uint8_t> response_packet = response.generateResponsePacket();
 	ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
-	L_INFO("send_size: " + to_string(send_size));
+	L_INFO("send_size: " + webserv::utils::to_string(send_size));
 	if (send_size < 0) {
 		perror("send");
 		return false;

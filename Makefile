@@ -29,8 +29,10 @@ SRCS_MATH =\
 	can_mul.cpp\
 
 SRCS_UTILS	=\
+	ErrorPageProvider.cpp\
 	stoul.cpp\
 	strtrim.cpp\
+	to_string.cpp\
 	url_decode.cpp\
 
 SRCS_MAIN	=\
