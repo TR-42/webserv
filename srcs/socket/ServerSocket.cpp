@@ -1,0 +1,73 @@
+#include <sys/socket.h>
+
+#include <socket/ServerSocket.hpp>
+#include <utils.hpp>
+#include <utils/UUIDv7.hpp>
+
+namespace webserv
+{
+
+SockEventResultType ServerSocket::onEventGot(
+	short revents,
+	std::vector<Socket *> &sockets
+)
+{
+	if (!IS_POLLIN(revents)) {
+		CS_DEBUG()
+			<< "No POLLIN event"
+			<< std::endl;
+		return SockEventResult::OK;
+	}
+
+	struct sockaddr clientAddr;
+	socklen_t clientAddrLen = 0;
+	int clientFd = accept(
+		this->getFD(),
+		&clientAddr,
+		&clientAddrLen
+	);
+	if (clientFd < 0) {
+		const char *errorStr = strerror(errno);
+		CS_FATAL()
+			<< "accept() failed: " << errorStr
+			<< std::endl;
+		return SockEventResult::ERROR;
+	}
+
+	CS_INFO()
+		<< "Accepted new connection from "
+		<< utils::to_string(clientAddr)
+		<< std::endl;
+
+	utils::UUID clientUuid = utils::UUIDv7();
+	// TODO: ClientSocketを実装したら、コメントアウトを外す
+	Socket *clientSocket = NULL;	// new ClientSocket(clientFd);
+	sockets.push_back(clientSocket);
+	CS_DEBUG()
+		<< "New client socket created: " << clientUuid
+		<< std::endl;
+
+	return SockEventResult::OK;
+}
+
+void ServerSocket::setToPollFd(
+	struct pollfd &pollFd
+) const
+{
+	Socket::setToPollFd(pollFd);
+	pollFd.events = POLLIN;
+}
+
+ServerSocket::ServerSocket(
+	int fd
+) : Socket(fd),
+		logger("Server=" + Socket::getUUID().toString())
+{
+}
+
+ServerSocket::~ServerSocket()
+{
+	// serverFdのcloseは、Socketのデストラクタで行われる
+}
+
+}	 // namespace webserv

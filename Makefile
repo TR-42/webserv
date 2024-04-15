@@ -29,6 +29,11 @@ SRCS_MATH =\
 	can_add.cpp\
 	can_mul.cpp\
 
+SRCS_SOCKET	=\
+	Poll.cpp\
+	ServerSocket.cpp\
+	Socket.cpp\
+
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
 	stoul.cpp\
@@ -49,6 +54,7 @@ SRC_FILES	=\
 	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix math/, $(SRCS_MATH))\
+	$(addprefix socket/, $(SRCS_SOCKET))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\

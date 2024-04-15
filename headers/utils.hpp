@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sys/socket.h>
+
 #include <string>
 
 namespace webserv
@@ -29,6 +31,10 @@ bool stoul(
 
 std::string to_string(
 	int i
+);
+
+std::string to_string(
+	const struct sockaddr &addr
 );
 
 }	 // namespace utils
