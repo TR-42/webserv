@@ -2,6 +2,8 @@
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <stdexcept>
+
 #define FMT_RESET "\033[0m"
 #define FMT_BOLD "\033[1m"
 #define FMT_DIM "\033[2m"
@@ -79,6 +81,13 @@ _get_timestamp()
 	return std::string(buf);
 }
 
+static const std::string _getCustomIdWithSpace(
+	const std::string &CustomId
+)
+{
+	return CustomId.empty() ? CustomId : " `" + CustomId + "`";
+}
+
 void webserv::Logger::_print(
 	std::string const &message,
 	std::string const &level,
@@ -102,6 +111,7 @@ std::ostream &webserv::Logger::_print(
 	return (
 		this->_os
 		<< _get_timestamp()
+		<< this->_CustomId
 		<< " " << file << ":" << line
 		<< "\t" << func
 		<< "\t[" << level << "]"
@@ -109,12 +119,55 @@ std::ostream &webserv::Logger::_print(
 	);
 }
 
-webserv::Logger::Logger() : _os(std::clog)
+webserv::Logger::Logger(
+) : _CustomId(),
+		_os(std::clog)
 {
 }
 
-webserv::Logger::Logger(std::ostream &os) : _os(os)
+webserv::Logger::Logger(
+	const std::string &CustomId
+) : _CustomId(_getCustomIdWithSpace(CustomId)),
+		_os(std::clog)
 {
+}
+
+webserv::Logger::Logger(
+	std::ostream &os
+) : _CustomId(),
+		_os(os)
+{
+}
+
+webserv::Logger::Logger(
+	std::ostream &os,
+	const std::string &CustomId
+) : _CustomId(_getCustomIdWithSpace(CustomId)),
+		_os(os)
+{
+}
+
+webserv::Logger::Logger(
+	const Logger &src
+) : _CustomId(src._CustomId),
+		_os(src._os)
+{
+}
+
+webserv::Logger::Logger(
+	const Logger &src,
+	const std::string &CustomId
+) : _CustomId(_getCustomIdWithSpace(CustomId)),
+		_os(src._os)
+{
+}
+
+webserv::Logger &webserv::Logger::operator=(
+	const Logger &src
+)
+{
+	(void)src;
+	throw std::logic_error("Logger::operator= is not implemented");
 }
 
 #define LOGGER_FUNC_IMPL(name) \

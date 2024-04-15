@@ -120,7 +120,7 @@ namespace webserv
 class Logger
 {
  private:
-	std::string _class;
+	std::string _CustomId;
 	std::ostream &_os;
 
 	void _print(
@@ -137,9 +137,16 @@ class Logger
 		const char *func
 	) const;
 
+	Logger &operator=(const Logger &src);
+
  public:
 	Logger();
+	Logger(const std::string &CustomId);
 	Logger(std::ostream &os);
+	Logger(std::ostream &os, const std::string &CustomId);
+
+	Logger(const Logger &src);
+	Logger(const Logger &src, const std::string &CustomId);
 
 	LOGGER_FUNC_DECL(log);
 	LOGGER_FUNC_DECL(debug);
