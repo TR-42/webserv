@@ -22,14 +22,15 @@ static std::string _ipv4_to_string(
 {
 	char buf[15];
 
+	uint32_t addr32 = ntohl(addr.s_addr);
 	std::snprintf(
 		buf,
 		sizeof(buf),
 		"%d.%d.%d.%d",
-		(addr.s_addr >> (0 * 8)) & 0xff,
-		(addr.s_addr >> (1 * 8)) & 0xff,
-		(addr.s_addr >> (2 * 8)) & 0xff,
-		(addr.s_addr >> (3 * 8)) & 0xff
+		(addr32 >> (0 * 8)) & 0xff,
+		(addr32 >> (1 * 8)) & 0xff,
+		(addr32 >> (2 * 8)) & 0xff,
+		(addr32 >> (3 * 8)) & 0xff
 	);
 
 	return std::string(buf);
@@ -43,12 +44,12 @@ static std::string _ipv6_to_string(
 	size_t i = 0;
 
 	for (i = 0; i < 8; i++) {
+		uint16_t part = ntohs(*((uint16_t *)(&addr.s6_addr[i * 2])));
 		std::snprintf(
 			buf + i * 5,
 			4,
-			"%02x%02x:",
-			addr.s6_addr[i * 2],
-			addr.s6_addr[(i * 2) + 1]
+			"%x:",
+			part
 		);
 	}
 	buf[40] = '\0';
