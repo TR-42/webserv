@@ -109,7 +109,7 @@ bool process_http_request(
 			return (send_http_response(client_fd, errorPageProvider.badRequest()));
 		}
 	}
-	if (send_http_response(client_fd, errorPageProvider.badRequest()) == false) {
+	if (recv_size < 0) {
 		perror("recv");
 		return false;
 	} else if (request.isRequestBodyLengthTooMuch()) {
@@ -117,17 +117,24 @@ bool process_http_request(
 		return (send_http_response(client_fd, errorPageProvider.badRequest()));
 	}
 
-	webserv::HttpResponse response;
-	std::string body = "Hello, World!\n";
-	std::vector<uint8_t> body_vec(body.begin(), body.end());
-	response.setVersion("HTTP/1.1");
-	response.setStatusCode("200");
-	response.setReasonPhrase("OK");
-	response.setBody(body_vec);
-	response.getHeaders()["Content-Type"].push_back("text/plain");
-	response.getHeaders()["Content-Length"].push_back(webserv::utils::to_string(body_vec.size()));
-
-	return send_http_response(client_fd, response);
+	if (request.getPath().empty() || request.getPath()[0] != '/') {
+		L_WARN("request path is empty or not start with '/'");
+		return (send_http_response(client_fd, errorPageProvider.badRequest()));
+	}
+	std::string path = request.getPath().substr(1);
+	L_INFO("path: " + path);
+	webserv::HttpResponse response = errorPageProvider.getErrorPage(path);
+	LS_LOG()
+		<< "response: "
+		<< "version: " << response.getVersion()
+		<< ", "
+		<< "statusCode: " << response.getStatusCode()
+		<< ", "
+		<< "reasonPhrase: " << response.getReasonPhrase()
+		<< ", "
+		// << "body: " << response.getBody()
+		<< std::endl;
+	return (send_http_response(client_fd, response));
 }
 
 bool send_http_response(

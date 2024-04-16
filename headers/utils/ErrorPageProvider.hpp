@@ -2,6 +2,7 @@
 
 #include <http/HttpResponse.hpp>
 #include <map>
+#include <string>
 
 namespace webserv
 {
@@ -14,7 +15,6 @@ class ErrorPageProvider
  public:
 	ErrorPageProvider();
 	~ErrorPageProvider();
-	HttpResponse getErrorPage(int statusCode) const;
 	HttpResponse badRequest() const;
 	HttpResponse notFound() const;
 	HttpResponse movedPermanently() const;
@@ -24,6 +24,8 @@ class ErrorPageProvider
 	HttpResponse serviceUnavailable() const;
 	HttpResponse gatewayTimeout() const;
 	HttpResponse httpVersionNotSupported() const;
+	HttpResponse getErrorPage(const std::string &path) const;
+	HttpResponse getErrorPage(int statusCode) const;
 
 	static const int BAD_REQUEST = 400;
 	static const int NOT_FOUND = 404;

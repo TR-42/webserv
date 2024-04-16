@@ -1,3 +1,5 @@
+#include "utils/ErrorPageProvider.hpp"
+
 #include <http/HttpResponse.hpp>
 #include <string>
 
@@ -8,36 +10,6 @@ namespace webserv
 
 namespace utils
 {
-
-class ErrorPageProvider
-{
- public:
-	ErrorPageProvider();
-	~ErrorPageProvider();
-	HttpResponse getErrorPage(int statusCode) const;
-	HttpResponse badRequest() const;
-	HttpResponse notFound() const;
-	HttpResponse movedPermanently() const;
-	HttpResponse found() const;
-	HttpResponse internalServerError() const;
-	HttpResponse notImplemented() const;
-	HttpResponse serviceUnavailable() const;
-	HttpResponse gatewayTimeout() const;
-	HttpResponse httpVersionNotSupported() const;
-
-	static const int BAD_REQUEST = 400;
-	static const int NOT_FOUND = 404;
-	static const int MOVED_PERMANENTLY = 301;
-	static const int FOUND = 302;
-	static const int INTERNAL_SERVER_ERROR = 500;
-	static const int NOT_IMPLEMENTED = 501;
-	static const int SERVICE_UNAVAILABLE = 503;
-	static const int GATEWAY_TIMEOUT = 504;
-	static const int HTTP_VERSION_NOT_SUPPORTED = 505;
-
- private:
-	std::map<int, HttpResponse> _errorPages;
-};
 
 const int ErrorPageProvider::BAD_REQUEST;
 const int ErrorPageProvider::NOT_FOUND;
@@ -184,6 +156,19 @@ HttpResponse ErrorPageProvider::gatewayTimeout() const
 HttpResponse ErrorPageProvider::httpVersionNotSupported() const
 {
 	return this->_errorPages.at(ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED);
+}
+
+HttpResponse ErrorPageProvider::getErrorPage(const std::string &statusCode) const
+{
+	unsigned long statusCodeUL = 0;
+	if (!utils::stoul(statusCode, statusCodeUL)) {
+		return _errorPages.at(ErrorPageProvider::NOT_FOUND);
+	}
+	std::map<int, HttpResponse>::const_iterator it = this->_errorPages.find(statusCodeUL);
+	if (it == this->_errorPages.end()) {
+		return _errorPages.at(ErrorPageProvider::NOT_FOUND);
+	}
+	return it->second;
 }
 
 }	 // namespace utils
