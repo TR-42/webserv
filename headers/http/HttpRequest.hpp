@@ -30,6 +30,7 @@ class HttpRequest
 
  public:
 	HttpRequest();
+	HttpRequest(const std::string &requestText) : requestText(requestText) {}
 	/**
 	 * @brief 今までに受け取ったパケットとともに、HTTPリクエストを解析する
 	 *
@@ -61,6 +62,7 @@ class HttpRequest
 		const std::vector<uint8_t> &requestRawLine
 	);
 	Logger logger;
+	std::string requestText;
 };
 
 }	 // namespace webserv

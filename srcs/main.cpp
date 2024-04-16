@@ -17,6 +17,10 @@ bool process_http_request(
 	const webserv::Logger &logger,
 	const webserv::utils::ErrorPageProvider &errorPageProvider
 );
+bool send_http_response(
+	int client_fd,
+	const webserv::HttpResponse &response
+);
 static std::string get_argv_str(int argc, const char *argv[])
 {
 	std::string str;
@@ -102,29 +106,15 @@ bool process_http_request(
 		std::cout << "recv: " << str << std::endl;
 		if (request.pushRequestRaw(std::vector<uint8_t>(buf, buf + recv_size)) == false) {
 			L_WARN("request pushRequestRaw failed");
-			std::vector<uint8_t> response_packet = errorPageProvider.badRequest().generateResponsePacket();
-			ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
-			L_INFO("send_size: " + webserv::utils::to_string(send_size));
-			if (send_size < 0) {
-				perror("send");
-				return false;
-			}
-			return true;
+			return (send_http_response(client_fd, errorPageProvider.badRequest()));
 		}
 	}
-	if (recv_size < 0) {
+	if (send_http_response(client_fd, errorPageProvider.badRequest()) == false) {
 		perror("recv");
 		return false;
 	} else if (request.isRequestBodyLengthTooMuch()) {
 		L_WARN("request body too much");
-		std::vector<uint8_t> response_packet = errorPageProvider.badRequest().generateResponsePacket();
-		ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
-		L_INFO("send_size: " + webserv::utils::to_string(send_size));
-		if (send_size < 0) {
-			perror("send");
-			return false;
-		}
-		return true;
+		return (send_http_response(client_fd, errorPageProvider.badRequest()));
 	}
 
 	webserv::HttpResponse response;
@@ -137,9 +127,16 @@ bool process_http_request(
 	response.getHeaders()["Content-Type"].push_back("text/plain");
 	response.getHeaders()["Content-Length"].push_back(webserv::utils::to_string(body_vec.size()));
 
+	return send_http_response(client_fd, response);
+}
+
+bool send_http_response(
+	int client_fd,
+	const webserv::HttpResponse &response
+)
+{
 	std::vector<uint8_t> response_packet = response.generateResponsePacket();
 	ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
-	L_INFO("send_size: " + webserv::utils::to_string(send_size));
 	if (send_size < 0) {
 		perror("send");
 		return false;
