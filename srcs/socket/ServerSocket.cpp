@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include <socket/ClientSocket.hpp>
 #include <socket/ServerSocket.hpp>
 #include <utils.hpp>
 #include <utils/UUIDv7.hpp>
@@ -42,8 +43,7 @@ SockEventResultType ServerSocket::onEventGot(
 		<< std::endl;
 
 	utils::UUID clientUuid = utils::UUIDv7();
-	// TODO: ClientSocketを実装したら、コメントアウトを外す
-	Socket *clientSocket = NULL;	// new ClientSocket(clientFd);
+	Socket *clientSocket = new ClientSocket(clientFd, this->logger.getCustomId());
 	sockets.push_back(clientSocket);
 	CS_DEBUG()
 		<< "New client socket created: " << clientUuid
@@ -70,6 +70,7 @@ ServerSocket::ServerSocket(
 ServerSocket::~ServerSocket()
 {
 	// serverFdのcloseは、Socketのデストラクタで行われる
+	// clientSocketのDisposeは、socketListから削除するときに行われる
 }
 
 }	 // namespace webserv

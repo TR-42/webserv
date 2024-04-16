@@ -30,6 +30,7 @@ SRCS_MATH =\
 	can_mul.cpp\
 
 SRCS_SOCKET	=\
+	ClientSocket.cpp\
 	Poll.cpp\
 	ServerSocket.cpp\
 	Socket.cpp\

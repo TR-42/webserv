@@ -170,6 +170,11 @@ webserv::Logger &webserv::Logger::operator=(
 	throw std::logic_error("Logger::operator= is not implemented");
 }
 
+std::string webserv::Logger::getCustomId() const
+{
+	return this->_CustomId;
+}
+
 #define LOGGER_FUNC_IMPL(name) \
 	void webserv::Logger::name( \
 		const char *file, \

@@ -40,7 +40,7 @@
  * @brief 変数を指定してログ出力を行う (レベル: warn)
  */
 #define V_WARN(logger, ...) DO_LOG(logger, warn, ##__VA_ARGS__)
-#define VS_WARN(logger) DO_LOG(logger, warn)
+#define VS_WARN(logger) DO_S_LOG(logger, warn)
 /**
  * @brief 変数を指定してログ出力を行う (レベル: error)
  */
@@ -147,6 +147,8 @@ class Logger
 
 	Logger(const Logger &src);
 	Logger(const Logger &src, const std::string &CustomId);
+
+	std::string getCustomId() const;
 
 	LOGGER_FUNC_DECL(log);
 	LOGGER_FUNC_DECL(debug);
