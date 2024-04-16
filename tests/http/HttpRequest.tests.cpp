@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstring>
 #include <http/HttpRequest.hpp>
 
 #define REQ_LINE_CASE_1 "GET /index.html HTTP/1.1\r\n"
