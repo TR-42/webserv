@@ -39,6 +39,16 @@ class ErrorPageProvider
 	std::map<int, HttpResponse> _errorPages;
 };
 
+const int ErrorPageProvider::BAD_REQUEST;
+const int ErrorPageProvider::NOT_FOUND;
+const int ErrorPageProvider::MOVED_PERMANENTLY;
+const int ErrorPageProvider::FOUND;
+const int ErrorPageProvider::INTERNAL_SERVER_ERROR;
+const int ErrorPageProvider::NOT_IMPLEMENTED;
+const int ErrorPageProvider::SERVICE_UNAVAILABLE;
+const int ErrorPageProvider::GATEWAY_TIMEOUT;
+const int ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED;
+
 static HttpResponse createResponse(int statusCode, const std::string &reasonPhrase, const std::string &body)
 {
 	HttpResponse response;
