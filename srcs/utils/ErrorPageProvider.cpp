@@ -52,6 +52,7 @@ const int ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED;
 static HttpResponse createResponse(int statusCode, const std::string &reasonPhrase, const std::string &body)
 {
 	HttpResponse response;
+	response.setVersion("HTTP/1.1");
 	response.setStatusCode(to_string(statusCode));
 	response.setReasonPhrase(reasonPhrase);
 	response.setBody(body);
@@ -70,17 +71,65 @@ static const HttpResponse defaultBadRequest = createResponse(
 	"400 Bad Request\n"
 );
 
+static const HttpResponse defaultNotFound = createResponse(
+	ErrorPageProvider::NOT_FOUND,
+	"Not Found",
+	"404 Not Found\n"
+);
+
+static const HttpResponse defaultMovedPermanently = createResponse(
+	ErrorPageProvider::MOVED_PERMANENTLY,
+	"Moved Permanently",
+	"301 Moved Permanently\n"
+);
+
+static const HttpResponse defaultFound = createResponse(
+	ErrorPageProvider::FOUND,
+	"Found",
+	"302 Found\n"
+);
+
+static const HttpResponse defaultInternalServerError = createResponse(
+	ErrorPageProvider::INTERNAL_SERVER_ERROR,
+	"Internal Server Error",
+	"500 Internal Server Error\n"
+);
+
+static const HttpResponse defaultNotImplemented = createResponse(
+	ErrorPageProvider::NOT_IMPLEMENTED,
+	"Not Implemented",
+	"501 Not Implemented\n"
+);
+
+static const HttpResponse defaultServiceUnavailable = createResponse(
+	ErrorPageProvider::SERVICE_UNAVAILABLE,
+	"Service Unavailable",
+	"503 Service Unavailable\n"
+);
+
+static const HttpResponse defaultGatewayTimeout = createResponse(
+	ErrorPageProvider::GATEWAY_TIMEOUT,
+	"Gateway Timeout",
+	"504 Gateway Timeout\n"
+);
+
+static const HttpResponse defaultHttpVersionNotSupported = createResponse(
+	ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED,
+	"HTTP Version Not Supported",
+	"505 HTTP Version Not Supported\n"
+);
+
 ErrorPageProvider::ErrorPageProvider()
 {
 	this->_errorPages[ErrorPageProvider::BAD_REQUEST] = defaultBadRequest;
-	this->_errorPages[ErrorPageProvider::NOT_FOUND] = this->notFound();
-	this->_errorPages[ErrorPageProvider::MOVED_PERMANENTLY] = this->movedPermanently();
-	this->_errorPages[ErrorPageProvider::FOUND] = this->found();
-	this->_errorPages[ErrorPageProvider::INTERNAL_SERVER_ERROR] = this->internalServerError();
-	this->_errorPages[ErrorPageProvider::NOT_IMPLEMENTED] = this->notImplemented();
-	this->_errorPages[ErrorPageProvider::SERVICE_UNAVAILABLE] = this->serviceUnavailable();
-	this->_errorPages[ErrorPageProvider::GATEWAY_TIMEOUT] = this->gatewayTimeout();
-	this->_errorPages[ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED] = this->httpVersionNotSupported();
+	this->_errorPages[ErrorPageProvider::NOT_FOUND] = defaultNotFound;
+	this->_errorPages[ErrorPageProvider::MOVED_PERMANENTLY] = defaultMovedPermanently;
+	this->_errorPages[ErrorPageProvider::FOUND] = defaultFound;
+	this->_errorPages[ErrorPageProvider::INTERNAL_SERVER_ERROR] = defaultInternalServerError;
+	this->_errorPages[ErrorPageProvider::NOT_IMPLEMENTED] = defaultNotImplemented;
+	this->_errorPages[ErrorPageProvider::SERVICE_UNAVAILABLE] = defaultServiceUnavailable;
+	this->_errorPages[ErrorPageProvider::GATEWAY_TIMEOUT] = defaultGatewayTimeout;
+	this->_errorPages[ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED] = defaultHttpVersionNotSupported;
 }
 
 ErrorPageProvider::~ErrorPageProvider()
