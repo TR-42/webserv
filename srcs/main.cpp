@@ -10,8 +10,13 @@
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
 #include "utils.hpp"
+#include "utils/ErrorPageProvider.hpp"
 
-bool process_http_request(int client_fd, const webserv::Logger &logger);
+bool process_http_request(
+	int client_fd,
+	const webserv::Logger &logger,
+	const webserv::utils::ErrorPageProvider &errorPageProvider
+);
 static std::string get_argv_str(int argc, const char *argv[])
 {
 	std::string str;
@@ -27,6 +32,7 @@ static std::string get_argv_str(int argc, const char *argv[])
 int main(int argc, const char *argv[])
 {
 	webserv::Logger logger;
+	webserv::utils::ErrorPageProvider errorPageProvider;
 
 	std::cout << "Hello, World!" << std::endl;
 	L_LOG("argv: " + get_argv_str(argc, argv));
@@ -68,7 +74,7 @@ int main(int argc, const char *argv[])
 			<< ", "
 			<< "client_port: " << ntohs(((struct sockaddr_in *)&client_addr)->sin_port)
 			<< std::endl;
-		bool request_result = process_http_request(client_fd, logger);
+		bool request_result = process_http_request(client_fd, logger, errorPageProvider);
 		close(client_fd);
 		if (request_result == false) {
 			close(fd);
@@ -79,7 +85,11 @@ int main(int argc, const char *argv[])
 	return 0;
 }
 
-bool process_http_request(int client_fd, const webserv::Logger &logger)
+bool process_http_request(
+	int client_fd,
+	const webserv::Logger &logger,
+	const webserv::utils::ErrorPageProvider &errorPageProvider
+)
 {
 	size_t buf_size = 1024;
 	char buf[buf_size];
@@ -92,6 +102,13 @@ bool process_http_request(int client_fd, const webserv::Logger &logger)
 		std::cout << "recv: " << str << std::endl;
 		if (request.pushRequestRaw(std::vector<uint8_t>(buf, buf + recv_size)) == false) {
 			L_WARN("request pushRequestRaw failed");
+			std::vector<uint8_t> response_packet = errorPageProvider.badRequest().generateResponsePacket();
+			ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
+			L_INFO("send_size: " + webserv::utils::to_string(send_size));
+			if (send_size < 0) {
+				perror("send");
+				return false;
+			}
 			return true;
 		}
 	}
@@ -100,6 +117,13 @@ bool process_http_request(int client_fd, const webserv::Logger &logger)
 		return false;
 	} else if (request.isRequestBodyLengthTooMuch()) {
 		L_WARN("request body too much");
+		std::vector<uint8_t> response_packet = errorPageProvider.badRequest().generateResponsePacket();
+		ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
+		L_INFO("send_size: " + webserv::utils::to_string(send_size));
+		if (send_size < 0) {
+			perror("send");
+			return false;
+		}
 		return true;
 	}
 
