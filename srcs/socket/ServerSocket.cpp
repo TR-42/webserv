@@ -22,7 +22,7 @@ SockEventResultType ServerSocket::onEventGot(
 	}
 
 	struct sockaddr clientAddr;
-	socklen_t clientAddrLen = 0;
+	socklen_t clientAddrLen = sizeof(clientAddr);
 	int clientFd = accept(
 		this->getFD(),
 		&clientAddr,
@@ -40,6 +40,8 @@ SockEventResultType ServerSocket::onEventGot(
 		<< "Accepted new connection from "
 		<< utils::to_string(clientAddr)
 		<< " (port: " << ntohs(((struct sockaddr_in *)&clientAddr)->sin_port) << ")"
+		<< " len: " << clientAddrLen
+		<< " family: " << (int)(clientAddr.sa_family)
 		<< std::endl;
 
 	utils::UUID clientUuid = utils::UUIDv7();
