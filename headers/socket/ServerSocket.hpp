@@ -12,7 +12,10 @@ class ServerSocket : public Socket
 	Logger logger;
 
  public:
-	ServerSocket(int fd);
+	ServerSocket(
+		int fd,
+		const Logger &logger
+	);
 	virtual ~ServerSocket();
 
 	virtual void setToPollFd(

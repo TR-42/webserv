@@ -19,7 +19,7 @@ Socket::Socket(
 
 Socket::~Socket()
 {
-	if (0 < this->_fd) {
+	if (0 <= this->_fd) {
 		close(this->_fd);
 	}
 }

@@ -57,6 +57,11 @@ bool HttpRequest::pushRequestRaw(
 		return true;
 	}
 
+	if (this->_IsParseCompleted) {
+		C_DEBUG("Request parsing was already completed");
+		return true;
+	}
+
 	if (_IsRequestHeaderParsed == false) {
 		C_DEBUG("_IsRequestHeaderParsed was false");
 		_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
@@ -106,6 +111,14 @@ bool HttpRequest::pushRequestRaw(
 		delete requestRawLine;
 		CS_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
 		_Body = _UnparsedRequestRaw;
+		// TODO: この段階でContentLengthのパースも行ってしまう
+		bool isContentLengthFieldExists = _Headers.find("Content-Length") != _Headers.end();
+		this->_IsParseCompleted = !isContentLengthFieldExists;
+		CS_DEBUG()
+			<< "isContentLengthFieldExists: " << isContentLengthFieldExists
+			<< ", "
+			<< "IsParseCompleted: " << this->_IsParseCompleted
+			<< std::endl;
 		return _IsRequestHeaderParsed;
 	} else if (isRequestBodyLengthEnough()) {
 		CS_DEBUG()

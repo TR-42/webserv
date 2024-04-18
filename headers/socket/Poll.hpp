@@ -26,7 +26,10 @@ class Poll
 	);
 
  public:
-	Poll();
+	Poll(
+		const std::vector<Socket *> &initialSocketList,
+		const Logger &logger
+	);
 	~Poll();
 
 	/**

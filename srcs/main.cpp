@@ -5,6 +5,8 @@
 #include <Logger.hpp>
 #include <cstdio>
 #include <iostream>
+#include <socket/Poll.hpp>
+#include <socket/ServerSocket.hpp>
 #include <string>
 
 #include "http/HttpRequest.hpp"
@@ -63,27 +65,16 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 
+	std::vector<webserv::Socket *> socketList;
+	socketList.push_back(new webserv::ServerSocket(fd, logger));
+	webserv::Poll poll(socketList, logger);
 	while (1) {
-		struct sockaddr client_addr;
-		socklen_t client_addr_len = sizeof(client_addr);
-		int client_fd = accept(fd, &client_addr, &client_addr_len);
-		L_INFO("client_fd: " + webserv::utils::to_string(client_fd));
-		if (client_fd < 0) {
-			perror("accept");
-			close(fd);
+		bool result = poll.loop();
+		if (!result) {
+			L_FATAL("poll loop failed");
 			return 1;
 		}
-		LS_INFO()
-			<< "client_addr: " << inet_ntoa(((struct sockaddr_in *)&client_addr)->sin_addr)
-			<< ", "
-			<< "client_port: " << ntohs(((struct sockaddr_in *)&client_addr)->sin_port)
-			<< std::endl;
-		bool request_result = process_http_request(client_fd, logger, errorPageProvider);
-		close(client_fd);
-		if (request_result == false) {
-			close(fd);
-			return 1;
-		}
+		usleep(10 * 1000);
 	}
 
 	return 0;

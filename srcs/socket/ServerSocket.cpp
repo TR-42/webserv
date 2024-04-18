@@ -61,9 +61,10 @@ void ServerSocket::setToPollFd(
 }
 
 ServerSocket::ServerSocket(
-	int fd
+	int fd,
+	const Logger &logger
 ) : Socket(fd),
-		logger("Server=" + Socket::getUUID().toString())
+		logger(logger, "Server=" + Socket::getUUID().toString())
 {
 }
 

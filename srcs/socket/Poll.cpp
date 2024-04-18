@@ -1,17 +1,35 @@
 #include <iostream>
 #include <socket/Poll.hpp>
 
-#define POLL_TIMEOUT 10
+#define POLL_TIMEOUT 1000
 
 namespace webserv
 {
 
-Poll::Poll()
+Poll::Poll(
+	const std::vector<Socket *> &initialSocketList,
+	const Logger &logger
+) : _SocketList(initialSocketList),
+		logger(logger)
 {
 }
 
 Poll::~Poll()
 {
+	const size_t socketCount = _SocketList.size();
+	CS_DEBUG()
+		<< "Poll instance destroying... "
+		<< socketCount << " sockets left"
+		<< std::endl;
+
+	for (size_t i = 0; i < socketCount; i++) {
+		delete this->_SocketList[i];
+		// 念のためNULLを代入
+		this->_SocketList[i] = NULL;
+	}
+
+	// 念のためクリア
+	this->_SocketList.clear();
 }
 
 bool Poll::loop()

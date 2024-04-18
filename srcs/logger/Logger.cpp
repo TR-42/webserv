@@ -121,13 +121,15 @@ std::ostream &webserv::Logger::_print(
 
 webserv::Logger::Logger(
 ) : _CustomId(),
+		_CustomIdWithSpace(),
 		_os(std::clog)
 {
 }
 
 webserv::Logger::Logger(
 	const std::string &CustomId
-) : _CustomId(_getCustomIdWithSpace(CustomId)),
+) : _CustomId(CustomId),
+		_CustomIdWithSpace(_getCustomIdWithSpace(CustomId)),
 		_os(std::clog)
 {
 }
@@ -135,6 +137,7 @@ webserv::Logger::Logger(
 webserv::Logger::Logger(
 	std::ostream &os
 ) : _CustomId(),
+		_CustomIdWithSpace(),
 		_os(os)
 {
 }
@@ -142,7 +145,8 @@ webserv::Logger::Logger(
 webserv::Logger::Logger(
 	std::ostream &os,
 	const std::string &CustomId
-) : _CustomId(_getCustomIdWithSpace(CustomId)),
+) : _CustomId(CustomId),
+		_CustomIdWithSpace(_getCustomIdWithSpace(CustomId)),
 		_os(os)
 {
 }
@@ -150,6 +154,7 @@ webserv::Logger::Logger(
 webserv::Logger::Logger(
 	const Logger &src
 ) : _CustomId(src._CustomId),
+		_CustomIdWithSpace(src._CustomIdWithSpace),
 		_os(src._os)
 {
 }
@@ -157,7 +162,8 @@ webserv::Logger::Logger(
 webserv::Logger::Logger(
 	const Logger &src,
 	const std::string &CustomId
-) : _CustomId(_getCustomIdWithSpace(CustomId)),
+) : _CustomId(CustomId),
+		_CustomIdWithSpace(_getCustomIdWithSpace(CustomId)),
 		_os(src._os)
 {
 }

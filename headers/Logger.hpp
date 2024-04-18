@@ -121,6 +121,7 @@ class Logger
 {
  private:
 	std::string _CustomId;
+	std::string _CustomIdWithSpace;
 	std::ostream &_os;
 
 	void _print(
