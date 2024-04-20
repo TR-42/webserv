@@ -111,7 +111,7 @@ std::ostream &webserv::Logger::_print(
 	return (
 		this->_os
 		<< _get_timestamp()
-		<< this->_CustomId
+		<< this->_CustomIdWithSpace
 		<< " " << file << ":" << line
 		<< "\t" << func
 		<< "\t[" << level << "]"
