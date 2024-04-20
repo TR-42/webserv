@@ -2,6 +2,23 @@
 
 #include <string>
 
+#ifdef DEBUG
+#define IS_DEBUG true
+#else
+#define IS_DEBUG false
+#endif
+
+#define LOG_LEVEL_log 0
+#define LOG_LEVEL_debug 10
+#define LOG_LEVEL_info 20
+#define LOG_LEVEL_warn 30
+#define LOG_LEVEL_error 40
+#define LOG_LEVEL_fatal 50
+
+#ifndef LOG_LEVEL
+#define LOG_LEVEL LOG_LEVEL_info
+#endif
+
 #define LOGGER_FUNC_DECL(name) \
 	void name( \
 		const char *file, \
@@ -17,9 +34,13 @@
 
 // ##__VA_ARGS__ ref: https://tyfkda.github.io/blog/2015/03/04/va_args.html
 #define DO_LOG(logger, level, ...) \
-	logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__)
+	if (!IS_DEBUG && LOG_LEVEL_##level < LOG_LEVEL) { \
+	} else \
+		logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__)
 #define DO_S_LOG(logger, level) \
-	logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__)
+	if (!IS_DEBUG && LOG_LEVEL_##level < LOG_LEVEL) { \
+	} else \
+		logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /**
  * @brief 変数を指定してログ出力を行う (レベル: log)

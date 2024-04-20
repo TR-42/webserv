@@ -39,32 +39,28 @@
 
 #define DEFAULT_TIMESTAMP_VALUE_BODY "1970-01-01T00:00:00"
 #define DEFAULT_TIMESTAMP_VALUE_Z "Z"
-#ifdef DEBUG
-#define TIMESTAMP_NS_FORMAT ".%09ld" DEFAULT_TIMESTAMP_VALUE_Z
-#define DEFAULT_TIMESTAMP_VALUE_NS ".000000000"
-#else
-#define DEFAULT_TIMESTAMP_VALUE_NS ""
-#endif
+#define TIMESTAMP_US_FORMAT ".%06ld" DEFAULT_TIMESTAMP_VALUE_Z
+#define DEFAULT_TIMESTAMP_VALUE_US ".000000000"
 #define DEFAULT_TIMESTAMP_VALUE_DEF ( \
 	DEFAULT_TIMESTAMP_VALUE_BODY \
-		DEFAULT_TIMESTAMP_VALUE_NS \
+		DEFAULT_TIMESTAMP_VALUE_US \
 			DEFAULT_TIMESTAMP_VALUE_Z \
 )
+#define NS_TO_US(ns) ((ns) / 1000)
 
 static const std::string
 _get_timestamp()
 {
 	static const std::string DEFAULT_TIMESTAMP_VALUE = DEFAULT_TIMESTAMP_VALUE_DEF;
-#ifdef DEBUG
 	struct timespec ts;
+
+	// 使用可能関数に含まれる
+	// ref: https://discord.com/channels/691903146909237289/691908977918738453/1219175088461709312
 	const int ts_result = clock_gettime(CLOCK_REALTIME, &ts);
 	if (ts_result == -1) {
 		return DEFAULT_TIMESTAMP_VALUE;
 	}
 	const std::time_t t = ts.tv_sec;
-#else
-	const std::time_t t = std::time(NULL);
-#endif
 	if (t == -1) {
 		return DEFAULT_TIMESTAMP_VALUE;
 	}
@@ -72,11 +68,7 @@ _get_timestamp()
 	const std::tm tm = *std::gmtime(&t);
 	char buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF)];
 	size_t tm_body_len = std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm);
-#ifdef DEBUG
-	std::snprintf(buf + tm_body_len, sizeof(buf) - tm_body_len, TIMESTAMP_NS_FORMAT, ts.tv_nsec);
-#else
-	std::strcat(buf + tm_body_len, DEFAULT_TIMESTAMP_VALUE_Z);
-#endif
+	std::snprintf(buf + tm_body_len, sizeof(buf) - tm_body_len, TIMESTAMP_US_FORMAT, NS_TO_US(ts.tv_nsec));
 
 	return std::string(buf);
 }
