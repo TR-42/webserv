@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
@@ -13,9 +12,6 @@ class HttpFieldMap
  private:
 	typedef std::map<std::string, std::vector<std::string> > FieldMapType;
 	FieldMapType fieldMap;
-
-	// Helper function to convert a string to uppercase
-	std::string toUpper(const std::string &str) const;
 
  public:
 	std::vector<std::string> getValueList(const std::string &name) const;

@@ -1,21 +1,24 @@
 #include "http/HttpFieldMap.hpp"
 
+#include <cctype>
+
 namespace webserv
 {
 
-// Helper function to convert a string to uppercase
-std::string HttpFieldMap::toUpper(const std::string &str) const
+static std::string capitalize(const std::string &str)
 {
 	std::string upperStr = str;
-	// 最初の文字だけ大文字にする
-	// std::transform(upperStr.begin(), upperStr.end(), upperStr.begin(), ::toupper);
-
+	for (size_t i = 1; i < upperStr.size(); i++) {
+		if (std::islower(upperStr[i]) && !std::isalnum(upperStr[i - 1])) {
+			upperStr[i] = upperStr[i] - 'a' + 'A';
+		}
+	}
 	return upperStr;
 }
 
 std::vector<std::string> HttpFieldMap::getValueList(const std::string &name) const
 {
-	std::string upperName = toUpper(name);
+	std::string upperName = capitalize(name);
 	FieldMapType::const_iterator it = this->fieldMap.find(upperName);
 	if (it == this->fieldMap.end()) {
 		return std::vector<std::string>();
@@ -24,13 +27,13 @@ std::vector<std::string> HttpFieldMap::getValueList(const std::string &name) con
 }
 void HttpFieldMap::addValue(const std::string &name, const std::string &value)
 {
-	std::string upperName = toUpper(name);
+	std::string upperName = capitalize(name);
 	fieldMap[upperName].push_back(value);
 }
 
 bool HttpFieldMap::isNameExists(const std::string &name) const
 {
-	std::string upperName = toUpper(name);
+	std::string upperName = capitalize(name);
 	return fieldMap.find(upperName) != fieldMap.end();
 }
 

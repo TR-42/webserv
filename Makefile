@@ -18,6 +18,7 @@ SRCS_ENV	=\
 	EnvManager.cpp\
 
 SRCS_HTTP	=\
+	HttpFieldMap.cpp\
 	HttpRequest.cpp\
 	HttpResponse.cpp\
 
