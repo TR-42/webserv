@@ -48,7 +48,7 @@ ServerConfig &webserv::ServerConfig::operator=(
 ServerConfig::ServerConfig(
 	const std::vector<std::string> &serverNameList,
 	const std::string &host,
-	std::uint16_t port,
+	uint16_t port,
 	std::size_t requestBodyLimit,
 	const ErrorPageMapType &errorPageMap,
 	const RouteListType &routeList
@@ -64,7 +64,7 @@ ServerConfig::ServerConfig(
 void ServerConfig::setProps(
 	const std::vector<std::string> &serverNameList,
 	const std::string &host,
-	std::uint16_t port,
+	uint16_t port,
 	std::size_t requestBodyLimit,
 	const ErrorPageMapType &errorPages,
 	const RouteListType &routeList
@@ -80,7 +80,7 @@ void ServerConfig::setProps(
 
 IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, ServerNameList, ServerConfig::)
 IMPL_REF_GETTER_SETTER_NS(std::string, Host, ServerConfig::)
-IMPL_GETTER_SETTER_NS(std::uint16_t, Port, ServerConfig::)
+IMPL_GETTER_SETTER_NS(uint16_t, Port, ServerConfig::)
 IMPL_REF_GETTER_SETTER_NS(std::size_t, RequestBodyLimit, ServerConfig::)
 IMPL_REF_GETTER_SETTER_NS(ErrorPageMapType, ErrorPageMap, ServerConfig::)
 IMPL_REF_GETTER_SETTER_NS(RouteListType, RouteList, ServerConfig::)

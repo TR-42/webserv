@@ -11,7 +11,7 @@
 namespace webserv
 {
 
-typedef std::map<std::uint16_t, CgiConfig> CgiConfigMapType;
+typedef std::map<uint16_t, CgiConfig> CgiConfigMapType;
 
 class HttpRouteConfig
 {

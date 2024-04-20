@@ -2,15 +2,16 @@
 
 #include <http/HttpResponse.hpp>
 
+#include "http/HttpFieldMap.hpp"
+
 TEST(HttpResponse, test1)
 {
 	webserv::HttpResponse response;
 	response.setVersion("HTTP/1.1");
 	response.setStatusCode("200");
 	response.setReasonPhrase("OK");
-	webserv::ResponseHeaderMap headers;
-	headers["Content-Type"] = std::vector<std::string>();
-	headers["Content-Type"].push_back("text/html");
+	webserv::HttpFieldMap headers;
+	headers.addValue("Content-Type", "text/html");
 	response.setHeaders(headers);
 	std::string body = "Hello, World!";
 	std::vector<uint8_t> bodyVec(body.begin(), body.end());

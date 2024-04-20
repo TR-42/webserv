@@ -18,14 +18,22 @@ SRCS_ENV	=\
 	EnvManager.cpp\
 
 SRCS_HTTP	=\
+	HttpFieldMap.cpp\
 	HttpRequest.cpp\
 	HttpResponse.cpp\
 
 SRCS_LOGGER	=\
 	Logger.cpp\
 
+SRCS_MATH =\
+	can_add.cpp\
+	can_mul.cpp\
+
 SRCS_UTILS	=\
+	ErrorPageProvider.cpp\
+	stoul.cpp\
 	strtrim.cpp\
+	to_string.cpp\
 	url_decode.cpp\
 
 SRCS_MAIN	=\
@@ -38,6 +46,7 @@ SRC_FILES	=\
 	$(addprefix env/, $(SRCS_ENV))\
 	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
+	$(addprefix math/, $(SRCS_MATH))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\

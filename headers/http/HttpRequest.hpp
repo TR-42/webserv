@@ -3,12 +3,13 @@
 #include <Logger.hpp>
 #include <map>
 #include <string>
+#include <types.hpp>
 #include <vector>
+
+#include "http/HttpFieldMap.hpp"
 
 namespace webserv
 {
-
-typedef std::map<std::string, std::vector<std::string> > RequestHeaderMap;
 
 class HttpRequest
 {
@@ -16,17 +17,20 @@ class HttpRequest
 	std::string _Method;
 	std::string _Path;
 	std::string _Version;
-	RequestHeaderMap _Headers;
+	HttpFieldMap _Headers;
 	std::vector<uint8_t> _Body;
 
 	bool _IsRequestLineParsed;
 	bool _IsRequestHeaderParsed;
+	bool _IsContentLengthHeaderParsed;
+	size_t _ContentLength;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;
 	// chunkは後で実装
 
  public:
 	HttpRequest();
+	HttpRequest(const std::string &requestText) : requestText(requestText) {}
 	/**
 	 * @brief 今までに受け取ったパケットとともに、HTTPリクエストを解析する
 	 *
@@ -41,10 +45,13 @@ class HttpRequest
 	const std::string &getMethod() const;
 	const std::string &getPath() const;
 	const std::string &getVersion() const;
-	const RequestHeaderMap &getHeaders() const;
+	const HttpFieldMap &getHeaders() const;
 	const std::vector<uint8_t> &getBody() const;
 	bool isRequestLineParsed() const;
 	bool isRequestHeaderParsed() const;
+	size_t getContentLength();
+	bool isRequestBodyLengthEnough();
+	bool isRequestBodyLengthTooMuch();
 
  private:
 	bool parseRequestLine(
@@ -55,6 +62,7 @@ class HttpRequest
 		const std::vector<uint8_t> &requestRawLine
 	);
 	Logger logger;
+	std::string requestText;
 };
 
 }	 // namespace webserv

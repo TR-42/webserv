@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstring>
 #include <http/HttpRequest.hpp>
 
 #define REQ_LINE_CASE_1 "GET /index.html HTTP/1.1\r\n"
@@ -10,6 +11,10 @@
 #define REQ_HEADER_CASE_4 REQ_HEADER_CASE_1 "TestKey: TestValue2\r\n"
 #define REQ_HEADER_CASE_5 REQ_LINE_CASE_1 "TestKey:TestValue\r\n"
 #define REQ_HEADER_CASE_6 REQ_LINE_CASE_1 "TestKey:  TestValue  \r\n"
+#define CONTENT_LENGTH_CASE_1 REQ_LINE_CASE_1 "Content-Length: 10\r\n\r\n"
+
+#define BODY_1 "0123456789"
+#define BODY_CASE_1 CONTENT_LENGTH_CASE_1 BODY_1
 
 #define REQ_LINE_ERR_CASE_1 "GET  /index.html HTTP/1.1\r\n"
 #define REQ_LINE_ERR_CASE_2 "GET /index.html  HTTP/1.1\r\n"
@@ -44,7 +49,7 @@ TEST(HttpRequest, RequestHeader)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.getHeaders().empty(), false);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
 }
 
 TEST(HttpRequest, RequestHeader2)
@@ -67,8 +72,8 @@ TEST(HttpRequest, RequestHeader_MultiKey)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.getHeaders().empty(), false);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
-	EXPECT_EQ(request.getHeaders().at("TestKey2")[0], "TestValue2");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey2")[0], "TestValue2");
 }
 
 TEST(HttpRequest, RequestHeader_MultiValue)
@@ -80,8 +85,8 @@ TEST(HttpRequest, RequestHeader_MultiValue)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.getHeaders().empty(), false);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
-	EXPECT_EQ(request.getHeaders().at("TestKey")[1], "TestValue2");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[1], "TestValue2");
 }
 
 TEST(HttpRequest, RequestHeader5_NoSPC)
@@ -92,7 +97,7 @@ TEST(HttpRequest, RequestHeader5_NoSPC)
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
 }
 
 TEST(HttpRequest, RequestHeader6_MultiSPC)
@@ -103,7 +108,71 @@ TEST(HttpRequest, RequestHeader6_MultiSPC)
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
+}
+
+TEST(HttpRequest, RequestHeader_ContentLength)
+{
+	webserv::HttpRequest request;
+	std::string reqStr = CONTENT_LENGTH_CASE_1;
+	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
+
+	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.isRequestHeaderParsed(), true);
+	EXPECT_EQ(request.getContentLength(), 10);
+}
+
+TEST(HttpRequest, RequestBody)
+{
+	webserv::HttpRequest request;
+	std::string reqStr = BODY_CASE_1;
+	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
+
+	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.isRequestHeaderParsed(), true);
+	EXPECT_EQ(request.getContentLength(), 10);
+	EXPECT_EQ(request.isRequestBodyLengthEnough(), true);
+	EXPECT_EQ(request.isRequestBodyLengthTooMuch(), false);
+	EXPECT_EQ(request.getBody().size(), 10);
+	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1, 10), 0);
+}
+
+TEST(HttpRequest, RequestBody_Partially)
+{
+	webserv::HttpRequest request;
+	std::string reqStr = BODY_CASE_1;
+	size_t reqStrSize = reqStr.size();
+	for (size_t i = 0; i < reqStrSize; ++i) {
+		std::vector<uint8_t> reqPacket(1);
+		reqPacket[0] = reqStr[i];
+		EXPECT_TRUE(request.pushRequestRaw(reqPacket));
+	}
+
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.isRequestHeaderParsed(), true);
+	EXPECT_EQ(request.getContentLength(), 10);
+	EXPECT_EQ(request.isRequestBodyLengthEnough(), true);
+	EXPECT_EQ(request.isRequestBodyLengthTooMuch(), false);
+	EXPECT_EQ(request.getBody().size(), 10);
+	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1, 10), 0);
+}
+
+TEST(HttpRequest, RequestBody_TooMuch)
+{
+	webserv::HttpRequest request;
+	std::string reqStr = BODY_CASE_1 BODY_1;
+	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
+
+	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
+	EXPECT_EQ(request.isRequestLineParsed(), true);
+	EXPECT_EQ(request.isRequestHeaderParsed(), true);
+	EXPECT_EQ(request.getContentLength(), 10);
+	EXPECT_EQ(request.isRequestBodyLengthEnough(), true);
+	EXPECT_EQ(request.isRequestBodyLengthTooMuch(), true);
+	EXPECT_EQ(request.getBody().size(), 20);
+	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1 BODY_1, 20), 0);
 }
 
 #define TEST_REQ_LINE_ERROR_CASE(CASE) \

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <types.hpp>
 
 #include "../classDefUtils.hpp"
 
@@ -10,12 +11,12 @@ namespace webserv
 class HttpRedirectConfig
 {
 	DECL_VAR_REF_GETTER_SETTER(std::string, To)
-	DECL_VAR_GETTER_SETTER(std::uint16_t, Code)
+	DECL_VAR_GETTER_SETTER(uint16_t, Code)
 
  private:
 	void setProps(
 		const std::string &to,
-		std::uint16_t code
+		uint16_t code
 	);
 
  public:
@@ -30,7 +31,7 @@ class HttpRedirectConfig
 
 	HttpRedirectConfig(
 		const std::string &to,
-		std::uint16_t code
+		uint16_t code
 	);
 };
 

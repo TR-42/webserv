@@ -9,7 +9,7 @@ namespace webserv
 {
 
 typedef std::vector<ServerConfig> ServerConfigListType;
-typedef std::map<std::uint16_t, ServerConfigListType> ListenMapType;
+typedef std::map<uint16_t, ServerConfigListType> ListenMapType;
 
 class ListenConfig
 {
