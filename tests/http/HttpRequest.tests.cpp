@@ -49,7 +49,7 @@ TEST(HttpRequest, RequestHeader)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.getHeaders().empty(), false);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
 }
 
 TEST(HttpRequest, RequestHeader2)
@@ -72,8 +72,8 @@ TEST(HttpRequest, RequestHeader_MultiKey)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.getHeaders().empty(), false);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
-	EXPECT_EQ(request.getHeaders().at("TestKey2")[0], "TestValue2");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey2")[0], "TestValue2");
 }
 
 TEST(HttpRequest, RequestHeader_MultiValue)
@@ -85,8 +85,8 @@ TEST(HttpRequest, RequestHeader_MultiValue)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.getHeaders().empty(), false);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
-	EXPECT_EQ(request.getHeaders().at("TestKey")[1], "TestValue2");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[1], "TestValue2");
 }
 
 TEST(HttpRequest, RequestHeader5_NoSPC)
@@ -97,7 +97,7 @@ TEST(HttpRequest, RequestHeader5_NoSPC)
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
 }
 
 TEST(HttpRequest, RequestHeader6_MultiSPC)
@@ -108,7 +108,7 @@ TEST(HttpRequest, RequestHeader6_MultiSPC)
 
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
-	EXPECT_EQ(request.getHeaders().at("TestKey")[0], "TestValue");
+	EXPECT_EQ(request.getHeaders().getValueList("TestKey")[0], "TestValue");
 }
 
 TEST(HttpRequest, RequestHeader_ContentLength)

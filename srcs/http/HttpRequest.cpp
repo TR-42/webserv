@@ -2,6 +2,7 @@
 #include <http/HttpRequest.hpp>
 #include <iostream>
 
+#include "http/HttpFieldMap.hpp"
 #include "utils.hpp"
 
 namespace webserv
@@ -10,7 +11,7 @@ namespace webserv
 const std::string &HttpRequest::getMethod() const { return _Method; }
 const std::string &HttpRequest::getPath() const { return _Path; }
 const std::string &HttpRequest::getVersion() const { return _Version; }
-const RequestHeaderMap &HttpRequest::getHeaders() const { return _Headers; }
+const HttpFieldMap &HttpRequest::getHeaders() const { return _Headers; }
 const std::vector<uint8_t> &HttpRequest::getBody() const { return _Body; }
 bool HttpRequest::isRequestLineParsed() const { return _IsRequestLineParsed; }
 bool HttpRequest::isRequestHeaderParsed() const { return _IsRequestHeaderParsed; }
@@ -199,11 +200,7 @@ bool HttpRequest::parseRequestHeader(
 	}
 	std::string _Value = utils::strtrim(std::string((const char *)separatorPos + 1, newlinePos - lenToSeparatorPos - 1));
 	CS_DEBUG() << "Value: " << _Value << std::endl;
-	if (_Headers.find(_Key) == _Headers.end()) {
-		_Headers[_Key] = std::vector<std::string>();
-		CS_DEBUG() << "Key: " << _Key << " was not found" << std::endl;
-	}
-	_Headers[_Key].push_back(_Value);
+	_Headers.addValue(_Key, _Value);
 	return true;
 }
 
@@ -214,9 +211,7 @@ size_t HttpRequest::getContentLength()
 	if (_IsContentLengthHeaderParsed)
 		return _ContentLength;
 	_IsContentLengthHeaderParsed = true;
-	if (_Headers.find("Content-Length") == _Headers.end())
-		return 0;
-	const std::vector<std::string> &contentLengths = _Headers.at("Content-Length");
+	const std::vector<std::string> &contentLengths = _Headers.getValueList("Content-Length");
 	if (contentLengths.size() != 1)
 		return 0;
 	unsigned long result;

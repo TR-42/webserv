@@ -3,6 +3,7 @@
 #include <http/HttpResponse.hpp>
 #include <string>
 
+#include "http/HttpFieldMap.hpp"
 #include "utils.hpp"
 
 namespace webserv
@@ -29,10 +30,8 @@ static HttpResponse createResponse(int statusCode, const std::string &reasonPhra
 	response.setReasonPhrase(reasonPhrase);
 	response.setBody(body);
 
-	std::vector<std::string> contentLengthHeader;
-	ResponseHeaderMap headers;
-	contentLengthHeader.push_back(to_string(body.size()));
-	headers["Content-Length"] = contentLengthHeader;
+	HttpFieldMap headers;
+	headers.addValue("Content-Length", to_string(body.size()));
 	response.setHeaders(headers);
 	return response;
 }

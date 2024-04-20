@@ -6,10 +6,10 @@
 #include <types.hpp>
 #include <vector>
 
+#include "http/HttpFieldMap.hpp"
+
 namespace webserv
 {
-
-typedef std::map<std::string, std::vector<std::string> > RequestHeaderMap;
 
 class HttpRequest
 {
@@ -17,7 +17,7 @@ class HttpRequest
 	std::string _Method;
 	std::string _Path;
 	std::string _Version;
-	RequestHeaderMap _Headers;
+	HttpFieldMap _Headers;
 	std::vector<uint8_t> _Body;
 
 	bool _IsRequestLineParsed;
@@ -45,7 +45,7 @@ class HttpRequest
 	const std::string &getMethod() const;
 	const std::string &getPath() const;
 	const std::string &getVersion() const;
-	const RequestHeaderMap &getHeaders() const;
+	const HttpFieldMap &getHeaders() const;
 	const std::vector<uint8_t> &getBody() const;
 	bool isRequestLineParsed() const;
 	bool isRequestHeaderParsed() const;
