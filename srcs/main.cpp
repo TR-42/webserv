@@ -27,6 +27,32 @@ static std::string get_argv_str(int argc, const char *argv[])
 	return str;
 }
 
+static webserv::ServerConfigListType createDefaultServerConfigList(
+	ushort port = 80
+)
+{
+	webserv::HttpRouteConfig httpRouteConfig;
+
+	webserv::RouteListType routeList;
+	routeList.push_back(httpRouteConfig);
+
+	std::vector<std::string> hostNameList;
+	hostNameList.push_back("localhost");
+	webserv::ServerConfig serverConfig(
+		hostNameList,
+		"localhost",
+		port,
+		// 128MB
+		128 * 1024 * 1024,
+		webserv::ErrorPageMapType(),
+		routeList
+	);
+
+	webserv::ServerConfigListType serverConfigList;
+	serverConfigList.push_back(serverConfig);
+	return serverConfigList;
+}
+
 int main(int argc, const char *argv[])
 {
 	webserv::Logger logger;
@@ -40,30 +66,38 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 
-	struct sockaddr_in addr;
-	uint16_t port = 80;
-
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (fd < 0) {
-		perror("socket");
-		return 1;
-	}
-	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		perror("bind");
-		close(fd);
-		return 1;
-	}
-	if (listen(fd, 10) < 0) {
-		perror("listen");
-		close(fd);
-		return 1;
-	}
-
 	std::vector<webserv::Socket *> socketList;
-	socketList.push_back(new webserv::ServerSocket(fd, logger));
+	webserv::ServerSocket *serverSocket80 = webserv::ServerSocket::createServerSocket(
+		createDefaultServerConfigList(),
+		logger
+	);
+	if (serverSocket80 == NULL) {
+		L_FATAL("createServerSocket80 failed");
+		return 1;
+	}
+	webserv::ServerSocket *serverSocket81 = webserv::ServerSocket::createServerSocket(
+		createDefaultServerConfigList(81),
+		logger
+	);
+	if (serverSocket81 == NULL) {
+		L_FATAL("createServerSocket81 failed");
+		delete serverSocket80;
+		return 1;
+	}
+	webserv::ServerSocket *serverSocket82 = webserv::ServerSocket::createServerSocket(
+		createDefaultServerConfigList(82),
+		logger
+	);
+	if (serverSocket82 == NULL) {
+		L_FATAL("createServerSocket82 failed");
+		delete serverSocket80;
+		delete serverSocket81;
+		return 1;
+	}
+
+	socketList.push_back(serverSocket80);
+	socketList.push_back(serverSocket81);
+	socketList.push_back(serverSocket82);
 	webserv::Poll poll(socketList, logger);
 	while (!webserv::isExitSignalGot()) {
 		bool result = poll.loop();

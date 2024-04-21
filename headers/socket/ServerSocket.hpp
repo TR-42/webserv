@@ -1,5 +1,7 @@
 #pragma once
 
+#include <config/ListenConfig.hpp>
+
 #include "../Logger.hpp"
 #include "./Socket.hpp"
 
@@ -10,13 +12,26 @@ class ServerSocket : public Socket
 {
  private:
 	Logger logger;
-
- public:
+	const ServerConfigListType &_listenConfigList;
 	ServerSocket(
 		int fd,
+		const Logger &logger,
+		const ServerConfigListType &listenConfigList
+	);
+
+ public:
+	virtual ~ServerSocket();
+
+	/**
+	 * @brief 指定のポートに紐づいたServerSocketを作成する
+	 *
+	 * @param listenConfigList 指定のポートに紐づいたServerSocketの設定
+	 * @return ServerSocket* 作成されたServerSocketのポインタ
+	 */
+	static ServerSocket *createServerSocket(
+		const ServerConfigListType &listenConfigList,
 		const Logger &logger
 	);
-	virtual ~ServerSocket();
 
 	virtual void setToPollFd(
 		struct pollfd &pollFd

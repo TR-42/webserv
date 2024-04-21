@@ -220,12 +220,18 @@ void ClientSocket::setToPollFd(
 
 ClientSocket::~ClientSocket()
 {
+	CS_INFO()
+		<< "ClientSocket(fd:" << this->getFD() << ")"
+		<< " destroyed"
+		<< std::endl;
 }
 
 ClientSocket::ClientSocket(
 	int fd,
-	const std::string &serverLoggerCustomId
+	const std::string &serverLoggerCustomId,
+	const ServerConfigListType &listenConfigList
 ) : Socket(fd),
+		_listenConfigList(listenConfigList),
 		logger(serverLoggerCustomId + ", Connection=" + Socket::getUUID().toString()),
 		_IsResponseSet(false),
 		_service(NULL)

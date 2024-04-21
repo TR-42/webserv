@@ -1,10 +1,14 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <socket/ClientSocket.hpp>
 #include <socket/ServerSocket.hpp>
 #include <utils.hpp>
 #include <utils/UUIDv7.hpp>
+
+// 適当に決めた値
+#define ACCEPT_BACKLOG 16
 
 namespace webserv
 {
@@ -45,7 +49,10 @@ SockEventResultType ServerSocket::onEventGot(
 		<< std::endl;
 
 	utils::UUID clientUuid = utils::UUIDv7();
-	Socket *clientSocket = new ClientSocket(clientFd, this->logger.getCustomId());
+	Socket *clientSocket = new ClientSocket(
+		clientFd, this->logger.getCustomId(),
+		this->_listenConfigList
+	);
 	sockets.push_back(clientSocket);
 	CS_DEBUG()
 		<< "New client socket created: " << clientUuid
@@ -62,18 +69,79 @@ void ServerSocket::setToPollFd(
 	pollFd.events = POLLIN;
 }
 
+ServerSocket *ServerSocket::createServerSocket(
+	const ServerConfigListType &listenConfigList,
+	const Logger &logger
+)
+{
+	if (listenConfigList.size() == 0) {
+		L_FATAL("listenConfigList is empty");
+		return NULL;
+	}
+
+	// 配列で渡されている全てで同じポートであることを期待する
+	uint16_t port = listenConfigList[0].getPort();
+	struct sockaddr_in addr;
+
+	// listenするのはIPv4のみ
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (fd < 0) {
+		perror("socket");
+		return NULL;
+	}
+	LS_DEBUG()
+		<< "ServerSocket created: fd=" << fd
+		<< std::endl;
+	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		perror("bind");
+		close(fd);
+		return NULL;
+	}
+	LS_DEBUG()
+		<< "ServerSocket bind to: " << utils::to_string(addr)
+		<< std::endl;
+	if (listen(fd, ACCEPT_BACKLOG) < 0) {
+		perror("listen");
+		close(fd);
+		return NULL;
+	}
+	LS_DEBUG()
+		<< "ServerSocket listen with backlog: " << ACCEPT_BACKLOG
+		<< std::endl;
+
+	LS_INFO()
+		<< "ServerSocket created: fd=" << fd
+		<< ", address=" << utils::to_string(addr)
+		<< ", port=" << port
+		<< std::endl;
+
+	return new ServerSocket(fd, logger, listenConfigList);
+}
+
 ServerSocket::ServerSocket(
 	int fd,
-	const Logger &logger
+	const Logger &logger,
+	const ServerConfigListType &listenConfigList
 ) : Socket(fd),
-		logger(logger, "Server=" + Socket::getUUID().toString())
+		logger(logger, "Server=" + Socket::getUUID().toString()),
+		_listenConfigList(listenConfigList)
 {
+	LS_INFO()
+		<< "ServerSocket initialized: fd=" << fd
+		<< ", listenConfigList.size()=" << listenConfigList.size()
+		<< std::endl;
 }
 
 ServerSocket::~ServerSocket()
 {
 	// serverFdのcloseは、Socketのデストラクタで行われる
 	// clientSocketのDisposeは、socketListから削除するときに行われる
+	CS_INFO()
+		<< "ServerSocket disposed: fd=" << this->getFD()
+		<< std::endl;
 }
 
 }	 // namespace webserv
