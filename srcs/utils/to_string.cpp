@@ -67,14 +67,24 @@ std::string to_string(
 )
 {
 	if (addr.sa_family == AF_INET) {
-		const struct sockaddr_in &addr4 = reinterpret_cast<const struct sockaddr_in &>(addr);
-		return _ipv4_to_string(addr4.sin_addr);
+		return to_string(reinterpret_cast<const struct sockaddr_in &>(addr));
 	} else if (addr.sa_family == AF_INET6) {
-		const struct sockaddr_in6 &addr6 = reinterpret_cast<const struct sockaddr_in6 &>(addr);
-		return _ipv6_to_string(addr6.sin6_addr);
+		return to_string(reinterpret_cast<const struct sockaddr_in6 &>(addr));
 	} else {
 		return "(unknown address)";
 	}
+}
+std::string to_string(
+	const sockaddr_in &addr
+)
+{
+	return _ipv4_to_string(addr.sin_addr);
+}
+std::string to_string(
+	const sockaddr_in6 &addr
+)
+{
+	return _ipv6_to_string(addr.sin6_addr);
 }
 
 std::string to_string(

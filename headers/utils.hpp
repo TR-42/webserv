@@ -38,6 +38,12 @@ std::string to_string(
 std::string to_string(
 	const struct sockaddr &addr
 );
+std::string to_string(
+	const struct sockaddr_in &addr
+);
+std::string to_string(
+	const struct sockaddr_in6 &addr
+);
 
 std::string to_string(
 	const SockEventResultType &result
