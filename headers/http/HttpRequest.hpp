@@ -51,7 +51,6 @@ class HttpRequest
 	size_t getContentLength() const;
 	bool isRequestBodyLengthEnough() const;
 	bool isRequestBodyLengthTooMuch() const;
-	void parseContentLength();
 
  private:
 	bool parseRequestLine(
@@ -61,6 +60,9 @@ class HttpRequest
 	bool parseRequestHeader(
 		const std::vector<uint8_t> &requestRawLine
 	);
+
+	void parseContentLength();
+
 	Logger logger;
 	std::string requestText;
 };
