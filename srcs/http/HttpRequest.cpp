@@ -106,7 +106,11 @@ bool HttpRequest::pushRequestRaw(
 			}
 			CS_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
 		}
-		parseContentLength();
+
+		CS_DEBUG()
+			<< "tryGetContentLength result: " << std::boolalpha << this->_Headers.tryGetContentLength(this->_ContentLength)
+			<< std::endl;
+
 		_IsRequestHeaderParsed = true;
 		delete requestRawLine;
 		CS_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
@@ -224,17 +228,6 @@ bool HttpRequest::parseRequestHeader(
 size_t HttpRequest::getContentLength() const
 {
 	return this->_ContentLength;
-}
-
-void HttpRequest::parseContentLength()
-{
-	const std::vector<std::string> &contentLengths = _Headers.getValueList("Content-Length");
-	if (contentLengths.size() != 1)
-		return;
-	unsigned long result;
-	if (webserv::utils::stoul(contentLengths[0], result) == false)
-		return;
-	_ContentLength = result;
 }
 
 bool HttpRequest::isRequestBodyLengthEnough() const

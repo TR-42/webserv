@@ -63,8 +63,6 @@ class HttpRequest
 		const std::vector<uint8_t> &requestRawLine
 	);
 
-	void parseContentLength();
-
 	Logger logger;
 	std::string requestText;
 };

@@ -80,4 +80,20 @@ bool HttpFieldMap::empty() const
 	return fieldMap.empty();
 }
 
+bool webserv::HttpFieldMap::tryGetContentLength(
+	size_t &contentLength
+) const
+{
+	if (!this->isNameExists("Content-Length")) {
+		return false;
+	}
+
+	std::vector<std::string> valueList = this->getValueList("Content-Length");
+	if (valueList.empty()) {
+		return false;
+	}
+	utils::stoul(valueList[0], contentLength);
+	return true;
+}
+
 }	 // namespace webserv
