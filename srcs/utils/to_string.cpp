@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <string>
+#include <utils.hpp>
 
 namespace webserv
 {
@@ -73,6 +74,22 @@ std::string to_string(
 		return _ipv6_to_string(addr6.sin6_addr);
 	} else {
 		return "(unknown address)";
+	}
+}
+
+std::string to_string(
+	const SockEventResultType &result
+)
+{
+	switch (result) {
+		case SockEventResult::OK:
+			return "SockEventResult::OK";
+		case SockEventResult::DISPOSE_REQUEST:
+			return "SockEventResult::DISPOSE_REQUEST";
+		case SockEventResult::ERROR:
+			return "SockEventResult::ERROR";
+		default:
+			return "SockEventResult::(unknown result)";
 	}
 }
 

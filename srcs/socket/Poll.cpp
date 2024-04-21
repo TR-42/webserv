@@ -1,5 +1,6 @@
 #include <iostream>
 #include <socket/Poll.hpp>
+#include <utils.hpp>
 
 #define POLL_TIMEOUT 1000
 
@@ -79,7 +80,7 @@ bool Poll::loop()
 
 			default:
 				CS_FATAL()
-					<< "Unknown SockEventResultType: " << result
+					<< "Unknown SockEventResultType: " << utils::to_string(result)
 					<< " from socket " << socketUuid
 					<< std::endl;
 				return false;

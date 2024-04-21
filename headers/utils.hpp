@@ -2,6 +2,7 @@
 
 #include <sys/socket.h>
 
+#include <socket/SockEventResult.hpp>
 #include <string>
 
 namespace webserv
@@ -35,6 +36,10 @@ std::string to_string(
 
 std::string to_string(
 	const struct sockaddr &addr
+);
+
+std::string to_string(
+	const SockEventResultType &result
 );
 
 }	 // namespace utils
