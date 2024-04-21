@@ -29,6 +29,9 @@ SRCS_MATH =\
 	can_add.cpp\
 	can_mul.cpp\
 
+SRCS_SIGNAL	=\
+	signal_handler.cpp\
+
 SRCS_SOCKET	=\
 	ClientSocket.cpp\
 	Poll.cpp\
@@ -55,6 +58,7 @@ SRC_FILES	=\
 	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix math/, $(SRCS_MATH))\
+	$(addprefix signal/, $(SRCS_SIGNAL))\
 	$(addprefix socket/, $(SRCS_SOCKET))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\

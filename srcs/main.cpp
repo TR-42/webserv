@@ -5,6 +5,7 @@
 #include <Logger.hpp>
 #include <cstdio>
 #include <iostream>
+#include <signal/signal_handler.hpp>
 #include <socket/Poll.hpp>
 #include <socket/ServerSocket.hpp>
 #include <string>
@@ -43,6 +44,11 @@ int main(int argc, const char *argv[])
 	std::cout << "Hello, World!" << std::endl;
 	L_LOG("argv: " + get_argv_str(argc, argv));
 
+	if (!webserv::registerSignalHandler()) {
+		L_FATAL("registerSignalHandler failed");
+		return 1;
+	}
+
 	struct sockaddr_in addr;
 	uint16_t port = 80;
 
@@ -68,13 +74,18 @@ int main(int argc, const char *argv[])
 	std::vector<webserv::Socket *> socketList;
 	socketList.push_back(new webserv::ServerSocket(fd, logger));
 	webserv::Poll poll(socketList, logger);
-	while (1) {
+	while (!webserv::isExitSignalGot()) {
 		bool result = poll.loop();
 		if (!result) {
 			L_FATAL("poll loop failed");
 			return 1;
 		}
 		usleep(10 * 1000);
+	}
+
+	if (webserv::isExitSignalGot()) {
+		L_INFO("exit signal got");
+		return 1;
 	}
 
 	return 0;
