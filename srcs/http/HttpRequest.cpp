@@ -43,6 +43,7 @@ static std::vector<uint8_t> *_pickLine(
 HttpRequest::HttpRequest()
 		: _IsRequestLineParsed(false),
 			_IsRequestHeaderParsed(false),
+			_IsParseCompleted(false),
 			_ContentLength(0)
 {
 }
@@ -53,6 +54,11 @@ bool HttpRequest::pushRequestRaw(
 {
 	if (requestRaw.size() == 0) {
 		C_DEBUG("requestRaw was empty");
+		return true;
+	}
+
+	if (this->_IsParseCompleted) {
+		C_DEBUG("Request parsing was already completed");
 		return true;
 	}
 
@@ -75,6 +81,7 @@ bool HttpRequest::pushRequestRaw(
 			delete requestRawLine;
 			CS_DEBUG() << "_IsRequestLineParsed result: " << _IsRequestLineParsed << std::endl;
 			if (_IsRequestLineParsed == false) {
+				this->_IsParseCompleted = true;
 				return false;
 			}
 			requestRawLine = _pickLine(_UnparsedRequestRaw);
@@ -89,6 +96,7 @@ bool HttpRequest::pushRequestRaw(
 			bool result = parseRequestHeader(*requestRawLine);
 			delete requestRawLine;
 			if (result == false) {
+				this->_IsParseCompleted = true;
 				return false;
 			}
 			requestRawLine = _pickLine(_UnparsedRequestRaw);
@@ -103,6 +111,14 @@ bool HttpRequest::pushRequestRaw(
 		delete requestRawLine;
 		CS_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
 		_Body = _UnparsedRequestRaw;
+		// TODO: この段階でContentLengthのパースも行ってしまう
+		bool isContentLengthFieldExists = _Headers.isNameExists("Content-Length");
+		this->_IsParseCompleted = !isContentLengthFieldExists;
+		CS_DEBUG()
+			<< "isContentLengthFieldExists: " << isContentLengthFieldExists
+			<< ", "
+			<< "IsParseCompleted: " << this->_IsParseCompleted
+			<< std::endl;
 		return _IsRequestHeaderParsed;
 	} else if (isRequestBodyLengthEnough()) {
 		CS_DEBUG()
@@ -111,6 +127,7 @@ bool HttpRequest::pushRequestRaw(
 			<< "ContentLength: " << getContentLength() << ", "
 			<< "RequestRawSize: " << requestRaw.size()
 			<< ")" << std::endl;
+		this->_IsParseCompleted = true;
 		return false;
 	} else {
 		_Body.insert(_Body.end(), requestRaw.begin(), requestRaw.end());
@@ -222,12 +239,22 @@ void HttpRequest::parseContentLength()
 
 bool HttpRequest::isRequestBodyLengthEnough() const
 {
-	return _IsRequestHeaderParsed && getContentLength() <= _Body.size();
+	bool isRequestBodyLengthEnough = _IsRequestHeaderParsed && getContentLength() <= _Body.size();
+	return isRequestBodyLengthEnough;
 }
 
 bool HttpRequest::isRequestBodyLengthTooMuch() const
 {
-	return _IsRequestHeaderParsed && getContentLength() < _Body.size();
+	bool isRequestBodyLengthTooMuch = _IsRequestHeaderParsed && getContentLength() < _Body.size();
+	return isRequestBodyLengthTooMuch;
+}
+
+bool webserv::HttpRequest::isParseCompleted()
+{
+	if (!this->_IsParseCompleted) {
+		this->_IsParseCompleted = this->isRequestBodyLengthEnough();
+	}
+	return this->_IsParseCompleted;
 }
 
 }	 // namespace webserv

@@ -29,12 +29,26 @@ SRCS_MATH =\
 	can_add.cpp\
 	can_mul.cpp\
 
+SRCS_SERVICE	=\
+	SimpleService.cpp\
+
+SRCS_SIGNAL	=\
+	signal_handler.cpp\
+
+SRCS_SOCKET	=\
+	ClientSocket.cpp\
+	Poll.cpp\
+	ServerSocket.cpp\
+	Socket.cpp\
+
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
 	stoul.cpp\
 	strtrim.cpp\
 	to_string.cpp\
 	url_decode.cpp\
+	UUID.cpp\
+	UUIDv7.cpp\
 
 SRCS_MAIN	=\
 	main.cpp\
@@ -47,6 +61,9 @@ SRC_FILES	=\
 	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix math/, $(SRCS_MATH))\
+	$(addprefix service/, $(SRCS_SERVICE))\
+	$(addprefix signal/, $(SRCS_SIGNAL))\
+	$(addprefix socket/, $(SRCS_SOCKET))\
 	$(addprefix utils/, $(SRCS_UTILS))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
@@ -59,8 +76,8 @@ INCLUDES	=\
 	-I./headers\
 
 CFLAGS_BASE	=	-Wall -Wextra -Werror -std=c++98 -g
-CFLAGS_DEBUG	=	$(CFLAGS_BASE) -fsanitize=address -DDEBUG -MMD -MP -MF $(DEPS_DEBUG_DIR)/$*.d
-CFLAGS	=	$(CFLAGS_BASE) -MMD -MP -MF $(DEPS_DIR)/$*.d
+CFLAGS_DEBUG	=	$(CFLAGS_BASE) -O0 -fsanitize=address -DDEBUG -MMD -MP -MF $(DEPS_DEBUG_DIR)/$*.d
+CFLAGS	=	$(CFLAGS_BASE) -O2 -MMD -MP -MF $(DEPS_DIR)/$*.d
 
 SRCS	=	$(addprefix $(SRCS_DIR)/, $(SRC_FILES))
 OBJS	=	$(addprefix $(OBJS_DIR)/, $(SRC_FILES:.cpp=.o))

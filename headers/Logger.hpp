@@ -2,6 +2,23 @@
 
 #include <string>
 
+#ifdef DEBUG
+#define IS_DEBUG true
+#else
+#define IS_DEBUG false
+#endif
+
+#define LOG_LEVEL_log 0
+#define LOG_LEVEL_debug 10
+#define LOG_LEVEL_info 20
+#define LOG_LEVEL_warn 30
+#define LOG_LEVEL_error 40
+#define LOG_LEVEL_fatal 50
+
+#ifndef LOG_LEVEL
+#define LOG_LEVEL LOG_LEVEL_info
+#endif
+
 #define LOGGER_FUNC_DECL(name) \
 	void name( \
 		const char *file, \
@@ -17,9 +34,13 @@
 
 // ##__VA_ARGS__ ref: https://tyfkda.github.io/blog/2015/03/04/va_args.html
 #define DO_LOG(logger, level, ...) \
-	logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__)
+	if (!IS_DEBUG && LOG_LEVEL_##level < LOG_LEVEL) { \
+	} else \
+		logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__)
 #define DO_S_LOG(logger, level) \
-	logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__)
+	if (!IS_DEBUG && LOG_LEVEL_##level < LOG_LEVEL) { \
+	} else \
+		logger.level(__FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /**
  * @brief 変数を指定してログ出力を行う (レベル: log)
@@ -40,7 +61,7 @@
  * @brief 変数を指定してログ出力を行う (レベル: warn)
  */
 #define V_WARN(logger, ...) DO_LOG(logger, warn, ##__VA_ARGS__)
-#define VS_WARN(logger) DO_LOG(logger, warn)
+#define VS_WARN(logger) DO_S_LOG(logger, warn)
 /**
  * @brief 変数を指定してログ出力を行う (レベル: error)
  */
@@ -120,7 +141,8 @@ namespace webserv
 class Logger
 {
  private:
-	std::string _class;
+	std::string _CustomId;
+	std::string _CustomIdWithSpace;
 	std::ostream &_os;
 
 	void _print(
@@ -137,9 +159,18 @@ class Logger
 		const char *func
 	) const;
 
+	Logger &operator=(const Logger &src);
+
  public:
 	Logger();
+	Logger(const std::string &CustomId);
 	Logger(std::ostream &os);
+	Logger(std::ostream &os, const std::string &CustomId);
+
+	Logger(const Logger &src);
+	Logger(const Logger &src, const std::string &CustomId);
+
+	std::string getCustomId() const;
 
 	LOGGER_FUNC_DECL(log);
 	LOGGER_FUNC_DECL(debug);
