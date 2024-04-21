@@ -18,6 +18,10 @@ SockEventResultType ClientSocket::onEventGot(
 	(void)sockets;
 	// TODO: タイムアウト監視 (呼び出し元でのreventチェックを取り除いて実装)
 
+	if (this->_service != NULL) {
+		return this->_processPollService(revents);
+	}
+
 	if (IS_POLLIN(revents)) {
 		CS_DEBUG()
 			<< "POLLIN event"
@@ -74,13 +78,18 @@ SockEventResultType ClientSocket::_processPollIn()
 		return SockEventResult::OK;
 	}
 
+	// TODO: ReqBodyのサイズチェック
 	if (this->httpRequest.isParseCompleted()) {
 		CS_DEBUG()
 			<< "Request parse completed"
 			<< std::endl;
-		std::string responseStr = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
-		this->_setResponse(responseStr);
-		return SockEventResult::OK;
+		// TODO: 設定によるServiceの選択
+		this->_service = new SimpleService(
+			this->httpRequest,
+			utils::ErrorPageProvider(),
+			this->logger
+		);
+		return this->_processPollService(0);
 	}
 
 	C_DEBUG("processPollIn() end");
@@ -128,6 +137,42 @@ SockEventResultType ClientSocket::_processPollOut()
 	return SockEventResult::OK;
 }
 
+SockEventResultType ClientSocket::_processPollService(short revents)
+{
+	ServiceEventResultType serviceResult = this->_service->onEventGot(revents);
+	switch (serviceResult) {
+		case ServiceEventResult::COMPLETE:
+			CS_DEBUG()
+				<< "ServiceEventResult::COMPLETE"
+				<< std::endl;
+			this->_setResponse(this->_service->getResponse());
+			delete this->_service;
+			this->_service = NULL;
+			return SockEventResult::OK;
+
+		case ServiceEventResult::ERROR:
+			CS_DEBUG()
+				<< "ServiceEventResult::ERROR"
+				<< std::endl;
+			delete this->_service;
+			this->_service = NULL;
+			this->_setResponse(utils::ErrorPageProvider().internalServerError());
+			return SockEventResult::OK;
+
+		case ServiceEventResult::CONTINUE:
+			CS_DEBUG()
+				<< "ServiceEventResult::CONTINUE"
+				<< std::endl;
+			return SockEventResult::OK;
+
+		default:
+			CS_DEBUG()
+				<< "ServiceEventResult::UNKNOWN"
+				<< std::endl;
+			return SockEventResult::OK;
+	}
+}
+
 void ClientSocket::_setResponse(
 	const std::vector<uint8_t> &response
 )
@@ -154,8 +199,19 @@ void ClientSocket::setToPollFd(
 	struct pollfd &pollFd
 ) const
 {
-	Socket::setToPollFd(pollFd);
-	pollFd.events = this->_IsResponseSet ? POLLOUT : POLLIN;
+	if (this->_service == NULL) {
+		CS_DEBUG()
+			<< "ClientSocket::setToPollFd() called - this->_service == NULL"
+			<< std::endl;
+		Socket::setToPollFd(pollFd);
+		pollFd.events = this->_IsResponseSet ? POLLOUT : POLLIN;
+	} else {
+		CS_DEBUG()
+			<< "ClientSocket::setToPollFd() called - this->_service is set"
+			<< std::endl;
+		this->_service->setToPollFd(pollFd);
+	}
+
 	CS_DEBUG()
 		<< "POLLIN: " << IS_POLLIN(pollFd.events)
 		<< ", POLLOUT: " << IS_POLLOUT(pollFd.events)
@@ -171,7 +227,8 @@ ClientSocket::ClientSocket(
 	const std::string &serverLoggerCustomId
 ) : Socket(fd),
 		logger(serverLoggerCustomId + ", Connection=" + Socket::getUUID().toString()),
-		_IsResponseSet(false)
+		_IsResponseSet(false),
+		_service(NULL)
 {
 	CS_DEBUG()
 		<< "ClientSocket(fd:" << utils::to_string(fd) << ")"

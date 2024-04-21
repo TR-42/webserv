@@ -1,5 +1,6 @@
 #pragma once
 
+#include <service/SimpleService.hpp>
 #include <utils/UUID.hpp>
 
 #include "../Logger.hpp"
@@ -17,9 +18,11 @@ class ClientSocket : public Socket
 	HttpRequest httpRequest;
 	std::vector<uint8_t> httpResponseBuffer;
 	bool _IsResponseSet;
+	SimpleService *_service;
 
 	SockEventResultType _processPollIn();
 	SockEventResultType _processPollOut();
+	SockEventResultType _processPollService(short revents);
 
 	void _setResponse(
 		const std::vector<uint8_t> &response
@@ -45,6 +48,9 @@ class ClientSocket : public Socket
 	virtual SockEventResultType onEventGot(
 		short revents,
 		std::vector<Socket *> &sockets
+	);
+	SockEventResultType onEventGot(
+		short revents
 	);
 };
 

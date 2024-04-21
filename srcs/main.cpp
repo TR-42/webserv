@@ -15,15 +15,6 @@
 #include "utils.hpp"
 #include "utils/ErrorPageProvider.hpp"
 
-bool process_http_request(
-	int client_fd,
-	const webserv::Logger &logger,
-	const webserv::utils::ErrorPageProvider &errorPageProvider
-);
-bool send_http_response(
-	int client_fd,
-	const webserv::HttpResponse &response
-);
 static std::string get_argv_str(int argc, const char *argv[])
 {
 	std::string str;
@@ -80,7 +71,6 @@ int main(int argc, const char *argv[])
 			L_FATAL("poll loop failed");
 			return 1;
 		}
-		usleep(10 * 1000);
 	}
 
 	if (webserv::isExitSignalGot()) {
@@ -89,66 +79,4 @@ int main(int argc, const char *argv[])
 	}
 
 	return 0;
-}
-
-bool process_http_request(
-	int client_fd,
-	const webserv::Logger &logger,
-	const webserv::utils::ErrorPageProvider &errorPageProvider
-)
-{
-	size_t buf_size = 1024;
-	char buf[buf_size];
-	ssize_t recv_size = 0;
-
-	webserv::HttpRequest request;
-	while (request.isRequestBodyLengthEnough() == false &&
-				 (recv_size = recv(client_fd, buf, buf_size, 0)) > 0) {
-		std::string str(buf, recv_size);
-		std::cout << "recv: " << str << std::endl;
-		if (request.pushRequestRaw(std::vector<uint8_t>(buf, buf + recv_size)) == false) {
-			L_WARN("request pushRequestRaw failed");
-			return (send_http_response(client_fd, errorPageProvider.badRequest()));
-		}
-	}
-	if (recv_size < 0) {
-		perror("recv");
-		return false;
-	} else if (request.isRequestBodyLengthTooMuch()) {
-		L_WARN("request body too much");
-		return (send_http_response(client_fd, errorPageProvider.badRequest()));
-	}
-
-	if (request.getPath().empty() || request.getPath()[0] != '/') {
-		L_WARN("request path is empty or not start with '/'");
-		return (send_http_response(client_fd, errorPageProvider.badRequest()));
-	}
-	std::string path = request.getPath().substr(1);
-	L_INFO("path: " + path);
-	webserv::HttpResponse response = errorPageProvider.getErrorPage(path);
-	LS_LOG()
-		<< "response: "
-		<< "version: " << response.getVersion()
-		<< ", "
-		<< "statusCode: " << response.getStatusCode()
-		<< ", "
-		<< "reasonPhrase: " << response.getReasonPhrase()
-		<< ", "
-		// << "body: " << response.getBody()
-		<< std::endl;
-	return (send_http_response(client_fd, response));
-}
-
-bool send_http_response(
-	int client_fd,
-	const webserv::HttpResponse &response
-)
-{
-	std::vector<uint8_t> response_packet = response.generateResponsePacket();
-	ssize_t send_size = send(client_fd, response_packet.data(), response_packet.size(), 0);
-	if (send_size < 0) {
-		perror("send");
-		return false;
-	}
-	return true;
 }

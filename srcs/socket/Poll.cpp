@@ -57,13 +57,6 @@ bool Poll::loop()
 	size_t removeCount = 0;
 	for (size_t i = 0; i < socketCount; i++) {
 		utils::UUID socketUuid = _SocketListCopy[i]->getUUID();
-		if (_PollFdList[i].revents == 0) {
-			CS_DEBUG()
-				<< "No event from socket " << socketUuid
-				<< std::endl;
-			continue;
-		}
-
 		const SockEventResultType result = _SocketListCopy[i]->onEventGot(
 			_PollFdList[i].revents,
 			_SocketList
