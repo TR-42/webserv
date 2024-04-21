@@ -66,10 +66,10 @@ bool HttpRequest::pushRequestRaw(
 		C_DEBUG("_IsRequestHeaderParsed was false");
 		_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
 
-		C_INFO("pickLine executing...");
+		C_DEBUG("pickLine executing...");
 		std::vector<uint8_t> *requestRawLine = _pickLine(_UnparsedRequestRaw);
 		if (requestRawLine == NULL) {
-			C_INFO("NewLine not found");
+			C_DEBUG("NewLine not found");
 			return true;
 		}
 		CS_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
@@ -86,7 +86,7 @@ bool HttpRequest::pushRequestRaw(
 			}
 			requestRawLine = _pickLine(_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
-				C_INFO("NewLine not found");
+				C_DEBUG("NewLine not found");
 				return true;
 			}
 		}
@@ -101,7 +101,7 @@ bool HttpRequest::pushRequestRaw(
 			}
 			requestRawLine = _pickLine(_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
-				C_INFO("NewLine not found");
+				C_DEBUG("NewLine not found");
 				return true;
 			}
 			CS_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
@@ -154,7 +154,7 @@ bool HttpRequest::parseRequestLine(
 		C_WARN("spacePos1 was NULL");
 		return false;
 	}
-	C_INFO("spacePos1 was not null");
+	C_DEBUG("spacePos1 was not null");
 	size_t lenToSpacePos1 = spacePos1 - requestRawData;
 	if (lenToSpacePos1 == 0) {
 		C_WARN("lenToSpacePos1 was 0");
@@ -169,7 +169,7 @@ bool HttpRequest::parseRequestLine(
 		C_WARN("spacePos2 was NULL");
 		return false;
 	}
-	C_INFO("spacePos2 was not null");
+	C_DEBUG("spacePos2 was not null");
 	size_t lenToSpacePos2 = spacePos2 - pathSegment;
 	if (lenToSpacePos2 == 0) {
 		C_WARN("lenToSpacePos2 was 0");
@@ -206,7 +206,7 @@ bool HttpRequest::parseRequestHeader(
 		C_WARN("separatorPos was NULL");
 		return false;
 	}
-	C_INFO("separatorPos was not null");
+	C_DEBUG("separatorPos was not null");
 	size_t lenToSeparatorPos = separatorPos - requestRawData;
 	if (lenToSeparatorPos == 0) {
 		return false;
