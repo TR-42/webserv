@@ -49,8 +49,8 @@ class HttpRequest
 	bool isRequestLineParsed() const;
 	bool isRequestHeaderParsed() const;
 	size_t getContentLength() const;
-	bool isRequestBodyLengthEnough();
-	bool isRequestBodyLengthTooMuch();
+	bool isRequestBodyLengthEnough() const;
+	bool isRequestBodyLengthTooMuch() const;
 	void parseContentLength();
 
  private:

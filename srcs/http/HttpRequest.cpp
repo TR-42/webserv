@@ -220,12 +220,12 @@ void HttpRequest::parseContentLength()
 	_ContentLength = result;
 }
 
-bool HttpRequest::isRequestBodyLengthEnough()
+bool HttpRequest::isRequestBodyLengthEnough() const
 {
 	return _IsRequestHeaderParsed && getContentLength() <= _Body.size();
 }
 
-bool HttpRequest::isRequestBodyLengthTooMuch()
+bool HttpRequest::isRequestBodyLengthTooMuch() const
 {
 	return _IsRequestHeaderParsed && getContentLength() < _Body.size();
 }
