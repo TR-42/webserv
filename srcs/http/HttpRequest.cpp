@@ -112,7 +112,7 @@ bool HttpRequest::pushRequestRaw(
 		CS_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
 		_Body = _UnparsedRequestRaw;
 		// TODO: この段階でContentLengthのパースも行ってしまう
-		bool isContentLengthFieldExists = _Headers.find("Content-Length") != _Headers.end();
+		bool isContentLengthFieldExists = _Headers.isNameExists("Content-Length");
 		this->_IsParseCompleted = !isContentLengthFieldExists;
 		CS_DEBUG()
 			<< "isContentLengthFieldExists: " << isContentLengthFieldExists
