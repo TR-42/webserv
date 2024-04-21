@@ -30,6 +30,8 @@ SRCS_MATH =\
 	can_mul.cpp\
 
 SRCS_SERVICE	=\
+	FileService.cpp\
+	ServiceBase.cpp\
 	SimpleService.cpp\
 
 SRCS_SIGNAL	=\

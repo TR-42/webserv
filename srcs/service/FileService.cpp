@@ -1,14 +1,16 @@
 #include <cstring>
-#include <service/SimpleService.hpp>
+#include <service/FileService.hpp>
 
 namespace webserv
 {
 
-SimpleService::SimpleService(
+FileService::FileService(
 	const HttpRequest &request,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
-) : ServiceBase(request, errorPageProvider, logger)
+) : _request(request),
+		_errorPageProvider(errorPageProvider),
+		_logger(logger)
 {
 	if (request.getPath().empty() || request.getPath()[0] != '/') {
 		this->_response = this->_errorPageProvider.getErrorPage(
@@ -22,11 +24,11 @@ SimpleService::SimpleService(
 	}
 }
 
-SimpleService::~SimpleService()
+FileService::~FileService()
 {
 }
 
-void SimpleService::setToPollFd(
+void FileService::setToPollFd(
 	pollfd &pollFd
 ) const
 {
@@ -38,7 +40,7 @@ void SimpleService::setToPollFd(
 	);
 }
 
-ServiceEventResultType SimpleService::onEventGot(
+ServiceEventResultType FileService::onEventGot(
 	short revents
 )
 {
