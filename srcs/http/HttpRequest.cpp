@@ -44,7 +44,8 @@ HttpRequest::HttpRequest()
 		: _IsRequestLineParsed(false),
 			_IsRequestHeaderParsed(false),
 			_IsParseCompleted(false),
-			_ContentLength(0)
+			_ContentLength(0),
+			_IsChunkedRequest(false)
 {
 }
 
@@ -106,24 +107,37 @@ bool HttpRequest::pushRequestRaw(
 			}
 			CS_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
 		}
+		delete requestRawLine;
 
 		CS_DEBUG()
 			<< "tryGetContentLength result: " << std::boolalpha << this->_Headers.tryGetContentLength(this->_ContentLength)
 			<< std::endl;
 
+		if (this->_Headers.isNameExists("Host")) {
+			std::vector<std::string> hostList = this->_Headers.getValueList("Host");
+			if (!hostList.empty()) {
+				this->_Host = hostList[0];
+			}
+		}
+
 		_IsRequestHeaderParsed = true;
-		delete requestRawLine;
-		CS_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
+
 		_Body = _UnparsedRequestRaw;
-		// TODO: この段階でContentLengthのパースも行ってしまう
-		bool isContentLengthFieldExists = _Headers.isNameExists("Content-Length");
-		this->_IsParseCompleted = !isContentLengthFieldExists;
-		CS_DEBUG()
-			<< "isContentLengthFieldExists: " << isContentLengthFieldExists
-			<< ", "
-			<< "IsParseCompleted: " << this->_IsParseCompleted
+		// TODO: chunkedの処理を実装する
+		this->_IsParseCompleted = this->_ContentLength <= _Body.size();
+
+		CS_INFO()
+			<< "Request Header Parse Completed:"
+			<< " Method: " << _Method
+			<< ", Path: `" << _Path << "`"
+			<< ", Version: " << _Version
+			<< ", IsParseCompleted: " << std::boolalpha << this->_IsParseCompleted
+			<< ", ContentLength: " << _ContentLength
+			<< ", Host: " << _Host
+			<< ", IsChunkedRequest: " << std::boolalpha << this->_IsChunkedRequest
 			<< std::endl;
-		return _IsRequestHeaderParsed;
+
+		return true;
 	} else if (isRequestBodyLengthEnough()) {
 		CS_DEBUG()
 			<< "too much request body("
@@ -248,6 +262,16 @@ bool webserv::HttpRequest::isParseCompleted()
 		this->_IsParseCompleted = this->isRequestBodyLengthEnough();
 	}
 	return this->_IsParseCompleted;
+}
+
+std::string HttpRequest::getHost() const
+{
+	return this->_Host;
+}
+
+bool HttpRequest::isChunkedRequest() const
+{
+	return this->_IsChunkedRequest;
 }
 
 }	 // namespace webserv

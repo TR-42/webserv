@@ -24,6 +24,8 @@ class HttpRequest
 	bool _IsRequestHeaderParsed;
 	bool _IsParseCompleted;
 	size_t _ContentLength;
+	std::string _Host;
+	bool _IsChunkedRequest;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;
 	// chunkは後で実装
@@ -53,6 +55,8 @@ class HttpRequest
 	bool isRequestBodyLengthEnough() const;
 	bool isRequestBodyLengthTooMuch() const;
 	bool isParseCompleted();
+	std::string getHost() const;
+	bool isChunkedRequest() const;
 
  private:
 	bool parseRequestLine(
