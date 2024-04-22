@@ -109,8 +109,9 @@ bool HttpRequest::pushRequestRaw(
 		}
 		delete requestRawLine;
 
+		bool tryGetContentLengthResult = this->_Headers.tryGetContentLength(this->_ContentLength);
 		CS_DEBUG()
-			<< "tryGetContentLength result: " << std::boolalpha << this->_Headers.tryGetContentLength(this->_ContentLength)
+			<< "tryGetContentLength result: " << std::boolalpha << tryGetContentLengthResult
 			<< std::endl;
 
 		if (this->_Headers.isNameExists("Host")) {
