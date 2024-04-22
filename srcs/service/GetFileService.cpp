@@ -1,10 +1,10 @@
 #include <cstring>
-#include <service/FileService.hpp>
+#include <service/GetFileService.hpp>
 
 namespace webserv
 {
 
-FileService::FileService(
+GetFileService::GetFileService(
 	const HttpRequest &request,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
@@ -24,11 +24,11 @@ FileService::FileService(
 	}
 }
 
-FileService::~FileService()
+GetFileService::~GetFileService()
 {
 }
 
-void FileService::setToPollFd(
+void GetFileService::setToPollFd(
 	pollfd &pollFd
 ) const
 {
@@ -40,7 +40,7 @@ void FileService::setToPollFd(
 	);
 }
 
-ServiceEventResultType FileService::onEventGot(
+ServiceEventResultType GetFileService::onEventGot(
 	short revents
 )
 {
