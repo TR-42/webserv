@@ -2,6 +2,7 @@
 
 #include <sys/socket.h>
 
+#include <ctime>
 #include <socket/SockEventResult.hpp>
 #include <string>
 
@@ -40,6 +41,11 @@ std::string to_string(
 
 std::string to_string(
 	const SockEventResultType &result
+);
+
+std::string getHttpTimeStr();
+std::string getHttpTimeStr(
+	time_t time
 );
 
 }	 // namespace utils

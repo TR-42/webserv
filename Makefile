@@ -43,6 +43,7 @@ SRCS_SOCKET	=\
 
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
+	getHttpTimeStr.cpp\
 	stoul.cpp\
 	strtrim.cpp\
 	to_string.cpp\
