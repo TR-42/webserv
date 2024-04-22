@@ -12,7 +12,7 @@
 namespace webserv
 {
 
-class FileService
+class GetFileService
 {
  protected:
 	const HttpRequest &_request;
@@ -21,12 +21,12 @@ class FileService
 	const Logger &_logger;
 
  public:
-	FileService(
+	GetFileService(
 		const HttpRequest &request,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
-	virtual ~FileService();
+	virtual ~GetFileService();
 
 	virtual void setToPollFd(
 		struct pollfd &pollFd
