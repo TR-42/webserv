@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <service/pickService.hpp>
 #include <socket/ClientSocket.hpp>
 #include <utils.hpp>
 #include <utils/ErrorPageProvider.hpp>
@@ -78,23 +79,31 @@ SockEventResultType ClientSocket::_processPollIn()
 		return SockEventResult::OK;
 	}
 
-	// TODO: ReqBodyのサイズチェック
-	if (this->httpRequest.isParseCompleted()) {
+	if (!this->httpRequest.isParseCompleted()) {
 		CS_DEBUG()
-			<< "Request parse completed"
+			<< "Request parse not completed"
 			<< std::endl;
-		// TODO: 設定によるServiceの選択
-		this->_service = new SimpleService(
-			this->httpRequest,
-			utils::ErrorPageProvider(),
-			this->logger
-		);
-		return this->_processPollService(0);
+		return SockEventResult::OK;
 	}
 
-	C_DEBUG("processPollIn() end");
-
-	return SockEventResult::OK;
+	CS_DEBUG()
+		<< "Request parse completed"
+		<< std::endl;
+	this->_service = pickService(
+		this->_listenConfigList,
+		this->httpRequest,
+		utils::ErrorPageProvider(),
+		this->logger
+	);
+	if (this->_service == NULL) {
+		CS_DEBUG()
+			<< "pickService() returned NULL"
+			<< std::endl;
+		// TODO: Method Not Allowed	405
+		this->_setResponse(utils::ErrorPageProvider().notImplemented());
+		return SockEventResult::OK;
+	}
+	return this->_processPollService(0);
 }
 
 SockEventResultType ClientSocket::_processPollOut()

@@ -20,7 +20,7 @@ class ClientSocket : public Socket
 	HttpRequest httpRequest;
 	std::vector<uint8_t> httpResponseBuffer;
 	bool _IsResponseSet;
-	SimpleService *_service;
+	ServiceBase *_service;
 
 	SockEventResultType _processPollIn();
 	SockEventResultType _processPollOut();

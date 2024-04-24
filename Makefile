@@ -31,6 +31,7 @@ SRCS_MATH =\
 
 SRCS_SERVICE	=\
 	GetFileService.cpp\
+	pickService.cpp\
 	ServiceBase.cpp\
 	SimpleService.cpp\
 
