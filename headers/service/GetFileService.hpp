@@ -19,6 +19,7 @@ class GetFileService
 	HttpResponse _response;
 	const utils::ErrorPageProvider &_errorPageProvider;
 	const Logger &_logger;
+	int _isDirectory;
 
  public:
 	GetFileService(
