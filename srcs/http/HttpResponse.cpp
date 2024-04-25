@@ -11,6 +11,15 @@ IMPL_GETTER_SETTER_NS(std::string, ReasonPhrase, HttpResponse::)
 IMPL_REF_NO_CONST_GETTER_SETTER_NS(HttpFieldMap, Headers, HttpResponse::)
 IMPL_REF_NO_CONST_GETTER_SETTER_NS(std::vector<uint8_t>, Body, HttpResponse::)
 
+HttpResponse::HttpResponse(
+) : _Version("HTTP/1.1"),
+		_StatusCode("200"),
+		_ReasonPhrase("OK"),
+		_Headers(),
+		_Body()
+{
+}
+
 void HttpResponse::setBody(const std::string &body)
 {
 	this->_Body = std::vector<uint8_t>(body.begin(), body.end());

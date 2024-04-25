@@ -7,19 +7,17 @@
 #include <http/HttpResponse.hpp>
 #include <utils/ErrorPageProvider.hpp>
 
+#include "./ServiceBase.hpp"
 #include "./ServiceEventResult.hpp"
 
 namespace webserv
 {
 
-class GetFileService
+class GetFileService : public ServiceBase
 {
  protected:
-	const HttpRequest &_request;
-	HttpResponse _response;
-	const utils::ErrorPageProvider &_errorPageProvider;
-	const Logger &_logger;
-	int _isDirectory;
+	bool _isDirectory;
+	int _fd;
 
  public:
 	GetFileService(

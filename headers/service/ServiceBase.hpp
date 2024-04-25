@@ -18,7 +18,7 @@ class ServiceBase
 	const HttpRequest &_request;
 	HttpResponse _response;
 	const utils::ErrorPageProvider &_errorPageProvider;
-	const Logger &_logger;
+	const Logger &logger;
 
  public:
 	ServiceBase(

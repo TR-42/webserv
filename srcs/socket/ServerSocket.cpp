@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include <macros.hpp>
 #include <socket/ClientSocket.hpp>
 #include <socket/ServerSocket.hpp>
 #include <utils.hpp>

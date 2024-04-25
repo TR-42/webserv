@@ -10,9 +10,6 @@
 namespace webserv
 {
 
-#define IS_POLLIN(revents) (revents & POLLIN)
-#define IS_POLLOUT(revents) (revents & POLLOUT)
-
 class Socket
 {
  private:

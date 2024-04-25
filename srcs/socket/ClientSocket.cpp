@@ -1,5 +1,7 @@
 #include <sys/socket.h>
 
+#include <macros.hpp>
+#include <service/GetFileService.hpp>
 #include <socket/ClientSocket.hpp>
 #include <utils.hpp>
 #include <utils/ErrorPageProvider.hpp>
@@ -84,7 +86,7 @@ SockEventResultType ClientSocket::_processPollIn()
 			<< "Request parse completed"
 			<< std::endl;
 		// TODO: 設定によるServiceの選択
-		this->_service = new SimpleService(
+		this->_service = new GetFileService(
 			this->httpRequest,
 			utils::ErrorPageProvider(),
 			this->logger

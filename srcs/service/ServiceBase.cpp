@@ -10,7 +10,7 @@ ServiceBase::ServiceBase(
 	const Logger &logger
 ) : _request(request),
 		_errorPageProvider(errorPageProvider),
-		_logger(logger)
+		logger(logger)
 {
 }
 
