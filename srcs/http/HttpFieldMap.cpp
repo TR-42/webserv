@@ -1,6 +1,7 @@
 #include "http/HttpFieldMap.hpp"
 
 #include <cctype>
+#include <utils.hpp>
 
 namespace webserv
 {
@@ -37,7 +38,19 @@ bool HttpFieldMap::isNameExists(const std::string &name) const
 	return fieldMap.find(upperName) != fieldMap.end();
 }
 
-void HttpFieldMap::appendToVector(std::vector<uint8_t> &dst) const
+static void _appendToVector(
+	const std::string &name,
+	const std::string &value,
+	std::vector<uint8_t> &dst
+)
+{
+	std::string fieldLine = name + ": " + value + "\r\n";
+	dst.insert(dst.end(), fieldLine.begin(), fieldLine.end());
+}
+void HttpFieldMap::appendToVector(
+	std::vector<uint8_t> &dst,
+	std::vector<uint8_t> body
+) const
 {
 	for (
 		FieldMapType::const_iterator it = fieldMap.begin();
@@ -50,9 +63,15 @@ void HttpFieldMap::appendToVector(std::vector<uint8_t> &dst) const
 			it2 != it->second.end();
 			++it2
 		) {
-			std::string fieldLine = it->first + ": " + *it2 + "\r\n";
-			dst.insert(dst.end(), fieldLine.begin(), fieldLine.end());
+			_appendToVector(it->first, *it2, dst);
 		}
+	}
+
+	if (!this->isNameExists("Content-Length") && !body.empty()) {
+		_appendToVector("Content-Length", utils::to_string(body.size()), dst);
+	}
+	if (!this->isNameExists(("Date"))) {
+		_appendToVector("Date", utils::getHttpTimeStr(), dst);
 	}
 }
 

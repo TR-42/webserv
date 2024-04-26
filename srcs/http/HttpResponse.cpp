@@ -29,7 +29,7 @@ std::vector<uint8_t> HttpResponse::generateResponsePacket() const
 	responsePacket.push_back('\r');
 	responsePacket.push_back('\n');
 
-	this->_Headers.appendToVector(responsePacket);
+	this->_Headers.appendToVector(responsePacket, this->_Body);
 	responsePacket.push_back('\r');
 	responsePacket.push_back('\n');
 
