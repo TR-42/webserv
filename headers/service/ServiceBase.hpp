@@ -7,29 +7,36 @@
 #include <http/HttpResponse.hpp>
 #include <utils/ErrorPageProvider.hpp>
 
-#include "./ServiceBase.hpp"
 #include "./ServiceEventResult.hpp"
 
 namespace webserv
 {
 
-class SimpleService : public ServiceBase
+class ServiceBase
 {
+ protected:
+	const HttpRequest &_request;
+	HttpResponse _response;
+	const utils::ErrorPageProvider &_errorPageProvider;
+	const Logger &logger;
+
  public:
-	SimpleService(
+	ServiceBase(
 		const HttpRequest &request,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
-	virtual ~SimpleService();
+	virtual ~ServiceBase();
 
 	virtual void setToPollFd(
 		struct pollfd &pollFd
-	) const;
+	) const = 0;
 
 	virtual ServiceEventResultType onEventGot(
 		short revents
-	);
+	) = 0;
+
+	const HttpResponse &getResponse() const;
 };
 
 }	 // namespace webserv

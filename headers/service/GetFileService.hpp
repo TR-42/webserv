@@ -13,15 +13,19 @@
 namespace webserv
 {
 
-class SimpleService : public ServiceBase
+class GetFileService : public ServiceBase
 {
+ protected:
+	bool _isDirectory;
+	int _fd;
+
  public:
-	SimpleService(
+	GetFileService(
 		const HttpRequest &request,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
-	virtual ~SimpleService();
+	virtual ~GetFileService();
 
 	virtual void setToPollFd(
 		struct pollfd &pollFd

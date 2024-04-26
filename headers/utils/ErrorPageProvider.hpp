@@ -16,6 +16,7 @@ class ErrorPageProvider
 	ErrorPageProvider();
 	~ErrorPageProvider();
 	HttpResponse badRequest() const;
+	HttpResponse permissionDenied() const;
 	HttpResponse notFound() const;
 	HttpResponse movedPermanently() const;
 	HttpResponse found() const;
@@ -28,6 +29,7 @@ class ErrorPageProvider
 	HttpResponse getErrorPage(int statusCode) const;
 
 	static const int BAD_REQUEST = 400;
+	static const int PERMISSION_DENIED = 403;
 	static const int NOT_FOUND = 404;
 	static const int MOVED_PERMANENTLY = 301;
 	static const int FOUND = 302;

@@ -13,6 +13,7 @@ namespace utils
 {
 
 const int ErrorPageProvider::BAD_REQUEST;
+const int ErrorPageProvider::PERMISSION_DENIED;
 const int ErrorPageProvider::NOT_FOUND;
 const int ErrorPageProvider::MOVED_PERMANENTLY;
 const int ErrorPageProvider::FOUND;
@@ -40,6 +41,12 @@ static const HttpResponse defaultBadRequest = createResponse(
 	ErrorPageProvider::BAD_REQUEST,
 	"Bad Request",
 	"400 Bad Request\n"
+);
+
+static const HttpResponse defaultPermissionDenied = createResponse(
+	ErrorPageProvider::PERMISSION_DENIED,
+	"Permission Denied",
+	"403 Permission Denied\n"
 );
 
 static const HttpResponse defaultNotFound = createResponse(
@@ -93,6 +100,7 @@ static const HttpResponse defaultHttpVersionNotSupported = createResponse(
 ErrorPageProvider::ErrorPageProvider()
 {
 	this->_errorPages[ErrorPageProvider::BAD_REQUEST] = defaultBadRequest;
+	this->_errorPages[ErrorPageProvider::PERMISSION_DENIED] = defaultPermissionDenied;
 	this->_errorPages[ErrorPageProvider::NOT_FOUND] = defaultNotFound;
 	this->_errorPages[ErrorPageProvider::MOVED_PERMANENTLY] = defaultMovedPermanently;
 	this->_errorPages[ErrorPageProvider::FOUND] = defaultFound;
@@ -115,6 +123,11 @@ HttpResponse ErrorPageProvider::getErrorPage(int statusCode) const
 HttpResponse ErrorPageProvider::badRequest() const
 {
 	return this->_errorPages.at(ErrorPageProvider::BAD_REQUEST);
+}
+
+HttpResponse ErrorPageProvider::permissionDenied() const
+{
+	return this->_errorPages.at(ErrorPageProvider::PERMISSION_DENIED);
 }
 
 HttpResponse ErrorPageProvider::notFound() const

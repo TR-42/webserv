@@ -8,9 +8,7 @@ SimpleService::SimpleService(
 	const HttpRequest &request,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
-) : _request(request),
-		_errorPageProvider(errorPageProvider),
-		_logger(logger)
+) : ServiceBase(request, errorPageProvider, logger)
 {
 	if (request.getPath().empty() || request.getPath()[0] != '/') {
 		this->_response = this->_errorPageProvider.getErrorPage(
@@ -46,11 +44,6 @@ ServiceEventResultType SimpleService::onEventGot(
 {
 	(void)revents;
 	return ServiceEventResult::COMPLETE;
-}
-
-const HttpResponse &SimpleService::getResponse() const
-{
-	return this->_response;
 }
 
 }	 // namespace webserv
