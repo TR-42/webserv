@@ -8,6 +8,7 @@
 #include <macros.hpp>
 #include <service/GetFileService.hpp>
 #include <service/SimpleService.hpp>
+#include <types.hpp>
 #include <utils.hpp>
 
 namespace webserv
