@@ -2,6 +2,7 @@
 #include <service/ServiceBase.hpp>
 #include <service/SimpleService.hpp>
 #include <service/pickService.hpp>
+#include <stdexcept>
 
 namespace webserv
 {
