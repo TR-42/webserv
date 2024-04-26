@@ -34,8 +34,6 @@ class GetFileService : public ServiceBase
 	virtual ServiceEventResultType onEventGot(
 		short revents
 	);
-
-	const HttpResponse &getResponse() const;
 };
 
 }	 // namespace webserv
