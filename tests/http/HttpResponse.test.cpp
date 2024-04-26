@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <http/HttpResponse.hpp>
+#include <utils.hpp>
 
 #include "http/HttpFieldMap.hpp"
 
@@ -17,7 +18,16 @@ TEST(HttpResponse, test1)
 	std::vector<uint8_t> bodyVec(body.begin(), body.end());
 	response.setBody(bodyVec);
 	std::vector<uint8_t> responsePacket = response.generateResponsePacket();
+	time_t time = std::time(NULL);
 	std::string responsePacketStr(responsePacket.begin(), responsePacket.end());
-	std::string expectedResponsePacketStr = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\nHello, World!";
-	EXPECT_EQ(responsePacketStr, expectedResponsePacketStr);
+	std::string timeStr = webserv::utils::getHttpTimeStr(time);
+	std::string expectedResponsePacketStr = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 13\r\nDate: " + timeStr + "\r\n\r\nHello, World!";
+	std::string timeStr1 = webserv::utils::getHttpTimeStr(time + 1);
+	std::string expectedResponsePacketStr1 = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 13\r\nDate: " + timeStr1 + "\r\n\r\nHello, World!";
+	// 1秒後までは許容する
+	if (expectedResponsePacketStr1 == responsePacketStr) {
+		EXPECT_EQ(responsePacketStr, expectedResponsePacketStr);
+	} else {
+		EXPECT_EQ(responsePacketStr, expectedResponsePacketStr);
+	}
 }

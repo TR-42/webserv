@@ -19,7 +19,10 @@ class HttpFieldMap
 
 	bool isNameExists(const std::string &name) const;
 
-	void appendToVector(std::vector<uint8_t> &dst) const;
+	void appendToVector(
+		std::vector<uint8_t> &dst,
+		std::vector<uint8_t> body = std::vector<uint8_t>()
+	) const;
 
 	bool empty() const;
 };
