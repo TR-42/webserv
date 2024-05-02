@@ -30,6 +30,7 @@ SRCS_MATH =\
 	can_mul.cpp\
 
 SRCS_SERVICE	=\
+	DeleteFileService.cpp\
 	GetFileService.cpp\
 	pickService.cpp\
 	ServiceBase.cpp\
@@ -47,6 +48,7 @@ SRCS_SOCKET	=\
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
 	getHttpTimeStr.cpp\
+	modeToString.cpp\
 	stoul.cpp\
 	strtrim.cpp\
 	to_string.cpp\

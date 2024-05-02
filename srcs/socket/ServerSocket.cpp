@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <macros.hpp>
 #include <socket/ClientSocket.hpp>
 #include <socket/ServerSocket.hpp>
 #include <utils.hpp>

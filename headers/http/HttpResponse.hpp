@@ -21,6 +21,7 @@ class HttpResponse
  public:
 	std::vector<uint8_t> generateResponsePacket() const;
 	void setBody(const std::string &body);
+	HttpResponse();
 };
 
 }	 // namespace webserv

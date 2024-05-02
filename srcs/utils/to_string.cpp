@@ -17,6 +17,13 @@ std::string to_string(int i)
 	return std::string(buf);
 }
 
+std::string to_string(size_t i)
+{
+	char buf[32];
+	std::snprintf(buf, sizeof(buf), "%zu", i);
+	return std::string(buf);
+}
+
 static std::string _ipv4_to_string(
 	const struct in_addr &addr
 )

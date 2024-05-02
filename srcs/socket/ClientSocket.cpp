@@ -1,5 +1,8 @@
 #include <sys/socket.h>
 
+#include <macros.hpp>
+#include <service/DeleteFileService.hpp>
+#include <service/GetFileService.hpp>
 #include <service/pickService.hpp>
 #include <socket/ClientSocket.hpp>
 #include <utils.hpp>

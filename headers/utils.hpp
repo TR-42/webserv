@@ -36,6 +36,10 @@ std::string to_string(
 );
 
 std::string to_string(
+	size_t i
+);
+
+std::string to_string(
 	const struct sockaddr &addr
 );
 std::string to_string(
@@ -52,6 +56,10 @@ std::string to_string(
 std::string getHttpTimeStr();
 std::string getHttpTimeStr(
 	time_t time
+);
+
+std::string modeToString(
+	mode_t mode
 );
 
 }	 // namespace utils

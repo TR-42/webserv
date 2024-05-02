@@ -1,4 +1,6 @@
 #include <config/ListenConfig.hpp>
+#include <service/DeleteFileService.hpp>
+#include <service/GetFileService.hpp>
 #include <service/ServiceBase.hpp>
 #include <service/SimpleService.hpp>
 #include <service/pickService.hpp>
@@ -92,12 +94,23 @@ static ServiceBase *pickService(
 )
 {
 	(void)routeConfig;
+	(void)errorPageProvider;
 	// TODO: RouteによるServiceの選択
-	return new SimpleService(
-		request,
-		errorPageProvider,
-		logger
-	);
+	if (request.getMethod() == "GET") {
+		return new GetFileService(
+			request,
+			utils::ErrorPageProvider(),
+			logger
+		);
+	} else if (request.getMethod() == "DELETE") {
+		return new DeleteFileService(
+			request,
+			utils::ErrorPageProvider(),
+			logger
+		);
+	} else {
+		return NULL;
+	}
 }
 
 ServiceBase *pickService(
@@ -122,7 +135,8 @@ ServiceBase *pickService(
 	);
 	if (!isRouteConfigFound) {
 		L_ERROR("No RouteConfig found");
-		return NULL;
+		// routeConfigが未実装のため、一旦コメントアウト
+		// return NULL;
 	}
 
 	return pickService(

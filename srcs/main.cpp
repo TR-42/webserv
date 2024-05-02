@@ -67,8 +67,11 @@ int main(int argc, const char *argv[])
 	}
 
 	std::vector<webserv::Socket *> socketList;
+	webserv::ServerConfigListType conf80 = createDefaultServerConfigList();
+	webserv::ServerConfigListType conf81 = createDefaultServerConfigList(81);
+	webserv::ServerConfigListType conf82 = createDefaultServerConfigList(82);
 	webserv::ServerSocket *serverSocket80 = webserv::ServerSocket::createServerSocket(
-		createDefaultServerConfigList(),
+		conf80,
 		logger
 	);
 	if (serverSocket80 == NULL) {
@@ -76,7 +79,7 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 	webserv::ServerSocket *serverSocket81 = webserv::ServerSocket::createServerSocket(
-		createDefaultServerConfigList(81),
+		conf81,
 		logger
 	);
 	if (serverSocket81 == NULL) {
@@ -85,7 +88,7 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 	webserv::ServerSocket *serverSocket82 = webserv::ServerSocket::createServerSocket(
-		createDefaultServerConfigList(82),
+		conf82,
 		logger
 	);
 	if (serverSocket82 == NULL) {
