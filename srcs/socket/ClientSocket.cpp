@@ -3,6 +3,7 @@
 #include <macros.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
+#include <service/pickService.hpp>
 #include <socket/ClientSocket.hpp>
 #include <utils.hpp>
 #include <utils/ErrorPageProvider.hpp>
@@ -81,34 +82,31 @@ SockEventResultType ClientSocket::_processPollIn()
 		return SockEventResult::OK;
 	}
 
-	// TODO: ReqBodyのサイズチェック
-	if (this->httpRequest.isParseCompleted()) {
+	if (!this->httpRequest.isParseCompleted()) {
 		CS_DEBUG()
-			<< "Request parse completed"
+			<< "Request parse not completed"
 			<< std::endl;
-		if (this->httpRequest.getMethod() == "GET") {
-			this->_service = new GetFileService(
-				this->httpRequest,
-				utils::ErrorPageProvider(),
-				this->logger
-			);
-		} else if (this->httpRequest.getMethod() == "DELETE") {
-			this->_service = new DeleteFileService(
-				this->httpRequest,
-				utils::ErrorPageProvider(),
-				this->logger
-			);
-		} else {
-			this->_setResponse(utils::ErrorPageProvider().notImplemented());
-			return SockEventResult::OK;
-		}
-
-		return this->_processPollService(0);
+		return SockEventResult::OK;
 	}
 
-	C_DEBUG("processPollIn() end");
-
-	return SockEventResult::OK;
+	CS_DEBUG()
+		<< "Request parse completed"
+		<< std::endl;
+	this->_service = pickService(
+		this->_listenConfigList,
+		this->httpRequest,
+		utils::ErrorPageProvider(),
+		this->logger
+	);
+	if (this->_service == NULL) {
+		CS_DEBUG()
+			<< "pickService() returned NULL"
+			<< std::endl;
+		// TODO: Method Not Allowed	405
+		this->_setResponse(utils::ErrorPageProvider().notImplemented());
+		return SockEventResult::OK;
+	}
+	return this->_processPollService(0);
 }
 
 SockEventResultType ClientSocket::_processPollOut()
@@ -234,12 +232,18 @@ void ClientSocket::setToPollFd(
 
 ClientSocket::~ClientSocket()
 {
+	CS_INFO()
+		<< "ClientSocket(fd:" << this->getFD() << ")"
+		<< " destroyed"
+		<< std::endl;
 }
 
 ClientSocket::ClientSocket(
 	int fd,
-	const std::string &serverLoggerCustomId
+	const std::string &serverLoggerCustomId,
+	const ServerConfigListType &listenConfigList
 ) : Socket(fd),
+		_listenConfigList(listenConfigList),
 		logger(serverLoggerCustomId + ", Connection=" + Socket::getUUID().toString()),
 		_IsResponseSet(false),
 		_service(NULL)

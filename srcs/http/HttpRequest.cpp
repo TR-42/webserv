@@ -44,7 +44,8 @@ HttpRequest::HttpRequest()
 		: _IsRequestLineParsed(false),
 			_IsRequestHeaderParsed(false),
 			_IsParseCompleted(false),
-			_ContentLength(0)
+			_ContentLength(0),
+			_IsChunkedRequest(false)
 {
 }
 
@@ -66,10 +67,10 @@ bool HttpRequest::pushRequestRaw(
 		C_DEBUG("_IsRequestHeaderParsed was false");
 		_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
 
-		C_INFO("pickLine executing...");
+		C_DEBUG("pickLine executing...");
 		std::vector<uint8_t> *requestRawLine = _pickLine(_UnparsedRequestRaw);
 		if (requestRawLine == NULL) {
-			C_INFO("NewLine not found");
+			C_DEBUG("NewLine not found");
 			return true;
 		}
 		CS_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
@@ -86,7 +87,7 @@ bool HttpRequest::pushRequestRaw(
 			}
 			requestRawLine = _pickLine(_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
-				C_INFO("NewLine not found");
+				C_DEBUG("NewLine not found");
 				return true;
 			}
 		}
@@ -101,25 +102,52 @@ bool HttpRequest::pushRequestRaw(
 			}
 			requestRawLine = _pickLine(_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
-				C_INFO("NewLine not found");
+				C_DEBUG("NewLine not found");
 				return true;
 			}
 			CS_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
 		}
-		parseContentLength();
-		_IsRequestHeaderParsed = true;
 		delete requestRawLine;
-		CS_DEBUG() << "_IsRequestHeaderParsed result: " << _IsRequestHeaderParsed << std::endl;
-		_Body = _UnparsedRequestRaw;
-		// TODO: この段階でContentLengthのパースも行ってしまう
-		bool isContentLengthFieldExists = _Headers.isNameExists("Content-Length");
-		this->_IsParseCompleted = !isContentLengthFieldExists;
+
+		bool tryGetContentLengthResult = this->_Headers.tryGetContentLength(this->_ContentLength);
 		CS_DEBUG()
-			<< "isContentLengthFieldExists: " << isContentLengthFieldExists
-			<< ", "
-			<< "IsParseCompleted: " << this->_IsParseCompleted
+			<< "tryGetContentLength result: " << std::boolalpha << tryGetContentLengthResult
 			<< std::endl;
-		return _IsRequestHeaderParsed;
+
+		// TODO: HTTP/1系でHostが指定されていない場合に400を返す
+		if (this->_Headers.isNameExists("Host")) {
+			std::vector<std::string> hostList = this->_Headers.getValueList("Host");
+			if (hostList.size() != 1) {
+				C_WARN("Host header is not unique");
+				return false;
+			}
+
+			if (hostList[0].empty()) {
+				C_WARN("Host header is empty");
+				return false;
+			}
+
+			this->_Host = hostList[0];
+		}
+
+		_IsRequestHeaderParsed = true;
+
+		_Body = _UnparsedRequestRaw;
+		// TODO: chunkedの処理を実装する
+		this->_IsParseCompleted = this->_ContentLength <= _Body.size();
+
+		CS_INFO()
+			<< "Request Header Parse Completed:"
+			<< " Method: " << _Method
+			<< ", Path: `" << _Path << "`"
+			<< ", Version: " << _Version
+			<< ", IsParseCompleted: " << std::boolalpha << this->_IsParseCompleted
+			<< ", ContentLength: " << _ContentLength
+			<< ", Host: " << _Host
+			<< ", IsChunkedRequest: " << std::boolalpha << this->_IsChunkedRequest
+			<< std::endl;
+
+		return true;
 	} else if (isRequestBodyLengthEnough()) {
 		CS_DEBUG()
 			<< "too much request body("
@@ -150,7 +178,7 @@ bool HttpRequest::parseRequestLine(
 		C_WARN("spacePos1 was NULL");
 		return false;
 	}
-	C_INFO("spacePos1 was not null");
+	C_DEBUG("spacePos1 was not null");
 	size_t lenToSpacePos1 = spacePos1 - requestRawData;
 	if (lenToSpacePos1 == 0) {
 		C_WARN("lenToSpacePos1 was 0");
@@ -165,7 +193,7 @@ bool HttpRequest::parseRequestLine(
 		C_WARN("spacePos2 was NULL");
 		return false;
 	}
-	C_INFO("spacePos2 was not null");
+	C_DEBUG("spacePos2 was not null");
 	size_t lenToSpacePos2 = spacePos2 - pathSegment;
 	if (lenToSpacePos2 == 0) {
 		C_WARN("lenToSpacePos2 was 0");
@@ -202,7 +230,7 @@ bool HttpRequest::parseRequestHeader(
 		C_WARN("separatorPos was NULL");
 		return false;
 	}
-	C_INFO("separatorPos was not null");
+	C_DEBUG("separatorPos was not null");
 	size_t lenToSeparatorPos = separatorPos - requestRawData;
 	if (lenToSeparatorPos == 0) {
 		return false;
@@ -226,17 +254,6 @@ size_t HttpRequest::getContentLength() const
 	return this->_ContentLength;
 }
 
-void HttpRequest::parseContentLength()
-{
-	const std::vector<std::string> &contentLengths = _Headers.getValueList("Content-Length");
-	if (contentLengths.size() != 1)
-		return;
-	unsigned long result;
-	if (webserv::utils::stoul(contentLengths[0], result) == false)
-		return;
-	_ContentLength = result;
-}
-
 bool HttpRequest::isRequestBodyLengthEnough() const
 {
 	bool isRequestBodyLengthEnough = _IsRequestHeaderParsed && getContentLength() <= _Body.size();
@@ -255,6 +272,16 @@ bool webserv::HttpRequest::isParseCompleted()
 		this->_IsParseCompleted = this->isRequestBodyLengthEnough();
 	}
 	return this->_IsParseCompleted;
+}
+
+std::string HttpRequest::getHost() const
+{
+	return this->_Host;
+}
+
+bool HttpRequest::isChunkedRequest() const
+{
+	return this->_IsChunkedRequest;
 }
 
 }	 // namespace webserv

@@ -25,6 +25,15 @@ class HttpFieldMap
 	) const;
 
 	bool empty() const;
+
+	/**
+	 * @brief FieldLineとしてContentLengthがあれば取得し、contentLengthに格納する
+	 *
+	 * @param contentLength ContentLengthの値を格納する変数
+	 * @return true ContentLengthが設定されていた (parseエラーの場合も含む)
+	 * @return false ContentLengthが設定されていなかった (見つからなかった)
+	 */
+	bool tryGetContentLength(size_t &contentLength) const;
 };
 
 }	 // namespace webserv

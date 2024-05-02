@@ -15,6 +15,7 @@ typedef std::map<uint16_t, CgiConfig> CgiConfigMapType;
 
 class HttpRouteConfig
 {
+	// TODO: リクエストパスの設定を追加する
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, Methods)
 	DECL_VAR_REF_GETTER_SETTER(HttpRedirectConfig, Redirect)
 	DECL_VAR_REF_GETTER_SETTER(std::string, DocumentRoot)
