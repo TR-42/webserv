@@ -8,10 +8,24 @@ namespace webserv
 
 static std::string capitalize(const std::string &str)
 {
+	if (str.empty()) {
+		return str;
+	}
+
 	std::string upperStr = str;
+
+	if (std::islower(upperStr[0])) {
+		upperStr[0] = std::toupper(upperStr[0]);
+	}
+
 	for (size_t i = 1; i < upperStr.size(); i++) {
-		if (std::islower(upperStr[i]) && !std::isalnum(upperStr[i - 1])) {
-			upperStr[i] = upperStr[i] - 'a' + 'A';
+		if (std::isalpha(str[i])) {
+			bool isPrevCharAlnum = std::isalnum(upperStr[i - 1]);
+			if (std::isupper(upperStr[i]) && isPrevCharAlnum) {
+				upperStr[i] = std::tolower(str[i]);
+			} else if (std::islower(upperStr[i]) && !isPrevCharAlnum) {
+				upperStr[i] = std::toupper(str[i]);
+			}
 		}
 	}
 	return upperStr;
