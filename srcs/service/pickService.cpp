@@ -1,6 +1,7 @@
 #include <config/ListenConfig.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
+#include <service/PostFileService.hpp>
 #include <service/ServiceBase.hpp>
 #include <service/SimpleService.hpp>
 #include <service/pickService.hpp>
@@ -104,6 +105,12 @@ static ServiceBase *pickService(
 		);
 	} else if (request.getMethod() == "DELETE") {
 		return new DeleteFileService(
+			request,
+			utils::ErrorPageProvider(),
+			logger
+		);
+	} else if (request.getMethod() == "POST") {
+		return new PostFileService(
 			request,
 			utils::ErrorPageProvider(),
 			logger

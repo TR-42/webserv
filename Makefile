@@ -33,6 +33,7 @@ SRCS_SERVICE	=\
 	DeleteFileService.cpp\
 	GetFileService.cpp\
 	pickService.cpp\
+	PostFileService.cpp\
 	ServiceBase.cpp\
 	SimpleService.cpp\
 
