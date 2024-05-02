@@ -15,6 +15,7 @@ class ErrorPageProvider
  public:
 	ErrorPageProvider();
 	~ErrorPageProvider();
+	HttpResponse noContent() const;
 	HttpResponse badRequest() const;
 	HttpResponse permissionDenied() const;
 	HttpResponse notFound() const;
@@ -28,6 +29,7 @@ class ErrorPageProvider
 	HttpResponse getErrorPage(const std::string &path) const;
 	HttpResponse getErrorPage(int statusCode) const;
 
+	static const int NO_CONTENT = 204;
 	static const int BAD_REQUEST = 400;
 	static const int PERMISSION_DENIED = 403;
 	static const int NOT_FOUND = 404;

@@ -1,6 +1,7 @@
 #include <sys/socket.h>
 
 #include <macros.hpp>
+#include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
 #include <socket/ClientSocket.hpp>
 #include <utils.hpp>
@@ -85,12 +86,23 @@ SockEventResultType ClientSocket::_processPollIn()
 		CS_DEBUG()
 			<< "Request parse completed"
 			<< std::endl;
-		// TODO: 設定によるServiceの選択
-		this->_service = new GetFileService(
-			this->httpRequest,
-			utils::ErrorPageProvider(),
-			this->logger
-		);
+		if (this->httpRequest.getMethod() == "GET") {
+			this->_service = new GetFileService(
+				this->httpRequest,
+				utils::ErrorPageProvider(),
+				this->logger
+			);
+		} else if (this->httpRequest.getMethod() == "DELETE") {
+			this->_service = new DeleteFileService(
+				this->httpRequest,
+				utils::ErrorPageProvider(),
+				this->logger
+			);
+		} else {
+			this->_setResponse(utils::ErrorPageProvider().notImplemented());
+			return SockEventResult::OK;
+		}
+
 		return this->_processPollService(0);
 	}
 

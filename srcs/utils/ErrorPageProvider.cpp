@@ -12,6 +12,7 @@ namespace webserv
 namespace utils
 {
 
+const int ErrorPageProvider::NO_CONTENT;
 const int ErrorPageProvider::BAD_REQUEST;
 const int ErrorPageProvider::PERMISSION_DENIED;
 const int ErrorPageProvider::NOT_FOUND;
@@ -36,6 +37,12 @@ static HttpResponse createResponse(int statusCode, const std::string &reasonPhra
 	response.setHeaders(headers);
 	return response;
 }
+
+static const HttpResponse defaultNoContent = createResponse(
+	ErrorPageProvider::NO_CONTENT,
+	"No Content",
+	"204 No Content\n"
+);
 
 static const HttpResponse defaultBadRequest = createResponse(
 	ErrorPageProvider::BAD_REQUEST,
@@ -99,6 +106,7 @@ static const HttpResponse defaultHttpVersionNotSupported = createResponse(
 
 ErrorPageProvider::ErrorPageProvider()
 {
+	this->_errorPages[ErrorPageProvider::NO_CONTENT] = defaultNoContent;
 	this->_errorPages[ErrorPageProvider::BAD_REQUEST] = defaultBadRequest;
 	this->_errorPages[ErrorPageProvider::PERMISSION_DENIED] = defaultPermissionDenied;
 	this->_errorPages[ErrorPageProvider::NOT_FOUND] = defaultNotFound;
@@ -118,6 +126,11 @@ ErrorPageProvider::~ErrorPageProvider()
 HttpResponse ErrorPageProvider::getErrorPage(int statusCode) const
 {
 	return this->_errorPages.at(statusCode);
+}
+
+HttpResponse ErrorPageProvider::noContent() const
+{
+	return this->_errorPages.at(ErrorPageProvider::NO_CONTENT);
 }
 
 HttpResponse ErrorPageProvider::badRequest() const
