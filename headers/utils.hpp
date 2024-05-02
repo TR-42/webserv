@@ -52,6 +52,10 @@ std::string getHttpTimeStr(
 	time_t time
 );
 
+std::string modeToString(
+	mode_t mode
+);
+
 }	 // namespace utils
 
 }	 // namespace webserv

@@ -15,9 +15,6 @@ namespace webserv
 {
 
 #define BUFFER_SIZE 4096
-static std::string modeToString(
-	mode_t mode
-);
 
 GetFileService::GetFileService(
 	const HttpRequest &request,
@@ -54,7 +51,7 @@ GetFileService::GetFileService(
 		<< "File size: " << statBuf.st_size << ", "
 		<< "Block size: " << statBuf.st_blksize << ", "
 		<< "Block count: " << statBuf.st_blocks << ", "
-		<< "Permissions: " << modeToString(statBuf.st_mode) << ", "
+		<< "Permissions: " << utils::modeToString(statBuf.st_mode) << ", "
 		<< "Last modified: " << lastModified << std::endl;
 
 	if (!S_ISREG(statBuf.st_mode) && !S_ISDIR(statBuf.st_mode)) {
@@ -165,27 +162,6 @@ ServiceEventResultType GetFileService::onEventGot(
 	);
 
 	return ServiceEventResult::CONTINUE;
-}
-
-static std::string modeToString(
-	mode_t mode
-)
-{
-	char buf[11];
-
-	buf[0] = S_ISDIR(mode) ? 'd' : '-';
-	buf[1] = (mode & S_IRUSR) ? 'r' : '-';
-	buf[2] = (mode & S_IWUSR) ? 'w' : '-';
-	buf[3] = (mode & S_IXUSR) ? 'x' : '-';
-	buf[4] = (mode & S_IRGRP) ? 'r' : '-';
-	buf[5] = (mode & S_IWGRP) ? 'w' : '-';
-	buf[6] = (mode & S_IXGRP) ? 'x' : '-';
-	buf[7] = (mode & S_IROTH) ? 'r' : '-';
-	buf[8] = (mode & S_IWOTH) ? 'w' : '-';
-	buf[9] = (mode & S_IXOTH) ? 'x' : '-';
-	buf[10] = '\0';
-
-	return std::string(buf);
 }
 
 }	 // namespace webserv
