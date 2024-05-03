@@ -1,13 +1,16 @@
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <Logger.hpp>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
 #include <service/GetFileService.hpp>
 #include <service/SimpleService.hpp>
+#include <sstream>
 #include <types.hpp>
 #include <utils.hpp>
 
@@ -65,7 +68,10 @@ GetFileService::GetFileService(
 		std::string indexFileName = "/index.html";
 		std::string indexFilePath = filePath + indexFileName;
 		if (stat(indexFilePath.c_str(), &statBuf) != 0 || !S_ISREG(statBuf.st_mode)) {
-			this->_response = this->_errorPageProvider.notFound();
+			std::string fileList = generateFileList(filePath);
+			// this->_response = this->_errorPageProvider.notFound();
+			this->_response.getBody().insert(this->_response.getBody().end(), fileList.begin(), fileList.end());
+			this->_response.getHeaders().addValue("Content-Type", "text/html");
 			LS_INFO()
 				<< "Index file not found: " << filePath
 				<< "\tS_ISREG: " << std::boolalpha << S_ISREG(statBuf.st_mode)
@@ -162,6 +168,49 @@ ServiceEventResultType GetFileService::onEventGot(
 	);
 
 	return ServiceEventResult::CONTINUE;
+}
+
+std::string GetFileService::generateFileList(const std::string &path)
+{
+	DIR *dir;
+	struct dirent *ent;
+	std::vector<std::string> dirVector;
+	std::vector<std::string> fileVector;
+	std::string parentDirLint = "";
+	if (path != "/") {
+		parentDirLint = "<li><a href=\"../\">../</a></li>\n";
+	}
+
+	if ((dir = opendir(path.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			if (ent->d_name[0] == '.') {
+				continue;
+			}
+			if (ent->d_type == DT_DIR) {
+				dirVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "/\">" + ent->d_name + "/</a></li>\n");
+			} else if (ent->d_type == DT_REG) {
+				fileVector.push_back("<li>" + std::string(ent->d_name) + "</li>\n");
+			}
+		}
+		closedir(dir);
+	} else {
+		LS_LOG() << "Failed to open directory: " << path << std::endl;
+		return "";
+	}
+
+	std::sort(dirVector.begin(), dirVector.end());
+	std::sort(fileVector.begin(), fileVector.end());
+
+	std::stringstream html;
+	html << parentDirLint;
+	for (std::vector<std::string>::const_iterator it = dirVector.begin(); it != dirVector.end(); ++it) {
+		html << *it;
+	}
+	for (std::vector<std::string>::const_iterator it = fileVector.begin(); it != fileVector.end(); ++it) {
+		html << *it;
+	}
+
+	return html.str();
 }
 
 }	 // namespace webserv

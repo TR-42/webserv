@@ -34,6 +34,8 @@ class GetFileService : public ServiceBase
 	virtual ServiceEventResultType onEventGot(
 		short revents
 	);
+
+	std::string generateFileList(const std::string &path);
 };
 
 }	 // namespace webserv
