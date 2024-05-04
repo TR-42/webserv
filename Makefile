@@ -13,6 +13,7 @@ SRCS_CONFIG	=\
 	HttpRouteConfig.cpp\
 	ListenConfig.cpp\
 	ServerConfig.cpp\
+	ServerRunningConfig.cpp\
 
 SRCS_ENV	=\
 	EnvManager.cpp\

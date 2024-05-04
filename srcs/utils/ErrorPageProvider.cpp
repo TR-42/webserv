@@ -1,6 +1,9 @@
 #include "utils/ErrorPageProvider.hpp"
 
+#include <fstream>
 #include <http/HttpResponse.hpp>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 
 #include "http/HttpFieldMap.hpp"
@@ -117,6 +120,47 @@ ErrorPageProvider::ErrorPageProvider()
 	this->_errorPages[ErrorPageProvider::SERVICE_UNAVAILABLE] = defaultServiceUnavailable;
 	this->_errorPages[ErrorPageProvider::GATEWAY_TIMEOUT] = defaultGatewayTimeout;
 	this->_errorPages[ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED] = defaultHttpVersionNotSupported;
+}
+
+void ErrorPageProvider::setErrorPageFromFile(
+	int statusCode,
+	const std::string &path
+)
+{
+	std::string content;
+
+	if (path.empty()) {
+		throw std::runtime_error("ErrorPageProvider::setErrorPageFromFile: path is empty");
+		return;
+	}
+
+	std::stringstream buffer;
+	{
+		std::ifstream file(path);
+		if (!file.is_open()) {
+			throw std::runtime_error("ErrorPageProvider::setErrorPageFromFile: file not found");
+			return;
+		}
+
+		buffer << file.rdbuf();
+	}
+
+	this->setErrorPageFromString(statusCode, buffer.str());
+}
+
+void ErrorPageProvider::setErrorPageFromString(
+	int statusCode,
+	const std::string &content
+)
+{
+	// Reason Phrase再利用のため、既存を検索する (逆に、デフォルトに存在しない場合はセットできない)
+	std::map<int, HttpResponse>::iterator it = this->_errorPages.find(statusCode);
+	if (it == this->_errorPages.end()) {
+		throw std::runtime_error("ErrorPageProvider::setErrorPageFromString: statusCode not found");
+		return;
+	}
+
+	it->second.setBody(content);
 }
 
 ErrorPageProvider::~ErrorPageProvider()

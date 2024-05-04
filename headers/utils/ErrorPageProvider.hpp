@@ -41,6 +41,15 @@ class ErrorPageProvider
 	static const int GATEWAY_TIMEOUT = 504;
 	static const int HTTP_VERSION_NOT_SUPPORTED = 505;
 
+	void setErrorPageFromFile(
+		int statusCode,
+		const std::string &path
+	);
+	void setErrorPageFromString(
+		int statusCode,
+		const std::string &content
+	);
+
  private:
 	std::map<int, HttpResponse> _errorPages;
 };
