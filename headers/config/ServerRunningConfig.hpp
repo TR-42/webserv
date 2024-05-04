@@ -34,4 +34,6 @@ class ServerRunningConfig
 	HttpRouteConfig pickRouteConfig(const HttpRequest &request) const;
 };
 
+typedef std::vector<ServerRunningConfig> ServerRunningConfigListType;
+
 }	 // namespace webserv

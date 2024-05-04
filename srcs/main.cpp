@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <Logger.hpp>
+#include <config/ServerRunningConfig.hpp>
 #include <cstdio>
 #include <iostream>
 #include <signal/signal_handler.hpp>
@@ -27,8 +28,9 @@ static std::string get_argv_str(int argc, const char *argv[])
 	return str;
 }
 
-static webserv::ServerConfigListType createDefaultServerConfigList(
-	ushort port = 80
+static webserv::ServerRunningConfigListType createDefaultServerConfigList(
+	ushort port,
+	webserv::Logger &logger
 )
 {
 	webserv::HttpRouteConfig httpRouteConfig;
@@ -47,8 +49,15 @@ static webserv::ServerConfigListType createDefaultServerConfigList(
 		routeList
 	);
 
-	webserv::ServerConfigListType serverConfigList;
-	serverConfigList.push_back(serverConfig);
+	webserv::utils::ErrorPageProvider errorPageProvider;
+	webserv::ServerRunningConfigListType serverConfigList;
+	serverConfigList.push_back(
+		webserv::ServerRunningConfig(
+			serverConfig,
+			errorPageProvider,
+			logger
+		)
+	);
 	return serverConfigList;
 }
 
@@ -66,11 +75,12 @@ int main(int argc, const char *argv[])
 	}
 
 	std::vector<webserv::Socket *> socketList;
-	webserv::ServerConfigListType conf80 = createDefaultServerConfigList();
-	webserv::ServerConfigListType conf81 = createDefaultServerConfigList(81);
-	webserv::ServerConfigListType conf82 = createDefaultServerConfigList(82);
+	webserv::ServerRunningConfigListType conf80 = createDefaultServerConfigList(80, logger);
+	webserv::ServerRunningConfigListType conf81 = createDefaultServerConfigList(81, logger);
+	webserv::ServerRunningConfigListType conf82 = createDefaultServerConfigList(82, logger);
 	webserv::ServerSocket *serverSocket80 = webserv::ServerSocket::createServerSocket(
 		conf80,
+		80,
 		logger
 	);
 	if (serverSocket80 == NULL) {
@@ -79,6 +89,7 @@ int main(int argc, const char *argv[])
 	}
 	webserv::ServerSocket *serverSocket81 = webserv::ServerSocket::createServerSocket(
 		conf81,
+		81,
 		logger
 	);
 	if (serverSocket81 == NULL) {
@@ -88,6 +99,7 @@ int main(int argc, const char *argv[])
 	}
 	webserv::ServerSocket *serverSocket82 = webserv::ServerSocket::createServerSocket(
 		conf82,
+		82,
 		logger
 	);
 	if (serverSocket82 == NULL) {

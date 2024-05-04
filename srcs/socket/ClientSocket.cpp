@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <config/ServerRunningConfig.hpp>
 #include <macros.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
@@ -241,7 +242,7 @@ ClientSocket::~ClientSocket()
 ClientSocket::ClientSocket(
 	int fd,
 	const std::string &serverLoggerCustomId,
-	const ServerConfigListType &listenConfigList
+	const ServerRunningConfigListType &listenConfigList
 ) : Socket(fd),
 		_listenConfigList(listenConfigList),
 		logger(serverLoggerCustomId + ", Connection=" + Socket::getUUID().toString()),
