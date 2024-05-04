@@ -40,7 +40,6 @@ static webserv::ServerConfigListType createDefaultServerConfigList(
 	hostNameList.push_back("localhost");
 	webserv::ServerConfig serverConfig(
 		hostNameList,
-		"localhost",
 		port,
 		// 128MB
 		128 * 1024 * 1024,

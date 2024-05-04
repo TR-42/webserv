@@ -25,13 +25,19 @@ const ServerConfig pickServerConfig(
 	}
 
 	for (
-		ServerConfigListType::const_iterator it = listenConfigList.begin();
-		it != listenConfigList.end();
-		++it
+		ServerConfigListType::const_iterator itConfig = listenConfigList.begin();
+		itConfig != listenConfigList.end();
+		++itConfig
 	) {
-		ServerConfig serverConfig = *it;
-		if (serverConfig.getHost() == request.getHost()) {
-			return serverConfig;
+		std::vector<std::string>::const_iterator itEndServerName = itConfig->getServerNameList().end();
+		for (
+			std::vector<std::string>::const_iterator itServerName = itConfig->getServerNameList().begin();
+			itServerName != itEndServerName;
+			++itServerName
+		) {
+			if (*itServerName == request.getHost()) {
+				return *itConfig;
+			}
 		}
 	}
 
