@@ -50,6 +50,7 @@ SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
 	getHttpTimeStr.cpp\
 	modeToString.cpp\
+	normalizePath.cpp\
 	stoul.cpp\
 	strtrim.cpp\
 	to_string.cpp\
