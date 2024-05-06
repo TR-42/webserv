@@ -22,6 +22,7 @@ class GetFileService : public ServiceBase
  public:
 	GetFileService(
 		const HttpRequest &request,
+		const HttpRouteConfig &routeConfig,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);

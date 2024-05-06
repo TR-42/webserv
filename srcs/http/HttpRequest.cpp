@@ -201,7 +201,11 @@ bool HttpRequest::parseRequestLine(
 	}
 	CS_DEBUG() << "lenToSpacePos2: " << lenToSpacePos2 << std::endl;
 	_Path = std::string((const char *)pathSegment, lenToSpacePos2);
-	CS_DEBUG() << "Path: " << _Path << std::endl;
+	this->_NormalizedPath = utils::normalizePath(_Path);
+	CS_DEBUG()
+		<< "Path: `" << _Path << "`, "
+		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
+		<< std::endl;
 	const uint8_t *versionSegment = spacePos2 + 1;
 	size_t versionStringLength = newlinePos - lenToSpacePos2 - lenToSpacePos1 - 2;
 	CS_DEBUG() << "versionStringLength: " << versionStringLength << std::endl;
@@ -282,6 +286,11 @@ std::string HttpRequest::getHost() const
 bool HttpRequest::isChunkedRequest() const
 {
 	return this->_IsChunkedRequest;
+}
+
+std::string HttpRequest::getNormalizedPath() const
+{
+	return this->_NormalizedPath;
 }
 
 }	 // namespace webserv

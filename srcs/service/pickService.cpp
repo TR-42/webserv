@@ -50,16 +50,31 @@ static ServiceBase *pickService(
 		<< "Picking service for route: " << routeConfig.getRequestPath()
 		<< std::endl;
 
-	// TODO: RouteによるServiceの選択
+	// TODO: お遊び設定を消す
+	if (routeConfig.getRequestPath() == "/simple") {
+		L_INFO("SimpleService selected");
+		return new SimpleService(
+			request,
+			routeConfig,
+			errorPageProvider,
+			logger
+		);
+	}
+
+	// TODO: RouteによるServiceの選択 (特にCGI対応)
 	if (request.getMethod() == "GET") {
+		L_INFO("GetFileService selected");
 		return new GetFileService(
 			request,
+			routeConfig,
 			errorPageProvider,
 			logger
 		);
 	} else if (request.getMethod() == "DELETE") {
+		L_INFO("DeleteFileService selected");
 		return new DeleteFileService(
 			request,
+			routeConfig,
 			errorPageProvider,
 			logger
 		);

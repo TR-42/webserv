@@ -33,10 +33,25 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	webserv::Logger &logger
 )
 {
-	webserv::HttpRouteConfig httpRouteConfig;
+	webserv::HttpRouteConfig httpRouteConfig1;
+	httpRouteConfig1.setDocumentRoot("./");
+	httpRouteConfig1.setIsDocumentListingEnabled(true);
+	httpRouteConfig1.setRequestPath("/");
+
+	webserv::HttpRouteConfig httpRouteConfig2;
+	httpRouteConfig2.setDocumentRoot("./srcs");
+	httpRouteConfig2.setIsDocumentListingEnabled(false);
+	httpRouteConfig2.setRequestPath("/route2");
+
+	webserv::HttpRouteConfig httpRouteConfig3;
+	httpRouteConfig3.setDocumentRoot("/");
+	httpRouteConfig3.setIsDocumentListingEnabled(false);
+	httpRouteConfig3.setRequestPath("/simple");
 
 	webserv::RouteListType routeList;
-	routeList.push_back(httpRouteConfig);
+	routeList.push_back(httpRouteConfig1);
+	routeList.push_back(httpRouteConfig2);
+	routeList.push_back(httpRouteConfig3);
 
 	std::vector<std::string> hostNameList;
 	hostNameList.push_back("localhost");

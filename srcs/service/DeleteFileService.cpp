@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <service/DeleteFileService.hpp>
+#include <service/getRequestedFilePath.hpp>
 #include <utils.hpp>
 
 namespace webserv
@@ -12,6 +13,7 @@ namespace webserv
 
 DeleteFileService::DeleteFileService(
 	const HttpRequest &request,
+	const HttpRouteConfig &routeConfig,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger)
@@ -25,7 +27,7 @@ DeleteFileService::DeleteFileService(
 		return;
 	}
 
-	filePath = "." + filePath;
+	filePath = getRequestedFilePath(routeConfig, request.getNormalizedPath());
 
 	if (stat(filePath.c_str(), &statBuf) != 0) {
 		// TODO: errno見て適切に処理する

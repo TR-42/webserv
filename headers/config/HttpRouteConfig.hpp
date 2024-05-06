@@ -25,8 +25,13 @@ class HttpRouteConfig
 
  private:
 	void setProps(
+		const std::string &requestPath,
 		const std::vector<std::string> &methods,
-		const HttpRedirectConfig &redirect
+		const HttpRedirectConfig &redirect,
+		const std::string &documentRoot,
+		bool isDocumentListingEnabled,
+		const std::vector<std::string> &indexFileList,
+		const CgiConfigListType &cgiConfigList
 	);
 
  public:

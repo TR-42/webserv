@@ -22,12 +22,22 @@ webserv::HttpRouteConfig::HttpRouteConfig(
 }
 
 void HttpRouteConfig::setProps(
+	const std::string &requestPath,
 	const std::vector<std::string> &methods,
-	const HttpRedirectConfig &redirect
+	const HttpRedirectConfig &redirect,
+	const std::string &documentRoot,
+	bool isDocumentListingEnabled,
+	const std::vector<std::string> &indexFileList,
+	const CgiConfigListType &cgiConfigList
 )
 {
+	this->_RequestPath = requestPath;
 	this->_Methods = methods;
 	this->_Redirect = redirect;
+	this->_DocumentRoot = documentRoot;
+	this->_IsDocumentListingEnabled = isDocumentListingEnabled;
+	this->_IndexFileList = indexFileList;
+	this->_CgiConfigList = cgiConfigList;
 }
 
 HttpRouteConfig &webserv::HttpRouteConfig::operator=(
@@ -38,8 +48,13 @@ HttpRouteConfig &webserv::HttpRouteConfig::operator=(
 		return *this;
 
 	this->setProps(
+		from._RequestPath,
 		from._Methods,
-		from._Redirect
+		from._Redirect,
+		from._DocumentRoot,
+		from._IsDocumentListingEnabled,
+		from._IndexFileList,
+		from._CgiConfigList
 	);
 
 	return *this;

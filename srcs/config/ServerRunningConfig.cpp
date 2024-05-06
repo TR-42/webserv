@@ -5,6 +5,7 @@
 #include <iostream>
 #include <set>
 #include <stdexcept>
+#include <utils.hpp>
 #include <utils/ErrorPageProvider.hpp>
 #include <utils/UUIDv7.hpp>
 
@@ -119,20 +120,21 @@ bool webserv::ServerRunningConfig::isSizeLimitExceeded(
 
 static size_t getMatchedLength(
 	const std::string &requestedPath,
-	const std::string &pathRUle
+	const std::string &pathRule
 )
 {
 	size_t requestedPathLength = requestedPath.size();
-	size_t pathRuleLength = pathRUle.size();
+	size_t pathRuleLength = pathRule.size();
 	if (requestedPathLength < pathRuleLength) {
 		return 0;
 	}
 
 	for (size_t i = 0; i < pathRuleLength; ++i) {
-		if (requestedPath[i] != pathRUle[i]) {
+		if (requestedPath[i] != pathRule[i]) {
 			return 0;
 		}
 	}
+
 	return pathRuleLength;
 }
 
@@ -147,7 +149,11 @@ HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
 	}
 
 	size_t matchedPathRuleLength = 0;
-	std::string path = request.getPath();
+	std::string path = request.getNormalizedPath();
+	CS_DEBUG()
+		<< "Picking route config for path: "
+		<< "path=" << path
+		<< std::endl;
 	for (
 		size_t i = 0;
 		i < routeListSize;
@@ -155,11 +161,25 @@ HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
 	) {
 		const HttpRouteConfig &routeConfig = this->_routeList[i];
 		size_t pathRuleLength = getMatchedLength(path, routeConfig.getRequestPath());
+		if (pathRuleLength != 0) {
+			CS_DEBUG()
+				<< "Matched path rule: "
+				<< "path=" << path
+				<< " pathRule=" << routeConfig.getRequestPath()
+				<< std::endl;
+		}
 		if (matchedPathRuleLength < pathRuleLength) {
 			matchedPathRuleLength = pathRuleLength;
 			matchedRouteConfig = &(this->_routeList[i]);
 		}
 	}
+
+	CS_DEBUG()
+		<< "Picked route config: "
+		<< "path=" << path
+		<< " pathRule=" << matchedRouteConfig->getRequestPath()
+		<< " documentRoot=" << matchedRouteConfig->getDocumentRoot()
+		<< std::endl;
 
 	return *matchedRouteConfig;
 }
