@@ -46,19 +46,21 @@ static ServiceBase *pickService(
 	const Logger &logger
 )
 {
-	(void)routeConfig;
-	(void)errorPageProvider;
+	LS_DEBUG()
+		<< "Picking service for route: " << routeConfig.getRequestPath()
+		<< std::endl;
+
 	// TODO: RouteによるServiceの選択
 	if (request.getMethod() == "GET") {
 		return new GetFileService(
 			request,
-			utils::ErrorPageProvider(),
+			errorPageProvider,
 			logger
 		);
 	} else if (request.getMethod() == "DELETE") {
 		return new DeleteFileService(
 			request,
-			utils::ErrorPageProvider(),
+			errorPageProvider,
 			logger
 		);
 	} else {
@@ -69,7 +71,6 @@ static ServiceBase *pickService(
 ServiceBase *pickService(
 	const ServerRunningConfigListType &listenConfigList,
 	const HttpRequest &request,
-	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 )
 {
@@ -83,7 +84,7 @@ ServiceBase *pickService(
 	return pickService(
 		routeConfig,
 		request,
-		errorPageProvider,
+		serverConfig.getErrorPageProvider(),
 		logger
 	);
 }

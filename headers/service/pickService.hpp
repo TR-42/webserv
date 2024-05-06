@@ -11,7 +11,6 @@ namespace webserv
 ServiceBase *pickService(
 	const ServerRunningConfigListType &listenConfigList,
 	const HttpRequest &request,
-	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 );
 

@@ -96,7 +96,6 @@ SockEventResultType ClientSocket::_processPollIn()
 	this->_service = pickService(
 		this->_listenConfigList,
 		this->httpRequest,
-		utils::ErrorPageProvider(),
 		this->logger
 	);
 	if (this->_service == NULL) {
