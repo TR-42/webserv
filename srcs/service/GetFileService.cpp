@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include <Logger.hpp>
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
@@ -177,8 +178,10 @@ std::string GetFileService::generateFileList(const std::string &path)
 	std::vector<std::string> dirVector;
 	std::vector<std::string> fileVector;
 	std::string parentDirLint = "";
-	if (path != "/") {
-		parentDirLint = "<li><a href=\"../\">../</a></li>\n";
+	if (path == "./") {
+		parentDirLint = "";
+	} else {
+		parentDirLint = "<li><a href=\"../\">../</a></li>";
 	}
 
 	if ((dir = opendir(path.c_str())) != NULL) {
@@ -187,9 +190,9 @@ std::string GetFileService::generateFileList(const std::string &path)
 				continue;
 			}
 			if (ent->d_type == DT_DIR) {
-				dirVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "/\">" + ent->d_name + "/</a></li>\n");
+				dirVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "/\">" + ent->d_name + "/</a></li>");
 			} else if (ent->d_type == DT_REG) {
-				fileVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "\">" + ent->d_name + "</a></li>\n");
+				fileVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "\">" + ent->d_name + "</a></li>");
 			}
 		}
 		closedir(dir);
@@ -202,6 +205,10 @@ std::string GetFileService::generateFileList(const std::string &path)
 	std::sort(fileVector.begin(), fileVector.end());
 
 	std::stringstream html;
+	html << "<!DOCTYPE html><html><head><title>Index of " << path << "</title></head>";
+	html << "<body>";
+	html << "<h1>Index of " << path << "</h1>";
+	html << "<ul>";
 	html << parentDirLint;
 	for (std::vector<std::string>::const_iterator it = dirVector.begin(); it != dirVector.end(); ++it) {
 		html << *it;
