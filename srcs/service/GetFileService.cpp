@@ -189,7 +189,7 @@ std::string GetFileService::generateFileList(const std::string &path)
 			if (ent->d_type == DT_DIR) {
 				dirVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "/\">" + ent->d_name + "/</a></li>\n");
 			} else if (ent->d_type == DT_REG) {
-				fileVector.push_back("<li>" + std::string(ent->d_name) + "</li>\n");
+				fileVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "\">" + ent->d_name + "</a></li>\n");
 			}
 		}
 		closedir(dir);
