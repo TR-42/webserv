@@ -160,7 +160,7 @@ void ErrorPageProvider::setErrorPageFromString(
 		return;
 	}
 
-	it->second.setBody(content);
+	this->_errorPages[statusCode] = createResponse(statusCode, it->second.getReasonPhrase(), content);
 }
 
 ErrorPageProvider::~ErrorPageProvider()
