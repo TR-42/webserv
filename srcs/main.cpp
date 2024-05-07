@@ -55,12 +55,15 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 
 	std::vector<std::string> hostNameList;
 	hostNameList.push_back("localhost");
+	webserv::ErrorPageMapType errorPageFileMap;
+	errorPageFileMap[400] = "resources/sample1/400.html";
+	errorPageFileMap[404] = "resources/sample1/404.html";
 	webserv::ServerConfig serverConfig(
 		hostNameList,
 		port,
 		// 128MB
 		128 * 1024 * 1024,
-		webserv::ErrorPageMapType(),
+		errorPageFileMap,
 		routeList
 	);
 
