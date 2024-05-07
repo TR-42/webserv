@@ -39,7 +39,10 @@ static void _loadErrorPageContent(
 
 static inline std::string _ConvertToLowerCase(std::string str)
 {
-	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+	size_t strLength = str.size();
+	for (size_t i = 0; i < strLength; ++i) {
+		str[i] = std::tolower(str[i]);
+	}
 	return str;
 }
 
@@ -93,9 +96,14 @@ bool webserv::ServerRunningConfig::isServerNameMatch(
 	const std::string &serverName
 ) const
 {
-	// TODO: ポート番号部分を取り除く
 	std::string serverNameLower = serverName;
-	std::transform(serverNameLower.begin(), serverNameLower.end(), serverNameLower.begin(), ::tolower);
+	const size_t serverNameLength = serverNameLower.size();
+	for (size_t i = 0; i < serverNameLength; ++i) {
+		if (serverNameLower[i] == ':') {
+			serverNameLower = _ConvertToLowerCase(serverNameLower.substr(0, i));
+			break;
+		}
+	}
 
 	return this->_serverNameList.find(serverNameLower) != this->_serverNameList.end();
 }
