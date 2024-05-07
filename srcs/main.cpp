@@ -91,8 +91,6 @@ int main(int argc, const char *argv[])
 
 	std::vector<webserv::Socket *> socketList;
 	webserv::ServerRunningConfigListType conf80 = createDefaultServerConfigList(80, logger);
-	webserv::ServerRunningConfigListType conf81 = createDefaultServerConfigList(81, logger);
-	webserv::ServerRunningConfigListType conf82 = createDefaultServerConfigList(82, logger);
 	webserv::ServerSocket *serverSocket80 = webserv::ServerSocket::createServerSocket(
 		conf80,
 		80,
@@ -102,31 +100,8 @@ int main(int argc, const char *argv[])
 		L_FATAL("createServerSocket80 failed");
 		return 1;
 	}
-	webserv::ServerSocket *serverSocket81 = webserv::ServerSocket::createServerSocket(
-		conf81,
-		81,
-		logger
-	);
-	if (serverSocket81 == NULL) {
-		L_FATAL("createServerSocket81 failed");
-		delete serverSocket80;
-		return 1;
-	}
-	webserv::ServerSocket *serverSocket82 = webserv::ServerSocket::createServerSocket(
-		conf82,
-		82,
-		logger
-	);
-	if (serverSocket82 == NULL) {
-		L_FATAL("createServerSocket82 failed");
-		delete serverSocket80;
-		delete serverSocket81;
-		return 1;
-	}
 
 	socketList.push_back(serverSocket80);
-	socketList.push_back(serverSocket81);
-	socketList.push_back(serverSocket82);
 	webserv::Poll poll(socketList, logger);
 	while (!webserv::isExitSignalGot()) {
 		bool result = poll.loop();
