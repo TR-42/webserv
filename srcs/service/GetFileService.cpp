@@ -72,6 +72,15 @@ GetFileService::GetFileService(
 		std::string indexFileName = "/index.html";
 		std::string indexFilePath = filePath + indexFileName;
 		if (stat(indexFilePath.c_str(), &statBuf) != 0 || !S_ISREG(statBuf.st_mode)) {
+			if (!routeConfig.getIsDocumentListingEnabled()) {
+				this->_response = this->_errorPageProvider.notFound();
+				LS_INFO()
+					<< "Index file not found: " << filePath
+					<< " Document listing is disabled."
+					<< std::endl;
+				return;
+			}
+
 			std::string fileList = generateFileList(filePath, request.getNormalizedPath());
 			this->_response.getBody().insert(this->_response.getBody().end(), fileList.begin(), fileList.end());
 			this->_response.getHeaders().addValue("Content-Type", "text/html");
