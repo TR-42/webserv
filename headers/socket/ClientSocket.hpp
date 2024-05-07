@@ -1,6 +1,7 @@
 #pragma once
 
 #include <config/ListenConfig.hpp>
+#include <config/ServerRunningConfig.hpp>
 #include <service/SimpleService.hpp>
 #include <utils/UUID.hpp>
 
@@ -15,7 +16,7 @@ namespace webserv
 class ClientSocket : public Socket
 {
  private:
-	const ServerConfigListType &_listenConfigList;
+	const ServerRunningConfigListType &_listenConfigList;
 	Logger logger;
 	HttpRequest httpRequest;
 	std::vector<uint8_t> httpResponseBuffer;
@@ -40,7 +41,7 @@ class ClientSocket : public Socket
 	ClientSocket(
 		int fd,
 		const std::string &serverLoggerCustomId,
-		const ServerConfigListType &listenConfigList
+		const ServerRunningConfigListType &listenConfigList
 	);
 	virtual ~ClientSocket();
 

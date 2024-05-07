@@ -71,7 +71,8 @@ void ServerSocket::setToPollFd(
 }
 
 ServerSocket *ServerSocket::createServerSocket(
-	const ServerConfigListType &listenConfigList,
+	const ServerRunningConfigListType &listenConfigList,
+	uint16_t port,
 	const Logger &logger
 )
 {
@@ -80,8 +81,6 @@ ServerSocket *ServerSocket::createServerSocket(
 		return NULL;
 	}
 
-	// 配列で渡されている全てで同じポートであることを期待する
-	uint16_t port = listenConfigList[0].getPort();
 	struct sockaddr_in addr;
 
 	// listenするのはIPv4のみ
@@ -125,7 +124,7 @@ ServerSocket *ServerSocket::createServerSocket(
 ServerSocket::ServerSocket(
 	int fd,
 	const Logger &logger,
-	const ServerConfigListType &listenConfigList
+	const ServerRunningConfigListType &listenConfigList
 ) : Socket(fd),
 		logger(logger, "Server=" + Socket::getUUID().toString()),
 		_listenConfigList(listenConfigList)

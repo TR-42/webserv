@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <config/ServerRunningConfig.hpp>
 #include <macros.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
@@ -95,7 +96,6 @@ SockEventResultType ClientSocket::_processPollIn()
 	this->_service = pickService(
 		this->_listenConfigList,
 		this->httpRequest,
-		utils::ErrorPageProvider(),
 		this->logger
 	);
 	if (this->_service == NULL) {
@@ -241,7 +241,7 @@ ClientSocket::~ClientSocket()
 ClientSocket::ClientSocket(
 	int fd,
 	const std::string &serverLoggerCustomId,
-	const ServerConfigListType &listenConfigList
+	const ServerRunningConfigListType &listenConfigList
 ) : Socket(fd),
 		_listenConfigList(listenConfigList),
 		logger(serverLoggerCustomId + ", Connection=" + Socket::getUUID().toString()),

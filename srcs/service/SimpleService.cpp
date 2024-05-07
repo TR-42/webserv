@@ -1,21 +1,24 @@
 #include <cstring>
 #include <service/SimpleService.hpp>
+#include <service/getRequestedFilePath.hpp>
 
 namespace webserv
 {
 
 SimpleService::SimpleService(
 	const HttpRequest &request,
+	const HttpRouteConfig &routeConfig,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger)
 {
-	if (request.getPath().empty() || request.getPath()[0] != '/') {
+	std::string path = getRequestedFilePath(routeConfig, request.getNormalizedPath());
+	if (path.empty() || path[0] != '/') {
 		this->_response = this->_errorPageProvider.getErrorPage(
 			400
 		);
 	} else {
-		std::string errCode = request.getPath().substr(1);
+		std::string errCode = path.substr(1);
 		this->_response = this->_errorPageProvider.getErrorPage(
 			errCode
 		);

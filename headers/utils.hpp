@@ -62,6 +62,10 @@ std::string modeToString(
 	mode_t mode
 );
 
+std::string normalizePath(
+	const std::string &path
+);
+
 }	 // namespace utils
 
 }	 // namespace webserv

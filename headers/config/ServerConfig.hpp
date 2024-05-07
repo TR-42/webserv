@@ -16,7 +16,6 @@ typedef std::vector<HttpRouteConfig> RouteListType;
 class ServerConfig
 {
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, ServerNameList)
-	DECL_VAR_REF_GETTER_SETTER(std::string, Host)
 	DECL_VAR_GETTER_SETTER(uint16_t, Port)
 	DECL_VAR_REF_GETTER_SETTER(std::size_t, RequestBodyLimit)
 	DECL_VAR_REF_GETTER_SETTER(ErrorPageMapType, ErrorPageMap)
@@ -25,7 +24,6 @@ class ServerConfig
  private:
 	void setProps(
 		const std::vector<std::string> &serverNameList,
-		const std::string &host,
 		uint16_t port,
 		std::size_t requestBodyLimit,
 		const ErrorPageMapType &errorPages,
@@ -40,7 +38,6 @@ class ServerConfig
 
 	ServerConfig(
 		const std::vector<std::string> &serverNameList,
-		const std::string &host,
 		uint16_t port,
 		std::size_t requestBodyLimit,
 		const ErrorPageMapType &errorPages,

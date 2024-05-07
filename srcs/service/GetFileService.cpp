@@ -6,11 +6,13 @@
 
 #include <Logger.hpp>
 #include <algorithm>
+#include <config/HttpRouteConfig.hpp>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
 #include <service/GetFileService.hpp>
 #include <service/SimpleService.hpp>
+#include <service/getRequestedFilePath.hpp>
 #include <sstream>
 #include <types.hpp>
 #include <utils.hpp>
@@ -22,6 +24,7 @@ namespace webserv
 
 GetFileService::GetFileService(
 	const HttpRequest &request,
+	const HttpRouteConfig &routeConfig,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger),
@@ -37,7 +40,7 @@ GetFileService::GetFileService(
 		return;
 	}
 
-	filePath = "." + filePath;
+	filePath = getRequestedFilePath(routeConfig, request.getNormalizedPath());
 
 	if (stat(filePath.c_str(), &statBuf) != 0) {
 		// TODO: errno見て適切に処理する
