@@ -72,8 +72,7 @@ GetFileService::GetFileService(
 		std::string indexFileName = "/index.html";
 		std::string indexFilePath = filePath + indexFileName;
 		if (stat(indexFilePath.c_str(), &statBuf) != 0 || !S_ISREG(statBuf.st_mode)) {
-			std::string fileList = generateFileList(filePath);
-			// this->_response = this->_errorPageProvider.notFound();
+			std::string fileList = generateFileList(filePath, request.getNormalizedPath());
 			this->_response.getBody().insert(this->_response.getBody().end(), fileList.begin(), fileList.end());
 			this->_response.getHeaders().addValue("Content-Type", "text/html");
 			LS_INFO()
@@ -174,33 +173,34 @@ ServiceEventResultType GetFileService::onEventGot(
 	return ServiceEventResult::CONTINUE;
 }
 
-std::string GetFileService::generateFileList(const std::string &path)
+std::string GetFileService::generateFileList(const std::string &filePath, const std::string &requestPath)
 {
 	DIR *dir;
 	struct dirent *ent;
 	std::vector<std::string> dirVector;
 	std::vector<std::string> fileVector;
 	std::string parentDirLint = "";
-	if (path == "./") {
+	if (filePath == "./") {
 		parentDirLint = "";
 	} else {
 		parentDirLint = "<li><a href=\"../\">../</a></li>";
 	}
 
-	if ((dir = opendir(path.c_str())) != NULL) {
+	if ((dir = opendir(filePath.c_str())) != NULL) {
 		while ((ent = readdir(dir)) != NULL) {
 			if (ent->d_name[0] == '.') {
 				continue;
 			}
+			std::string href = utils::normalizePath("/" + requestPath + "/" + ent->d_name);
 			if (ent->d_type == DT_DIR) {
-				dirVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "/\">" + ent->d_name + "/</a></li>");
+				dirVector.push_back("<li><a href=\"" + href + "/\">" + ent->d_name + "/</a></li>");
 			} else if (ent->d_type == DT_REG) {
-				fileVector.push_back("<li><a href=\"" + std::string(ent->d_name) + "\">" + ent->d_name + "</a></li>");
+				fileVector.push_back("<li><a href=\"" + href + "\">" + ent->d_name + "</a></li>");
 			}
 		}
 		closedir(dir);
 	} else {
-		LS_LOG() << "Failed to open directory: " << path << std::endl;
+		LS_LOG() << "Failed to open directory: " << filePath << std::endl;
 		return "";
 	}
 
@@ -208,9 +208,9 @@ std::string GetFileService::generateFileList(const std::string &path)
 	std::sort(fileVector.begin(), fileVector.end());
 
 	std::stringstream html;
-	html << "<!DOCTYPE html><html><head><title>Index of " << path << "</title></head>";
+	html << "<!DOCTYPE html><html><head><title>Index of " << requestPath << "</title></head>";
 	html << "<body>";
-	html << "<h1>Index of " << path << "</h1>";
+	html << "<h1>Index of " << requestPath << "</h1>";
 	html << "<ul>";
 	html << parentDirLint;
 	for (std::vector<std::string>::const_iterator it = dirVector.begin(); it != dirVector.end(); ++it) {
