@@ -1,4 +1,7 @@
 #pragma once
+
+#include <config/HttpRouteConfig.hpp>
+
 #include "ServiceBase.hpp"
 
 namespace webserv
@@ -9,6 +12,7 @@ class DeleteFileService : public ServiceBase
  public:
 	DeleteFileService(
 		const HttpRequest &request,
+		const HttpRouteConfig &routeConfig,
 		const webserv::utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);

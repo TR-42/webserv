@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <Logger.hpp>
+#include <config/ServerRunningConfig.hpp>
 #include <cstdio>
 #include <iostream>
 #include <signal/signal_handler.hpp>
@@ -27,29 +28,54 @@ static std::string get_argv_str(int argc, const char *argv[])
 	return str;
 }
 
-static webserv::ServerConfigListType createDefaultServerConfigList(
-	ushort port = 80
+static webserv::ServerRunningConfigListType createDefaultServerConfigList(
+	ushort port,
+	webserv::Logger &logger
 )
 {
-	webserv::HttpRouteConfig httpRouteConfig;
+	webserv::HttpRouteConfig httpRouteConfig1;
+	httpRouteConfig1.setDocumentRoot("./");
+	httpRouteConfig1.setIsDocumentListingEnabled(true);
+	httpRouteConfig1.setRequestPath("/");
+
+	webserv::HttpRouteConfig httpRouteConfig2;
+	httpRouteConfig2.setDocumentRoot("./srcs");
+	httpRouteConfig2.setIsDocumentListingEnabled(false);
+	httpRouteConfig2.setRequestPath("/route2");
+
+	webserv::HttpRouteConfig httpRouteConfig3;
+	httpRouteConfig3.setDocumentRoot("/");
+	httpRouteConfig3.setIsDocumentListingEnabled(false);
+	httpRouteConfig3.setRequestPath("/simple");
 
 	webserv::RouteListType routeList;
-	routeList.push_back(httpRouteConfig);
+	routeList.push_back(httpRouteConfig1);
+	routeList.push_back(httpRouteConfig2);
+	routeList.push_back(httpRouteConfig3);
 
 	std::vector<std::string> hostNameList;
 	hostNameList.push_back("localhost");
+	webserv::ErrorPageMapType errorPageFileMap;
+	errorPageFileMap[400] = "resources/sample1/400.html";
+	errorPageFileMap[404] = "resources/sample1/404.html";
 	webserv::ServerConfig serverConfig(
 		hostNameList,
-		"localhost",
 		port,
 		// 128MB
 		128 * 1024 * 1024,
-		webserv::ErrorPageMapType(),
+		errorPageFileMap,
 		routeList
 	);
 
-	webserv::ServerConfigListType serverConfigList;
-	serverConfigList.push_back(serverConfig);
+	webserv::utils::ErrorPageProvider errorPageProvider;
+	webserv::ServerRunningConfigListType serverConfigList;
+	serverConfigList.push_back(
+		webserv::ServerRunningConfig(
+			serverConfig,
+			errorPageProvider,
+			logger
+		)
+	);
 	return serverConfigList;
 }
 
@@ -67,40 +93,18 @@ int main(int argc, const char *argv[])
 	}
 
 	std::vector<webserv::Socket *> socketList;
-	webserv::ServerConfigListType conf80 = createDefaultServerConfigList();
-	webserv::ServerConfigListType conf81 = createDefaultServerConfigList(81);
-	webserv::ServerConfigListType conf82 = createDefaultServerConfigList(82);
+	webserv::ServerRunningConfigListType conf80 = createDefaultServerConfigList(80, logger);
 	webserv::ServerSocket *serverSocket80 = webserv::ServerSocket::createServerSocket(
 		conf80,
+		80,
 		logger
 	);
 	if (serverSocket80 == NULL) {
 		L_FATAL("createServerSocket80 failed");
 		return 1;
 	}
-	webserv::ServerSocket *serverSocket81 = webserv::ServerSocket::createServerSocket(
-		conf81,
-		logger
-	);
-	if (serverSocket81 == NULL) {
-		L_FATAL("createServerSocket81 failed");
-		delete serverSocket80;
-		return 1;
-	}
-	webserv::ServerSocket *serverSocket82 = webserv::ServerSocket::createServerSocket(
-		conf82,
-		logger
-	);
-	if (serverSocket82 == NULL) {
-		L_FATAL("createServerSocket82 failed");
-		delete serverSocket80;
-		delete serverSocket81;
-		return 1;
-	}
 
 	socketList.push_back(serverSocket80);
-	socketList.push_back(serverSocket81);
-	socketList.push_back(serverSocket82);
 	webserv::Poll poll(socketList, logger);
 	while (!webserv::isExitSignalGot()) {
 		bool result = poll.loop();

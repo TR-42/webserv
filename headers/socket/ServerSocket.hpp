@@ -1,6 +1,7 @@
 #pragma once
 
 #include <config/ListenConfig.hpp>
+#include <config/ServerRunningConfig.hpp>
 
 #include "../Logger.hpp"
 #include "./Socket.hpp"
@@ -12,11 +13,11 @@ class ServerSocket : public Socket
 {
  private:
 	Logger logger;
-	const ServerConfigListType &_listenConfigList;
+	const ServerRunningConfigListType &_listenConfigList;
 	ServerSocket(
 		int fd,
 		const Logger &logger,
-		const ServerConfigListType &listenConfigList
+		const ServerRunningConfigListType &listenConfigList
 	);
 
  public:
@@ -29,7 +30,8 @@ class ServerSocket : public Socket
 	 * @return ServerSocket* 作成されたServerSocketのポインタ
 	 */
 	static ServerSocket *createServerSocket(
-		const ServerConfigListType &listenConfigList,
+		const ServerRunningConfigListType &listenConfigList,
+		uint16_t port,
 		const Logger &logger
 	);
 

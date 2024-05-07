@@ -13,6 +13,7 @@ SRCS_CONFIG	=\
 	HttpRouteConfig.cpp\
 	ListenConfig.cpp\
 	ServerConfig.cpp\
+	ServerRunningConfig.cpp\
 
 SRCS_ENV	=\
 	EnvManager.cpp\
@@ -32,6 +33,7 @@ SRCS_MATH =\
 SRCS_SERVICE	=\
 	DeleteFileService.cpp\
 	GetFileService.cpp\
+	getRequestedFilePath.cpp\
 	pickService.cpp\
 	ServiceBase.cpp\
 	SimpleService.cpp\
@@ -49,6 +51,7 @@ SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
 	getHttpTimeStr.cpp\
 	modeToString.cpp\
+	normalizePath.cpp\
 	stoul.cpp\
 	strtrim.cpp\
 	to_string.cpp\

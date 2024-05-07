@@ -7,7 +7,6 @@ namespace webserv
 
 ServerConfig::ServerConfig(
 ) : _ServerNameList(),
-		_Host(""),
 		_Port(0),
 		_RequestBodyLimit(0),
 		_ErrorPageMap(),
@@ -35,7 +34,6 @@ ServerConfig &webserv::ServerConfig::operator=(
 
 	this->setProps(
 		from._ServerNameList,
-		from._Host,
 		from._Port,
 		from._RequestBodyLimit,
 		from._ErrorPageMap,
@@ -47,13 +45,11 @@ ServerConfig &webserv::ServerConfig::operator=(
 
 ServerConfig::ServerConfig(
 	const std::vector<std::string> &serverNameList,
-	const std::string &host,
 	uint16_t port,
 	std::size_t requestBodyLimit,
 	const ErrorPageMapType &errorPageMap,
 	const RouteListType &routeList
 ) : _ServerNameList(serverNameList),
-		_Host(host),
 		_Port(port),
 		_RequestBodyLimit(requestBodyLimit),
 		_ErrorPageMap(errorPageMap),
@@ -63,7 +59,6 @@ ServerConfig::ServerConfig(
 
 void ServerConfig::setProps(
 	const std::vector<std::string> &serverNameList,
-	const std::string &host,
 	uint16_t port,
 	std::size_t requestBodyLimit,
 	const ErrorPageMapType &errorPages,
@@ -71,7 +66,6 @@ void ServerConfig::setProps(
 )
 {
 	this->_ServerNameList = serverNameList;
-	this->_Host = host;
 	this->_Port = port;
 	this->_RequestBodyLimit = requestBodyLimit;
 	this->_ErrorPageMap = errorPages;
@@ -79,7 +73,6 @@ void ServerConfig::setProps(
 }
 
 IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, ServerNameList, ServerConfig::)
-IMPL_REF_GETTER_SETTER_NS(std::string, Host, ServerConfig::)
 IMPL_GETTER_SETTER_NS(uint16_t, Port, ServerConfig::)
 IMPL_REF_GETTER_SETTER_NS(std::size_t, RequestBodyLimit, ServerConfig::)
 IMPL_REF_GETTER_SETTER_NS(ErrorPageMapType, ErrorPageMap, ServerConfig::)
