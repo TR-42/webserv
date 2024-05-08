@@ -200,11 +200,10 @@ std::string GetFileService::generateFileList(const std::string &filePath, const 
 			if (ent->d_name[0] == '.') {
 				continue;
 			}
-			std::string href = utils::normalizePath("/" + requestPath + "/" + ent->d_name);
 			if (ent->d_type == DT_DIR) {
-				dirVector.push_back("<li><a href=\"" + href + "/\">" + ent->d_name + "/</a></li>");
+				dirVector.push_back(ent->d_name);
 			} else if (ent->d_type == DT_REG) {
-				fileVector.push_back("<li><a href=\"" + href + "\">" + ent->d_name + "</a></li>");
+				fileVector.push_back(ent->d_name);
 			}
 		}
 		closedir(dir);
@@ -224,10 +223,20 @@ std::string GetFileService::generateFileList(const std::string &filePath, const 
 	html << "<ul>";
 	html << parentDirLint;
 	for (std::vector<std::string>::const_iterator it = dirVector.begin(); it != dirVector.end(); ++it) {
-		html << *it;
+		html
+			<< "<li><a href=\""
+			<< utils::normalizePath("/" + requestPath + "/" + *it)
+			<< "/\">"
+			<< *it
+			<< "/</a></li>";
 	}
 	for (std::vector<std::string>::const_iterator it = fileVector.begin(); it != fileVector.end(); ++it) {
-		html << *it;
+		html
+			<< "<li><a href=\""
+			<< utils::normalizePath("/" + requestPath + "/" + *it)
+			<< "\">"
+			<< *it
+			<< "</a></li>";
 	}
 
 	return html.str();
