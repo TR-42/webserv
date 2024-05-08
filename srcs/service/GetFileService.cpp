@@ -1,8 +1,11 @@
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <Logger.hpp>
+#include <algorithm>
 #include <config/HttpRouteConfig.hpp>
 #include <cstring>
 #include <iostream>
@@ -10,6 +13,7 @@
 #include <service/GetFileService.hpp>
 #include <service/SimpleService.hpp>
 #include <service/getRequestedFilePath.hpp>
+#include <sstream>
 #include <types.hpp>
 #include <utils.hpp>
 
@@ -68,7 +72,16 @@ GetFileService::GetFileService(
 		std::string indexFileName = "/index.html";
 		std::string indexFilePath = filePath + indexFileName;
 		if (stat(indexFilePath.c_str(), &statBuf) != 0 || !S_ISREG(statBuf.st_mode)) {
-			this->_response = this->_errorPageProvider.notFound();
+			if (!routeConfig.getIsDocumentListingEnabled()) {
+				this->_response = this->_errorPageProvider.notFound();
+				LS_INFO()
+					<< "Index file not found: " << filePath
+					<< " Document listing is disabled."
+					<< std::endl;
+				return;
+			}
+
+			this->generateFileList(filePath, request.getNormalizedPath());
 			LS_INFO()
 				<< "Index file not found: " << filePath
 				<< "\tS_ISREG: " << std::boolalpha << S_ISREG(statBuf.st_mode)
@@ -165,6 +178,72 @@ ServiceEventResultType GetFileService::onEventGot(
 	);
 
 	return ServiceEventResult::CONTINUE;
+}
+
+void GetFileService::generateFileList(const std::string &filePath, const std::string &requestPath)
+{
+	DIR *dir;
+	struct dirent *ent;
+	std::vector<std::string> dirVector;
+	std::vector<std::string> fileVector;
+	std::string parentDirLint = "";
+	if (filePath == "./") {
+		parentDirLint = "";
+	} else {
+		parentDirLint = "<li><a href=\"../\">../</a></li>";
+	}
+
+	if ((dir = opendir(filePath.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			if (ent->d_name[0] == '.') {
+				continue;
+			}
+			if (ent->d_type == DT_DIR) {
+				dirVector.push_back(ent->d_name);
+			} else if (ent->d_type == DT_REG) {
+				fileVector.push_back(ent->d_name);
+			}
+		}
+		closedir(dir);
+	} else {
+		this->_response = this->_errorPageProvider.internalServerError();
+		LS_LOG() << "Failed to open directory: " << filePath << std::endl;
+		return;
+	}
+
+	std::sort(dirVector.begin(), dirVector.end());
+	std::sort(fileVector.begin(), fileVector.end());
+
+	std::stringstream html;
+	html << "<!DOCTYPE html><html><head><title>Index of " << requestPath << "</title></head>";
+	html << "<body>";
+	html << "<h1>Index of " << requestPath << "</h1>";
+	html << "<ul>";
+	html << parentDirLint;
+	for (std::vector<std::string>::const_iterator it = dirVector.begin(); it != dirVector.end(); ++it) {
+		html
+			<< "<li><a href=\""
+			<< utils::normalizePath("/" + requestPath + "/" + *it)
+			<< "/\">"
+			<< *it
+			<< "/</a></li>";
+	}
+	for (std::vector<std::string>::const_iterator it = fileVector.begin(); it != fileVector.end(); ++it) {
+		html
+			<< "<li><a href=\""
+			<< utils::normalizePath("/" + requestPath + "/" + *it)
+			<< "\">"
+			<< *it
+			<< "</a></li>";
+	}
+
+	std::string fileList = html.str();
+	this->_response.getBody().insert(
+		this->_response.getBody().end(),
+		fileList.begin(),
+		fileList.end()
+	);
+	this->_response.getHeaders().addValue("Content-Type", "text/html");
 }
 
 }	 // namespace webserv
