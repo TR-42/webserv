@@ -209,6 +209,7 @@ std::string GetFileService::generateFileList(const std::string &filePath, const 
 		}
 		closedir(dir);
 	} else {
+		this->_response = this->_errorPageProvider.internalServerError();
 		LS_LOG() << "Failed to open directory: " << filePath << std::endl;
 		return "";
 	}
