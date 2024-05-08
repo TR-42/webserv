@@ -81,9 +81,7 @@ GetFileService::GetFileService(
 				return;
 			}
 
-			std::string fileList = generateFileList(filePath, request.getNormalizedPath());
-			this->_response.getBody().insert(this->_response.getBody().end(), fileList.begin(), fileList.end());
-			this->_response.getHeaders().addValue("Content-Type", "text/html");
+			this->generateFileList(filePath, request.getNormalizedPath());
 			LS_INFO()
 				<< "Index file not found: " << filePath
 				<< "\tS_ISREG: " << std::boolalpha << S_ISREG(statBuf.st_mode)
@@ -182,7 +180,7 @@ ServiceEventResultType GetFileService::onEventGot(
 	return ServiceEventResult::CONTINUE;
 }
 
-std::string GetFileService::generateFileList(const std::string &filePath, const std::string &requestPath)
+void GetFileService::generateFileList(const std::string &filePath, const std::string &requestPath)
 {
 	DIR *dir;
 	struct dirent *ent;
@@ -210,7 +208,7 @@ std::string GetFileService::generateFileList(const std::string &filePath, const 
 	} else {
 		this->_response = this->_errorPageProvider.internalServerError();
 		LS_LOG() << "Failed to open directory: " << filePath << std::endl;
-		return "";
+		return;
 	}
 
 	std::sort(dirVector.begin(), dirVector.end());
@@ -239,7 +237,13 @@ std::string GetFileService::generateFileList(const std::string &filePath, const 
 			<< "</a></li>";
 	}
 
-	return html.str();
+	std::string fileList = html.str();
+	this->_response.getBody().insert(
+		this->_response.getBody().end(),
+		fileList.begin(),
+		fileList.end()
+	);
+	this->_response.getHeaders().addValue("Content-Type", "text/html");
 }
 
 }	 // namespace webserv
