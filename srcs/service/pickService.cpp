@@ -2,6 +2,7 @@
 #include <config/ServerRunningConfig.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
+#include <service/PostFileService.hpp>
 #include <service/ServiceBase.hpp>
 #include <service/SimpleService.hpp>
 #include <service/pickService.hpp>
@@ -76,6 +77,12 @@ static ServiceBase *pickService(
 			request,
 			routeConfig,
 			errorPageProvider,
+			logger
+		);
+	} else if (request.getMethod() == "POST") {
+		return new PostFileService(
+			request,
+			utils::ErrorPageProvider(),
 			logger
 		);
 	} else {

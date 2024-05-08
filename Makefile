@@ -35,6 +35,7 @@ SRCS_SERVICE	=\
 	GetFileService.cpp\
 	getRequestedFilePath.cpp\
 	pickService.cpp\
+	PostFileService.cpp\
 	ServiceBase.cpp\
 	SimpleService.cpp\
 
