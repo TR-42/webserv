@@ -40,7 +40,7 @@ PostFileService::PostFileService(
 		const errno_t errorNum = errno;
 		if (errorNum != ENOENT) {
 			this->_response = this->_errorPageProvider.internalServerError();
-			LS_ERROR() << "Failed to open file: " << strerror(errorNum) << std::endl;
+			LS_ERROR() << "Failed to get file info: " << strerror(errorNum) << std::endl;
 			return;
 		}
 		LS_INFO() << "File not found - creating file: " << filePath << std::endl;
