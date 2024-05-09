@@ -7,6 +7,10 @@ DEPS_DIR	=	./deps
 OBJS_DEBUG_DIR	=	./objs_debug
 DEPS_DEBUG_DIR	=	./deps_debug
 
+SRCS_CGI	=\
+	CgiExecuterService.cpp\
+	CgiHandlerService.cpp\
+
 SRCS_CONFIG	=\
 	CgiConfig.cpp\
 	HttpRedirectConfig.cpp\
@@ -66,6 +70,7 @@ SRCS_MAIN	=\
 SRCS_OTHER	=\
 
 SRC_FILES	=\
+	$(addprefix cgi/, $(SRCS_CGI))\
 	$(addprefix config/, $(SRCS_CONFIG))\
 	$(addprefix env/, $(SRCS_ENV))\
 	$(addprefix http/, $(SRCS_HTTP))\
