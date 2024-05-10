@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include <EnvManager.hpp>
@@ -24,6 +24,12 @@ CgiExecuterService::CgiExecuterService(
 		_isReaderInstanceCreated(false),
 		_pid(0)
 {
+	// argvを準備
+	char **argv = new char *[2];
+	argv[0] = new char[request.getPath().size() + 1];
+	std::strcpy(argv[0], request.getPath().c_str());
+	argv[1] = NULL;
+
 	// 環境変数を準備
 	env::EnvManager envManager;
 
@@ -77,10 +83,12 @@ CgiExecuterService::CgiExecuterService(
 			fdReadFromParent,
 			fdWriteToParent,
 			request.getPath(),
+			argv,
 			envp
 		);
 	} else {
 		// parent process
+		env::EnvManager::freeEnvp(&argv);
 		envManager.freeEnvp(&envp);
 		close(fdReadFromParent);
 		close(fdWriteToParent);
@@ -92,6 +100,7 @@ __attribute__((noreturn)) void CgiExecuterService::_childProcessFunc(
 	int fdReadFromParent,
 	int fdWriteToParent,
 	const std::string &cgiPath,
+	char **argv,
 	char **envp
 )
 {
@@ -124,7 +133,7 @@ __attribute__((noreturn)) void CgiExecuterService::_childProcessFunc(
 	}
 	close(fdWriteToParent);
 
-	int result = execve(cgiPath.c_str(), NULL, envp);
+	int result = execve(cgiPath.c_str(), argv, envp);
 	errno_t err = errno;
 	CS_ERROR() << "execve() failed with code " << result << ": " << std::strerror(err) << std::endl;
 	std::exit(1);

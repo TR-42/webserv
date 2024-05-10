@@ -21,6 +21,7 @@ class CgiExecuterService : public ServiceBase
 		int fdReadFromParent,
 		int fdWriteToParent,
 		const std::string &cgiPath,
+		char **argv,
 		char **envp
 	);
 
