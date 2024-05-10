@@ -53,6 +53,7 @@ SRCS_UTILS	=\
 	getHttpTimeStr.cpp\
 	modeToString.cpp\
 	normalizePath.cpp\
+	pickLine.cpp\
 	stoul.cpp\
 	strtrim.cpp\
 	to_string.cpp\

@@ -16,29 +16,7 @@ const std::vector<uint8_t> &HttpRequest::getBody() const { return _Body; }
 bool HttpRequest::isRequestLineParsed() const { return _IsRequestLineParsed; }
 bool HttpRequest::isRequestHeaderParsed() const { return _IsRequestHeaderParsed; }
 
-static std::vector<uint8_t> *_pickLine(
-	std::vector<uint8_t> &unparsedRequestRaw
-)
-{
-	size_t newlinePos;
-	size_t unparsedRequestRawSize = unparsedRequestRaw.size();
-	std::vector<uint8_t> *requestRawLine;
-	for (newlinePos = 0; newlinePos < unparsedRequestRawSize; ++newlinePos) {
-		if (unparsedRequestRaw[newlinePos] == '\n') {
-			break;
-		}
-	}
-	if (newlinePos == unparsedRequestRawSize) {
-		return NULL;
-	}
-	bool hasCarriageReturn = 0 < newlinePos && unparsedRequestRaw[newlinePos - 1] == '\r';
-	requestRawLine = new std::vector<uint8_t>(
-		unparsedRequestRaw.begin(),
-		unparsedRequestRaw.begin() + newlinePos - (hasCarriageReturn ? 1 : 0)
-	);
-	unparsedRequestRaw.erase(unparsedRequestRaw.begin(), unparsedRequestRaw.begin() + newlinePos + 1);
-	return requestRawLine;
-}
+std::vector<uint8_t> *pickLine(std::vector<uint8_t> &unpickedData);
 
 HttpRequest::HttpRequest()
 		: _IsRequestLineParsed(false),
@@ -68,7 +46,7 @@ bool HttpRequest::pushRequestRaw(
 		_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
 
 		C_DEBUG("pickLine executing...");
-		std::vector<uint8_t> *requestRawLine = _pickLine(_UnparsedRequestRaw);
+		std::vector<uint8_t> *requestRawLine = utils::pickLine(_UnparsedRequestRaw);
 		if (requestRawLine == NULL) {
 			C_DEBUG("NewLine not found");
 			return true;
@@ -85,7 +63,7 @@ bool HttpRequest::pushRequestRaw(
 				this->_IsParseCompleted = true;
 				return false;
 			}
-			requestRawLine = _pickLine(_UnparsedRequestRaw);
+			requestRawLine = utils::pickLine(_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
 				C_DEBUG("NewLine not found");
 				return true;
@@ -100,7 +78,7 @@ bool HttpRequest::pushRequestRaw(
 				this->_IsParseCompleted = true;
 				return false;
 			}
-			requestRawLine = _pickLine(_UnparsedRequestRaw);
+			requestRawLine = utils::pickLine(_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
 				C_DEBUG("NewLine not found");
 				return true;

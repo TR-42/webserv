@@ -66,6 +66,10 @@ std::string normalizePath(
 	const std::string &path
 );
 
+std::vector<uint8_t> *pickLine(
+	std::vector<uint8_t> &unpickedData
+);
+
 }	 // namespace utils
 
 }	 // namespace webserv
