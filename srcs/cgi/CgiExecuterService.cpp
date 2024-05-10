@@ -3,6 +3,7 @@
 
 #include <EnvManager.hpp>
 #include <cgi/CgiExecuterService.hpp>
+#include <cstring>
 #include <iostream>
 #include <macros.hpp>
 #include <stdexcept>

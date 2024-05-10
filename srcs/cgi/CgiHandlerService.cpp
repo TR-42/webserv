@@ -2,6 +2,7 @@
 
 #include <cgi/CgiHandlerService.hpp>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <macros.hpp>
 
