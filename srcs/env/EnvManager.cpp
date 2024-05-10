@@ -81,14 +81,27 @@ char **EnvManager::toEnvp() const
 		}
 		return envp;
 	} catch (...) {
-		i = 0;
-		while (envp[i] != NULL) {
-			delete[] envp[i];
-			i++;
-		}
-		delete[] envp;
+		this->freeEnvp(&envp);
 		throw;
 	}
+}
+
+void EnvManager::freeEnvp(
+	char ***envp
+)
+{
+	if (envp == NULL || *envp == NULL) {
+		return;
+	}
+
+	size_t i = 0;
+	while ((*envp)[i] != NULL) {
+		delete[] (*envp)[i];
+		i++;
+	}
+
+	delete[] *envp;
+	*envp = NULL;
 }
 
 }	 // namespace env
