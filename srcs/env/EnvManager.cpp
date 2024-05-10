@@ -3,6 +3,11 @@
 
 extern char **environ;
 
+namespace webserv
+{
+namespace env
+{
+
 static void _set_env_map(
 	std::map<std::string, std::string> &env,
 	const char *envp[]
@@ -23,43 +28,43 @@ static void _set_env_map(
 	}
 }
 
-webserv::env::EnvManager::EnvManager()
+EnvManager::EnvManager()
 {
 	this->env.clear();
 	_set_env_map(this->env, (const char **)environ);
 }
 
-webserv::env::EnvManager::EnvManager(const char *envp[])
+EnvManager::EnvManager(const char *envp[])
 {
 	this->env.clear();
 	_set_env_map(this->env, envp);
 }
 
-webserv::env::EnvManager::~EnvManager()
+EnvManager::~EnvManager()
 {
 }
 
-size_t webserv::env::EnvManager::size() const
+size_t EnvManager::size() const
 {
 	return this->env.size();
 }
 
-const std::string &webserv::env::EnvManager::get(const std::string &key) const
+const std::string &EnvManager::get(const std::string &key) const
 {
 	return this->env.at(key);
 }
 
-void webserv::env::EnvManager::set(const std::string &key, const std::string &value)
+void EnvManager::set(const std::string &key, const std::string &value)
 {
 	this->env[key] = value;
 }
 
-std::string &webserv::env::EnvManager::operator[](const std::string &key)
+std::string &EnvManager::operator[](const std::string &key)
 {
 	return this->env[key];
 }
 
-char **webserv::env::EnvManager::toEnvp() const
+char **EnvManager::toEnvp() const
 {
 	const size_t envpSize = this->env.size();
 	char **envp = new char *[envpSize + 1];
@@ -85,3 +90,6 @@ char **webserv::env::EnvManager::toEnvp() const
 		throw;
 	}
 }
+
+}	 // namespace env
+}	 // namespace webserv
