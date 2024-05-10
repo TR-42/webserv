@@ -5,6 +5,7 @@
 #include <ctime>
 #include <socket/SockEventResult.hpp>
 #include <string>
+#include <vector>
 
 namespace webserv
 {
