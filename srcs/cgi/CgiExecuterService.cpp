@@ -19,11 +19,11 @@ CgiExecuterService::CgiExecuterService(
 	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
 	std::vector<Pollable *> &pollableList
-) : ServiceBase(request, errorPageProvider, logger),
+) : Pollable(-1),
 		_fdWriteToCgi(-1),
-		_fdReadFromCgi(-1),
-		_isReaderInstanceCreated(false),
-		_pid(0)
+		_pid(0),
+		_cgiHandlerService(NULL),
+		logger(logger)
 {
 	// argvを準備
 	char **argv = new char *[2];
@@ -60,8 +60,16 @@ CgiExecuterService::CgiExecuterService(
 		throw std::runtime_error("pipe() failed");
 	}
 
-	this->_fdReadFromCgi = pipeFd[PIPE_READ];
+	int fdReadFromCgi = pipeFd[PIPE_READ];
 	int fdWriteToParent = pipeFd[PIPE_WRITE];
+
+	this->_cgiHandlerService = new CgiHandlerService(
+		errorPageProvider,
+		logger,
+		fdReadFromCgi
+	);
+	pollableList.push_back(this->_cgiHandlerService);
+	// 自分自身までpollableListに追加するとdisposeで面倒なことになるので、親に管理してもらう。
 
 	// fork
 	this->_pid = fork();
@@ -71,13 +79,15 @@ CgiExecuterService::CgiExecuterService(
 		close(this->_fdWriteToCgi);
 		this->_fdWriteToCgi = -1;
 		close(fdReadFromParent);
-		close(this->_fdReadFromCgi);
-		this->_fdReadFromCgi = -1;
+		close(fdReadFromCgi);
 		close(fdWriteToParent);
 		throw std::runtime_error("fork() failed");
 	}
 
 	if (this->_pid == 0) {
+		close(this->_fdWriteToCgi);
+		this->_fdWriteToCgi = -1;
+		close(fdReadFromCgi);
 		// child process
 		this->_childProcessFunc(
 			pollableList,
@@ -105,9 +115,6 @@ __attribute__((noreturn)) void CgiExecuterService::_childProcessFunc(
 	char **envp
 )
 {
-	close(this->_fdReadFromCgi);
-	close(this->_fdWriteToCgi);
-
 	size_t pollableListSize = pollableList.size();
 	for (size_t i = 0; i < pollableListSize; i++) {
 		// TODO: 自分自身をdeleteしないようにする
@@ -145,18 +152,14 @@ CgiExecuterService::~CgiExecuterService()
 	if (0 <= this->_fdWriteToCgi) {
 		close(this->_fdWriteToCgi);
 	}
-	if (0 <= this->_fdReadFromCgi) {
-		close(this->_fdReadFromCgi);
-	}
 
 	if (0 < this->_pid) {
 		int status;
 		CS_DEBUG() << "waiting for child process to terminate ... pid=" << this->_pid << std::endl;
 		waitpid(this->_pid, &status, 0);
 		CS_DEBUG() << "waitpid() status=" << status << std::endl;
-
 	} else {
-		CS_ERROR() << "fork() failed" << std::endl;
+		CS_ERROR() << "fork() may have been failed" << std::endl;
 	}
 }
 
@@ -169,40 +172,25 @@ void CgiExecuterService::setToPollFd(
 	pollFd.revents = 0;
 }
 
-ServiceEventResultType CgiExecuterService::onEventGot(
-	short revents
+PollEventResultType CgiExecuterService::onEventGot(
+	short revents,
+	std::vector<Pollable *> &pollableList
 )
 {
+	(void)pollableList;
 	if (!IS_POLLOUT(revents)) {
-		return ServiceEventResult::CONTINUE;
+		return PollEventResult::OK;
 	}
 
 	// TODO: implement
 
 	// readerのcompleteによって、自動的にwriterもcompleteになる
-	return ServiceEventResult::CONTINUE;
+	return PollEventResult::OK;
 }
 
-bool CgiExecuterService::isWriterInstance() const
+CgiHandlerService *CgiExecuterService::getCgiHandlerService() const
 {
-	return true;
-}
-
-CgiHandlerService *CgiExecuterService::createCgiHandlerService()
-{
-	if (this->_isReaderInstanceCreated) {
-		CS_ERROR() << "CgiHandlerService instance already created" << std::endl;
-		throw std::runtime_error("CgiHandlerService instance already created");
-		return NULL;
-	}
-
-	this->_isReaderInstanceCreated = true;
-	return new CgiHandlerService(
-		this->_request,
-		this->_errorPageProvider,
-		this->logger,
-		this->_fdReadFromCgi
-	);
+	return this->_cgiHandlerService;
 }
 
 }	 // namespace webserv

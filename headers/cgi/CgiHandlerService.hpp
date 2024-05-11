@@ -1,18 +1,19 @@
 #pragma once
 
-#include <service/ServiceBase.hpp>
+#include <Logger.hpp>
+#include <poll/Pollable.hpp>
+#include <utils/ErrorPageProvider.hpp>
 
 namespace webserv
 {
 
-class CgiHandlerService : public ServiceBase
+class CgiHandlerService : public Pollable
 {
  private:
-	int _fdReadFromCgi;
+	Logger logger;
 
  public:
 	CgiHandlerService(
-		const HttpRequest &request,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger,
 		int fdReadFromCgi
@@ -23,8 +24,9 @@ class CgiHandlerService : public ServiceBase
 		struct pollfd &pollFd
 	) const;
 
-	virtual ServiceEventResultType onEventGot(
-		short revents
+	virtual PollEventResultType onEventGot(
+		short revents,
+		std::vector<Pollable *> &pollableList
 	);
 
 	// TODO: Redirect対応

@@ -8,13 +8,13 @@
 namespace webserv
 {
 
-class CgiExecuterService : public ServiceBase
+class CgiExecuterService : public Pollable
 {
  private:
 	int _fdWriteToCgi;
-	int _fdReadFromCgi;
-	bool _isReaderInstanceCreated;
 	pid_t _pid;
+	CgiHandlerService *_cgiHandlerService;
+	Logger logger;
 
 	void _childProcessFunc(
 		std::vector<Pollable *> &pollableList,
@@ -38,13 +38,12 @@ class CgiExecuterService : public ServiceBase
 		struct pollfd &pollFd
 	) const;
 
-	virtual ServiceEventResultType onEventGot(
-		short revents
+	virtual PollEventResultType onEventGot(
+		short revents,
+		std::vector<Pollable *> &pollableList
 	);
 
-	virtual bool isWriterInstance() const;
-
-	CgiHandlerService *createCgiHandlerService();
+	CgiHandlerService *getCgiHandlerService() const;
 };
 
 }	 // namespace webserv

@@ -39,6 +39,7 @@ SRCS_POLL	=\
 	Pollable.cpp\
 
 SRCS_SERVICE	=\
+	CgiService.cpp\
 	DeleteFileService.cpp\
 	GetFileService.cpp\
 	getRequestedFilePath.cpp\

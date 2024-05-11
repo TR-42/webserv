@@ -10,57 +10,55 @@ namespace webserv
 {
 
 CgiHandlerService::CgiHandlerService(
-	const HttpRequest &request,
 	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
 	int fdReadFromCgi
-) : ServiceBase(request, errorPageProvider, logger),
-		_fdReadFromCgi(fdReadFromCgi)
+) : Pollable(fdReadFromCgi),
+		logger(logger)
 {
+	(void)errorPageProvider;
 }
 
 CgiHandlerService::~CgiHandlerService()
 {
-	if (0 <= this->_fdReadFromCgi) {
-		close(this->_fdReadFromCgi);
-	}
 }
 
 void CgiHandlerService::setToPollFd(
 	struct pollfd &pollFd
 ) const
 {
-	pollFd.fd = this->_fdReadFromCgi;
+	Pollable::setToPollFd(pollFd);
 	pollFd.events = POLLIN;
-	pollFd.revents = 0;
 }
 
-ServiceEventResultType CgiHandlerService::onEventGot(
-	short revents
+PollEventResultType CgiHandlerService::onEventGot(
+	short revents,
+	std::vector<Pollable *> &pollableList
 )
 {
+	(void)pollableList;
 	if (!IS_POLLIN(revents)) {
-		return ServiceEventResult::CONTINUE;
+		return PollEventResult::OK;
 	}
 
 	char buf[4096];
-	ssize_t readResult = read(this->_fdReadFromCgi, buf, sizeof(buf));
+	ssize_t readResult = read(this->getFD(), buf, sizeof(buf));
 	if (readResult < 0) {
 		const errno_t errorNum = errno;
 		CS_ERROR()
 			<< "Failed to read from CGI: " << std::strerror(errorNum) << std::endl;
 
-		return ServiceEventResult::ERROR;
+		return PollEventResult::ERROR;
 	}
 
 	if (readResult == 0) {
 		LS_INFO() << "CGI read complete" << std::endl;
-		return ServiceEventResult::COMPLETE;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	CS_LOG() << "Read from CGI: " << std::string(buf, readResult) << std::endl;
 	// TODO: CGIからのレスポンスを受け取る処理を実装する
-	return ServiceEventResult::COMPLETE;
+	return PollEventResult::DISPOSE_REQUEST;
 }
 
 }	 // namespace webserv

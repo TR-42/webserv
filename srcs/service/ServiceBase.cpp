@@ -18,11 +18,6 @@ ServiceBase::~ServiceBase()
 {
 }
 
-bool ServiceBase::isWriterInstance() const
-{
-	return false;
-}
-
 const HttpResponse &ServiceBase::getResponse() const
 {
 	return this->_response;

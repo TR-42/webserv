@@ -36,8 +36,6 @@ class ServiceBase
 		short revents
 	) = 0;
 
-	virtual bool isWriterInstance() const;
-
 	const HttpResponse &getResponse() const;
 };
 
