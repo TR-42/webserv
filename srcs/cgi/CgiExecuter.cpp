@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 #include <EnvManager.hpp>
-#include <cgi/CgiExecuterService.hpp>
+#include <cgi/CgiExecuter.hpp>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
@@ -14,7 +14,7 @@ namespace webserv
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
-CgiExecuterService::CgiExecuterService(
+CgiExecuter::CgiExecuter(
 	const HttpRequest &request,
 	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
@@ -22,7 +22,7 @@ CgiExecuterService::CgiExecuterService(
 ) : Pollable(-1),
 		_fdWriteToCgi(-1),
 		_pid(0),
-		_cgiHandlerService(NULL),
+		_cgiHandler(NULL),
 		logger(logger)
 {
 	// argvを準備
@@ -63,12 +63,12 @@ CgiExecuterService::CgiExecuterService(
 	int fdReadFromCgi = pipeFd[PIPE_READ];
 	int fdWriteToParent = pipeFd[PIPE_WRITE];
 
-	this->_cgiHandlerService = new CgiHandlerService(
+	this->_cgiHandler = new CgiHandler(
 		errorPageProvider,
 		logger,
 		fdReadFromCgi
 	);
-	pollableList.push_back(this->_cgiHandlerService);
+	pollableList.push_back(this->_cgiHandler);
 	// 自分自身までpollableListに追加するとdisposeで面倒なことになるので、親に管理してもらう。
 
 	// fork
@@ -106,7 +106,7 @@ CgiExecuterService::CgiExecuterService(
 	}
 }
 
-__attribute__((noreturn)) void CgiExecuterService::_childProcessFunc(
+__attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	std::vector<Pollable *> &pollableList,
 	int fdReadFromParent,
 	int fdWriteToParent,
@@ -147,7 +147,7 @@ __attribute__((noreturn)) void CgiExecuterService::_childProcessFunc(
 	std::exit(1);
 }
 
-CgiExecuterService::~CgiExecuterService()
+CgiExecuter::~CgiExecuter()
 {
 	if (0 <= this->_fdWriteToCgi) {
 		close(this->_fdWriteToCgi);
@@ -163,7 +163,7 @@ CgiExecuterService::~CgiExecuterService()
 	}
 }
 
-void CgiExecuterService::setToPollFd(
+void CgiExecuter::setToPollFd(
 	pollfd &pollFd
 ) const
 {
@@ -172,7 +172,7 @@ void CgiExecuterService::setToPollFd(
 	pollFd.revents = 0;
 }
 
-PollEventResultType CgiExecuterService::onEventGot(
+PollEventResultType CgiExecuter::onEventGot(
 	short revents,
 	std::vector<Pollable *> &pollableList
 )
@@ -188,9 +188,9 @@ PollEventResultType CgiExecuterService::onEventGot(
 	return PollEventResult::OK;
 }
 
-CgiHandlerService *CgiExecuterService::getCgiHandlerService() const
+CgiHandler *CgiExecuter::getCgiHandler() const
 {
-	return this->_cgiHandlerService;
+	return this->_cgiHandler;
 }
 
 }	 // namespace webserv

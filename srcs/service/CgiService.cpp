@@ -9,12 +9,12 @@ CgiService::CgiService(
 	const Logger &logger,
 	std::vector<Pollable *> &pollableList
 ) : ServiceBase(request, errorPageProvider, logger),
-		_cgiExecuterService(NULL),
-		_cgiHandlerService(NULL)
+		_cgiExecuter(NULL),
+		_cgiHandler(NULL)
 {
 	(void)pollableList;
-	(void)this->_cgiExecuterService;
-	(void)this->_cgiHandlerService;
+	(void)this->_cgiExecuter;
+	(void)this->_cgiHandler;
 }
 
 CgiService::~CgiService()

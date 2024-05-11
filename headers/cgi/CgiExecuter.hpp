@@ -3,17 +3,17 @@
 #include <poll/Pollable.hpp>
 #include <service/ServiceBase.hpp>
 
-#include "./CgiHandlerService.hpp"
+#include "./CgiHandler.hpp"
 
 namespace webserv
 {
 
-class CgiExecuterService : public Pollable
+class CgiExecuter : public Pollable
 {
  private:
 	int _fdWriteToCgi;
 	pid_t _pid;
-	CgiHandlerService *_cgiHandlerService;
+	CgiHandler *_cgiHandler;
 	Logger logger;
 
 	void _childProcessFunc(
@@ -26,13 +26,13 @@ class CgiExecuterService : public Pollable
 	);
 
  public:
-	CgiExecuterService(
+	CgiExecuter(
 		const HttpRequest &request,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger,
 		std::vector<Pollable *> &pollableList
 	);
-	virtual ~CgiExecuterService();
+	virtual ~CgiExecuter();
 
 	virtual void setToPollFd(
 		struct pollfd &pollFd
@@ -43,7 +43,7 @@ class CgiExecuterService : public Pollable
 		std::vector<Pollable *> &pollableList
 	);
 
-	CgiHandlerService *getCgiHandlerService() const;
+	CgiHandler *getCgiHandler() const;
 };
 
 }	 // namespace webserv

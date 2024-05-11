@@ -8,8 +8,8 @@ OBJS_DEBUG_DIR	=	./objs_debug
 DEPS_DEBUG_DIR	=	./deps_debug
 
 SRCS_CGI	=\
-	CgiExecuterService.cpp\
-	CgiHandlerService.cpp\
+	CgiExecuter.cpp\
+	CgiHandler.cpp\
 
 SRCS_CONFIG	=\
 	CgiConfig.cpp\

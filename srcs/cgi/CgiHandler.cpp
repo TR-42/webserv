@@ -1,6 +1,6 @@
 #include <unistd.h>
 
-#include <cgi/CgiHandlerService.hpp>
+#include <cgi/CgiHandler.hpp>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -9,7 +9,7 @@
 namespace webserv
 {
 
-CgiHandlerService::CgiHandlerService(
+CgiHandler::CgiHandler(
 	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
 	int fdReadFromCgi
@@ -19,11 +19,11 @@ CgiHandlerService::CgiHandlerService(
 	(void)errorPageProvider;
 }
 
-CgiHandlerService::~CgiHandlerService()
+CgiHandler::~CgiHandler()
 {
 }
 
-void CgiHandlerService::setToPollFd(
+void CgiHandler::setToPollFd(
 	struct pollfd &pollFd
 ) const
 {
@@ -31,7 +31,7 @@ void CgiHandlerService::setToPollFd(
 	pollFd.events = POLLIN;
 }
 
-PollEventResultType CgiHandlerService::onEventGot(
+PollEventResultType CgiHandler::onEventGot(
 	short revents,
 	std::vector<Pollable *> &pollableList
 )

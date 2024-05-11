@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cgi/CgiExecuterService.hpp>
-#include <cgi/CgiHandlerService.hpp>
+#include <cgi/CgiExecuter.hpp>
+#include <cgi/CgiHandler.hpp>
 #include <service/ServiceBase.hpp>
 
 namespace webserv
@@ -10,8 +10,8 @@ namespace webserv
 class CgiService : public ServiceBase
 {
  private:
-	CgiExecuterService *_cgiExecuterService;
-	CgiHandlerService *_cgiHandlerService;
+	CgiExecuter *_cgiExecuter;
+	CgiHandler *_cgiHandler;
 
  public:
 	CgiService(

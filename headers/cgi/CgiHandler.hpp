@@ -7,18 +7,18 @@
 namespace webserv
 {
 
-class CgiHandlerService : public Pollable
+class CgiHandler : public Pollable
 {
  private:
 	Logger logger;
 
  public:
-	CgiHandlerService(
+	CgiHandler(
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger,
 		int fdReadFromCgi
 	);
-	virtual ~CgiHandlerService();
+	virtual ~CgiHandler();
 
 	virtual void setToPollFd(
 		struct pollfd &pollFd
