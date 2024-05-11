@@ -55,7 +55,7 @@ bool Poll::loop()
 		return false;
 	}
 
-	size_t removeCount = 0;
+	size_t removedCount = 0;
 	for (size_t i = 0; i < pollableCount; i++) {
 		utils::UUID pollableUuid = _PollableListCopy[i]->getUUID();
 		const PollEventResultType result = _PollableListCopy[i]->onEventGot(
@@ -69,7 +69,8 @@ bool Poll::loop()
 				break;
 
 			case PollEventResult::DISPOSE_REQUEST:
-				this->_onPollableDisposeRequested(i - removeCount++, pollableUuid);
+				this->_onPollableDisposeRequested(i - removedCount, pollableUuid);
+				++removedCount;
 				break;
 
 			case PollEventResult::ERROR:
