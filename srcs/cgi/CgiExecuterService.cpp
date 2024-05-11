@@ -18,7 +18,7 @@ CgiExecuterService::CgiExecuterService(
 	const HttpRequest &request,
 	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
-	std::vector<Socket *> &sockets
+	std::vector<Pollable *> &pollableList
 ) : ServiceBase(request, errorPageProvider, logger),
 		_fdWriteToCgi(-1),
 		_fdReadFromCgi(-1),
@@ -80,7 +80,7 @@ CgiExecuterService::CgiExecuterService(
 	if (this->_pid == 0) {
 		// child process
 		this->_childProcessFunc(
-			sockets,
+			pollableList,
 			fdReadFromParent,
 			fdWriteToParent,
 			request.getPath(),
@@ -97,7 +97,7 @@ CgiExecuterService::CgiExecuterService(
 }
 
 __attribute__((noreturn)) void CgiExecuterService::_childProcessFunc(
-	std::vector<Socket *> &sockets,
+	std::vector<Pollable *> &pollableList,
 	int fdReadFromParent,
 	int fdWriteToParent,
 	const std::string &cgiPath,
@@ -108,16 +108,16 @@ __attribute__((noreturn)) void CgiExecuterService::_childProcessFunc(
 	close(this->_fdReadFromCgi);
 	close(this->_fdWriteToCgi);
 
-	size_t socketListSize = sockets.size();
-	for (size_t i = 0; i < socketListSize; i++) {
+	size_t pollableListSize = pollableList.size();
+	for (size_t i = 0; i < pollableListSize; i++) {
 		// TODO: 自分自身をdeleteしないようにする
-		if (sockets[i] == NULL) {
+		if (pollableList[i] == NULL) {
 			continue;
 		}
-		delete sockets[i];
-		sockets[i] = NULL;
+		delete pollableList[i];
+		pollableList[i] = NULL;
 	}
-	sockets.clear();
+	pollableList.clear();
 
 	// stdin, stdoutをpipeに接続
 	if (dup2(fdReadFromParent, STDIN_FILENO) < 0) {

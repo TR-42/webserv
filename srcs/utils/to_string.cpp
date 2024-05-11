@@ -95,18 +95,18 @@ std::string to_string(
 }
 
 std::string to_string(
-	const SockEventResultType &result
+	const PollEventResultType &result
 )
 {
 	switch (result) {
-		case SockEventResult::OK:
-			return "SockEventResult::OK";
-		case SockEventResult::DISPOSE_REQUEST:
-			return "SockEventResult::DISPOSE_REQUEST";
-		case SockEventResult::ERROR:
-			return "SockEventResult::ERROR";
+		case PollEventResult::OK:
+			return "PollEventResult::OK";
+		case PollEventResult::DISPOSE_REQUEST:
+			return "PollEventResult::DISPOSE_REQUEST";
+		case PollEventResult::ERROR:
+			return "PollEventResult::ERROR";
 		default:
-			return "SockEventResult::(unknown result)";
+			return "PollEventResult::(unknown result)";
 	}
 }
 

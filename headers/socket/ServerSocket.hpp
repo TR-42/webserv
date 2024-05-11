@@ -2,14 +2,14 @@
 
 #include <config/ListenConfig.hpp>
 #include <config/ServerRunningConfig.hpp>
+#include <poll/Pollable.hpp>
 
 #include "../Logger.hpp"
-#include "./Socket.hpp"
 
 namespace webserv
 {
 
-class ServerSocket : public Socket
+class ServerSocket : public Pollable
 {
  private:
 	Logger logger;
@@ -39,9 +39,9 @@ class ServerSocket : public Socket
 		struct pollfd &pollFd
 	) const;
 
-	virtual SockEventResultType onEventGot(
+	virtual PollEventResultType onEventGot(
 		short revents,
-		std::vector<Socket *> &sockets
+		std::vector<Pollable *> &pollableList
 	);
 };
 

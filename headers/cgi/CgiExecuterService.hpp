@@ -1,7 +1,7 @@
 #pragma once
 
+#include <poll/Pollable.hpp>
 #include <service/ServiceBase.hpp>
-#include <socket/Socket.hpp>
 
 #include "./CgiHandlerService.hpp"
 
@@ -17,7 +17,7 @@ class CgiExecuterService : public ServiceBase
 	pid_t _pid;
 
 	void _childProcessFunc(
-		std::vector<Socket *> &sockets,
+		std::vector<Pollable *> &pollableList,
 		int fdReadFromParent,
 		int fdWriteToParent,
 		const std::string &cgiPath,
@@ -30,7 +30,7 @@ class CgiExecuterService : public ServiceBase
 		const HttpRequest &request,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger,
-		std::vector<Socket *> &sockets
+		std::vector<Pollable *> &pollableList
 	);
 	virtual ~CgiExecuterService();
 

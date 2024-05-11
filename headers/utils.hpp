@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 
 #include <ctime>
-#include <socket/SockEventResult.hpp>
+#include <poll/PollEventResult.hpp>
 #include <string>
 
 namespace webserv
@@ -50,7 +50,7 @@ std::string to_string(
 );
 
 std::string to_string(
-	const SockEventResultType &result
+	const PollEventResultType &result
 );
 
 std::string getHttpTimeStr();

@@ -14,16 +14,16 @@
 namespace webserv
 {
 
-SockEventResultType ServerSocket::onEventGot(
+PollEventResultType ServerSocket::onEventGot(
 	short revents,
-	std::vector<Socket *> &sockets
+	std::vector<Pollable *> &pollableList
 )
 {
 	if (!IS_POLLIN(revents)) {
 		CS_DEBUG()
 			<< "No POLLIN event"
 			<< std::endl;
-		return SockEventResult::OK;
+		return PollEventResult::OK;
 	}
 
 	struct sockaddr clientAddr;
@@ -38,7 +38,7 @@ SockEventResultType ServerSocket::onEventGot(
 		CS_FATAL()
 			<< "accept() failed: " << errorStr
 			<< std::endl;
-		return SockEventResult::ERROR;
+		return PollEventResult::ERROR;
 	}
 
 	CS_INFO()
@@ -50,23 +50,23 @@ SockEventResultType ServerSocket::onEventGot(
 		<< std::endl;
 
 	utils::UUID clientUuid = utils::UUIDv7();
-	Socket *clientSocket = new ClientSocket(
+	Pollable *clientSocket = new ClientSocket(
 		clientFd, this->logger.getCustomId(),
 		this->_listenConfigList
 	);
-	sockets.push_back(clientSocket);
+	pollableList.push_back(clientSocket);
 	CS_DEBUG()
 		<< "New client socket created: " << clientUuid
 		<< std::endl;
 
-	return SockEventResult::OK;
+	return PollEventResult::OK;
 }
 
 void ServerSocket::setToPollFd(
 	struct pollfd &pollFd
 ) const
 {
-	Socket::setToPollFd(pollFd);
+	Pollable::setToPollFd(pollFd);
 	pollFd.events = POLLIN;
 }
 
@@ -125,8 +125,8 @@ ServerSocket::ServerSocket(
 	int fd,
 	const Logger &logger,
 	const ServerRunningConfigListType &listenConfigList
-) : Socket(fd),
-		logger(logger, "Server=" + Socket::getUUID().toString()),
+) : Pollable(fd),
+		logger(logger, "Server=" + Pollable::getUUID().toString()),
 		_listenConfigList(listenConfigList)
 {
 	LS_INFO()

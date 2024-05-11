@@ -15,12 +15,12 @@
 namespace webserv
 {
 
-SockEventResultType ClientSocket::onEventGot(
+PollEventResultType ClientSocket::onEventGot(
 	short revents,
-	std::vector<Socket *> &sockets
+	std::vector<Pollable *> &pollableList
 )
 {
-	(void)sockets;
+	(void)pollableList;
 	// TODO: タイムアウト監視 (呼び出し元でのreventチェックを取り除いて実装)
 
 	if (this->_service != NULL) {
@@ -38,11 +38,11 @@ SockEventResultType ClientSocket::onEventGot(
 			<< std::endl;
 		return this->_processPollOut();
 	} else {
-		return SockEventResult::OK;
+		return PollEventResult::OK;
 	}
 }
 
-SockEventResultType ClientSocket::_processPollIn()
+PollEventResultType ClientSocket::_processPollIn()
 {
 	char buffer[RECV_BUFFER_SIZE];
 	ssize_t recvSize = recv(
@@ -57,21 +57,21 @@ SockEventResultType ClientSocket::_processPollIn()
 		CS_FATAL()
 			<< "recv() failed: " << errorStr
 			<< std::endl;
-		return SockEventResult::ERROR;
+		return PollEventResult::ERROR;
 	}
 
 	if (recvSize == 0) {
 		CS_INFO()
 			<< "Connection closed by peer"
 			<< std::endl;
-		return SockEventResult::DISPOSE_REQUEST;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	if (this->httpRequest.isParseCompleted()) {
 		CS_DEBUG()
 			<< "Request parse already completed"
 			<< std::endl;
-		return SockEventResult::OK;
+		return PollEventResult::OK;
 	}
 
 	bool pushResult = this->httpRequest.pushRequestRaw(std::vector<uint8_t>(buffer, buffer + recvSize));
@@ -80,14 +80,14 @@ SockEventResultType ClientSocket::_processPollIn()
 			<< "httpRequest.pushRequestRaw() failed"
 			<< std::endl;
 		this->_setResponse(utils::ErrorPageProvider().badRequest());
-		return SockEventResult::OK;
+		return PollEventResult::OK;
 	}
 
 	if (!this->httpRequest.isParseCompleted()) {
 		CS_DEBUG()
 			<< "Request parse not completed"
 			<< std::endl;
-		return SockEventResult::OK;
+		return PollEventResult::OK;
 	}
 
 	CS_DEBUG()
@@ -104,19 +104,19 @@ SockEventResultType ClientSocket::_processPollIn()
 			<< std::endl;
 		// TODO: Method Not Allowed	405
 		this->_setResponse(utils::ErrorPageProvider().notImplemented());
-		return SockEventResult::OK;
+		return PollEventResult::OK;
 	}
 	return this->_processPollService(0);
 }
 
-SockEventResultType ClientSocket::_processPollOut()
+PollEventResultType ClientSocket::_processPollOut()
 {
 	// POLLOUTの設定仕様上、this->_IsResponseSetがtrueの場合のみこの関数が呼ばれる
 	if (this->httpResponseBuffer.empty()) {
 		CS_DEBUG()
 			<< "httpResponseBuffer is empty && can call send() => Connection can be closed"
 			<< std::endl;
-		return SockEventResult::DISPOSE_REQUEST;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	ssize_t sendSize = send(
@@ -131,14 +131,14 @@ SockEventResultType ClientSocket::_processPollOut()
 		CS_FATAL()
 			<< "send() failed: " << errorStr
 			<< std::endl;
-		return SockEventResult::ERROR;
+		return PollEventResult::ERROR;
 	}
 
 	if (sendSize == 0) {
 		CS_INFO()
 			<< "Connection closed by peer"
 			<< std::endl;
-		return SockEventResult::DISPOSE_REQUEST;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	this->httpResponseBuffer.erase(
@@ -146,10 +146,10 @@ SockEventResultType ClientSocket::_processPollOut()
 		this->httpResponseBuffer.begin() + sendSize
 	);
 
-	return SockEventResult::OK;
+	return PollEventResult::OK;
 }
 
-SockEventResultType ClientSocket::_processPollService(short revents)
+PollEventResultType ClientSocket::_processPollService(short revents)
 {
 	ServiceEventResultType serviceResult = this->_service->onEventGot(revents);
 	switch (serviceResult) {
@@ -160,7 +160,7 @@ SockEventResultType ClientSocket::_processPollService(short revents)
 			this->_setResponse(this->_service->getResponse());
 			delete this->_service;
 			this->_service = NULL;
-			return SockEventResult::OK;
+			return PollEventResult::OK;
 
 		case ServiceEventResult::ERROR:
 			CS_DEBUG()
@@ -169,19 +169,19 @@ SockEventResultType ClientSocket::_processPollService(short revents)
 			delete this->_service;
 			this->_service = NULL;
 			this->_setResponse(utils::ErrorPageProvider().internalServerError());
-			return SockEventResult::OK;
+			return PollEventResult::OK;
 
 		case ServiceEventResult::CONTINUE:
 			CS_DEBUG()
 				<< "ServiceEventResult::CONTINUE"
 				<< std::endl;
-			return SockEventResult::OK;
+			return PollEventResult::OK;
 
 		default:
 			CS_DEBUG()
 				<< "ServiceEventResult::UNKNOWN"
 				<< std::endl;
-			return SockEventResult::OK;
+			return PollEventResult::OK;
 	}
 }
 
@@ -215,7 +215,7 @@ void ClientSocket::setToPollFd(
 		CS_DEBUG()
 			<< "ClientSocket::setToPollFd() called - this->_service == NULL"
 			<< std::endl;
-		Socket::setToPollFd(pollFd);
+		Pollable::setToPollFd(pollFd);
 		pollFd.events = this->_IsResponseSet ? POLLOUT : POLLIN;
 	} else {
 		CS_DEBUG()
@@ -242,9 +242,9 @@ ClientSocket::ClientSocket(
 	int fd,
 	const std::string &serverLoggerCustomId,
 	const ServerRunningConfigListType &listenConfigList
-) : Socket(fd),
+) : Pollable(fd),
 		_listenConfigList(listenConfigList),
-		logger(serverLoggerCustomId + ", Connection=" + Socket::getUUID().toString()),
+		logger(serverLoggerCustomId + ", Connection=" + Pollable::getUUID().toString()),
 		_IsResponseSet(false),
 		_service(NULL)
 {

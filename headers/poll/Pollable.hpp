@@ -2,38 +2,40 @@
 
 #include <poll.h>
 
+#include <utils/UUID.hpp>
 #include <vector>
 
-#include "../utils/UUID.hpp"
-#include "./SockEventResult.hpp"
+#include "./PollEventResult.hpp"
 
 namespace webserv
 {
 
-class Socket
+typedef struct pollfd Pollfd;
+
+class Pollable
 {
  private:
 	int _fd;
 	utils::UUID _uuid;
 
 	// FDを扱う関係で、コピーは許可しない
-	Socket *operator=(const Socket &);
-	Socket(const Socket &);
+	Pollable *operator=(const Pollable &);
+	Pollable(const Pollable &);
 
  protected:
-	Socket(int fd);
+	Pollable(int fd);
 	int getFD() const;
 
  public:
-	virtual ~Socket();
+	virtual ~Pollable();
 
 	virtual void setToPollFd(
 		struct pollfd &pollFd
 	) const;
 
-	virtual SockEventResultType onEventGot(
+	virtual PollEventResultType onEventGot(
 		short revents,
-		std::vector<Socket *> &sockets
+		std::vector<Pollable *> &pollableList
 	) = 0;
 
 	utils::UUID getUUID() const;

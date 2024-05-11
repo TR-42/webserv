@@ -6,8 +6,8 @@
 #include <config/ServerRunningConfig.hpp>
 #include <cstdio>
 #include <iostream>
+#include <poll/Poll.hpp>
 #include <signal/signal_handler.hpp>
-#include <socket/Poll.hpp>
 #include <socket/ServerSocket.hpp>
 #include <string>
 
@@ -92,7 +92,7 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 
-	std::vector<webserv::Socket *> socketList;
+	std::vector<webserv::Pollable *> pollableList;
 	webserv::ServerRunningConfigListType conf80 = createDefaultServerConfigList(80, logger);
 	webserv::ServerSocket *serverSocket80 = webserv::ServerSocket::createServerSocket(
 		conf80,
@@ -104,8 +104,8 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 
-	socketList.push_back(serverSocket80);
-	webserv::Poll poll(socketList, logger);
+	pollableList.push_back(serverSocket80);
+	webserv::Poll poll(pollableList, logger);
 	while (!webserv::isExitSignalGot()) {
 		bool result = poll.loop();
 		if (!result) {

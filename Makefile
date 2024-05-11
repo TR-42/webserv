@@ -34,6 +34,10 @@ SRCS_MATH =\
 	can_add.cpp\
 	can_mul.cpp\
 
+SRCS_POLL	=\
+	Poll.cpp\
+	Pollable.cpp\
+
 SRCS_SERVICE	=\
 	DeleteFileService.cpp\
 	GetFileService.cpp\
@@ -48,9 +52,7 @@ SRCS_SIGNAL	=\
 
 SRCS_SOCKET	=\
 	ClientSocket.cpp\
-	Poll.cpp\
 	ServerSocket.cpp\
-	Socket.cpp\
 
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
@@ -76,6 +78,7 @@ SRC_FILES	=\
 	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix math/, $(SRCS_MATH))\
+	$(addprefix poll/, $(SRCS_POLL))\
 	$(addprefix service/, $(SRCS_SERVICE))\
 	$(addprefix signal/, $(SRCS_SIGNAL))\
 	$(addprefix socket/, $(SRCS_SOCKET))\

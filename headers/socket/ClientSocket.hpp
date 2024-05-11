@@ -2,18 +2,18 @@
 
 #include <config/ListenConfig.hpp>
 #include <config/ServerRunningConfig.hpp>
+#include <poll/Pollable.hpp>
 #include <service/SimpleService.hpp>
 #include <utils/UUID.hpp>
 
 #include "../Logger.hpp"
 #include "../http/HttpRequest.hpp"
 #include "../http/HttpResponse.hpp"
-#include "./Socket.hpp"
 
 namespace webserv
 {
 
-class ClientSocket : public Socket
+class ClientSocket : public Pollable
 {
  private:
 	const ServerRunningConfigListType &_listenConfigList;
@@ -23,9 +23,9 @@ class ClientSocket : public Socket
 	bool _IsResponseSet;
 	ServiceBase *_service;
 
-	SockEventResultType _processPollIn();
-	SockEventResultType _processPollOut();
-	SockEventResultType _processPollService(short revents);
+	PollEventResultType _processPollIn();
+	PollEventResultType _processPollOut();
+	PollEventResultType _processPollService(short revents);
 
 	void _setResponse(
 		const std::vector<uint8_t> &response
@@ -49,11 +49,11 @@ class ClientSocket : public Socket
 		struct pollfd &pollFd
 	) const;
 
-	virtual SockEventResultType onEventGot(
+	virtual PollEventResultType onEventGot(
 		short revents,
-		std::vector<Socket *> &sockets
+		std::vector<Pollable *> &pollableList
 	);
-	SockEventResultType onEventGot(
+	PollEventResultType onEventGot(
 		short revents
 	);
 };
