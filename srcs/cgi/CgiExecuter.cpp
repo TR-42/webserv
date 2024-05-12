@@ -15,73 +15,28 @@ namespace webserv
 #define PIPE_WRITE 1
 
 CgiExecuter::CgiExecuter(
-	const HttpRequest &request,
-	const utils::ErrorPageProvider &errorPageProvider,
+	const std::vector<uint8_t> &requestBody,
+	const std::string &executablePath,
+	char **argv,
+	char **envp,
 	const Logger &logger,
+	int fdWriteToCgi,
+	int fdReadFromParent,
+	int fdReadFromCgi,
+	int fdWriteToParent,
 	std::vector<Pollable *> &pollableList
 ) : Pollable(-1),
-		_fdWriteToCgi(-1),
-		_pid(0),
-		_cgiHandler(NULL),
-		logger(logger)
+		_requestBody(requestBody),
+		_fdWriteToCgi(fdWriteToCgi),
+		_pid(-1),
+		logger(logger),
+		_writtenCount(0)
 {
-	// argvを準備
-	char **argv = new char *[2];
-	argv[0] = new char[request.getPath().size() + 1];
-	std::strcpy(argv[0], request.getPath().c_str());
-	argv[1] = NULL;
-
-	// 環境変数を準備
-	env::EnvManager envManager;
-
-	char **envp = envManager.toEnvp();
-	if (envp == NULL) {
-		CS_ERROR() << "envManager.toEnvp() failed" << std::endl;
-		throw std::runtime_error("envManager.toEnvp() failed");
-	}
-
-	// pipeを作成
-	int pipeFd[2];
-	if (pipe(pipeFd) < 0) {
-		errno_t err = errno;
-		CS_ERROR() << "pipe() failed: " << std::strerror(err) << std::endl;
-		throw std::runtime_error("pipe() failed");
-	}
-
-	this->_fdWriteToCgi = pipeFd[PIPE_WRITE];
-	int fdReadFromParent = pipeFd[PIPE_READ];
-
-	if (pipe(pipeFd) < 0) {
-		errno_t err = errno;
-		CS_ERROR() << "pipe() failed" << std::strerror(err) << std::endl;
-		close(this->_fdWriteToCgi);
-		this->_fdWriteToCgi = -1;
-		close(fdReadFromParent);
-		throw std::runtime_error("pipe() failed");
-	}
-
-	int fdReadFromCgi = pipeFd[PIPE_READ];
-	int fdWriteToParent = pipeFd[PIPE_WRITE];
-
-	this->_cgiHandler = new CgiHandler(
-		errorPageProvider,
-		logger,
-		fdReadFromCgi
-	);
-	pollableList.push_back(this->_cgiHandler);
-	// 自分自身までpollableListに追加するとdisposeで面倒なことになるので、親に管理してもらう。
-
-	// fork
 	this->_pid = fork();
 	if (this->_pid < 0) {
 		errno_t err = errno;
 		CS_ERROR() << "fork() failed: " << std::strerror(err) << std::endl;
-		close(this->_fdWriteToCgi);
-		this->_fdWriteToCgi = -1;
-		close(fdReadFromParent);
-		close(fdReadFromCgi);
-		close(fdWriteToParent);
-		throw std::runtime_error("fork() failed");
+		return;
 	}
 
 	if (this->_pid == 0) {
@@ -89,21 +44,18 @@ CgiExecuter::CgiExecuter(
 		this->_fdWriteToCgi = -1;
 		close(fdReadFromCgi);
 		// child process
+		// noreturn
 		this->_childProcessFunc(
 			pollableList,
 			fdReadFromParent,
 			fdWriteToParent,
-			request.getPath(),
+			executablePath,
 			argv,
 			envp
 		);
-	} else {
-		// parent process
-		env::EnvManager::freeEnvp(&argv);
-		envManager.freeEnvp(&envp);
-		close(fdReadFromParent);
-		close(fdWriteToParent);
 	}
+
+	// 親から渡されたリソースの解放は親が行う (fdWriteToCgiだけはdestructorで自分で閉じる)
 }
 
 __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
@@ -117,7 +69,6 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 {
 	size_t pollableListSize = pollableList.size();
 	for (size_t i = 0; i < pollableListSize; i++) {
-		// TODO: 自分自身をdeleteしないようにする
 		if (pollableList[i] == NULL) {
 			continue;
 		}
@@ -130,6 +81,8 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	if (dup2(fdReadFromParent, STDIN_FILENO) < 0) {
 		errno_t err = errno;
 		CS_ERROR() << "dup2() failed: " << std::strerror(err) << std::endl;
+		close(fdReadFromParent);
+		close(fdWriteToParent);
 		std::exit(1);
 	}
 	close(fdReadFromParent);
@@ -137,6 +90,7 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	if (dup2(fdWriteToParent, STDOUT_FILENO) < 0) {
 		errno_t err = errno;
 		CS_ERROR() << "dup2() failed: " << std::strerror(err) << std::endl;
+		close(fdWriteToParent);
 		std::exit(1);
 	}
 	close(fdWriteToParent);
@@ -152,15 +106,6 @@ CgiExecuter::~CgiExecuter()
 	if (0 <= this->_fdWriteToCgi) {
 		close(this->_fdWriteToCgi);
 	}
-
-	if (0 < this->_pid) {
-		int status;
-		CS_DEBUG() << "waiting for child process to terminate ... pid=" << this->_pid << std::endl;
-		waitpid(this->_pid, &status, 0);
-		CS_DEBUG() << "waitpid() status=" << status << std::endl;
-	} else {
-		CS_ERROR() << "fork() may have been failed" << std::endl;
-	}
 }
 
 void CgiExecuter::setToPollFd(
@@ -173,24 +118,48 @@ void CgiExecuter::setToPollFd(
 }
 
 PollEventResultType CgiExecuter::onEventGot(
+	short revents
+)
+{
+	if (!IS_POLLOUT(revents)) {
+		return PollEventResult::OK;
+	}
+
+	ssize_t writtenCount = write(
+		this->_fdWriteToCgi,
+		this->_requestBody.data() + this->_writtenCount,
+		this->_requestBody.size() - this->_writtenCount
+	);
+
+	if (writtenCount < 0) {
+		errno_t err = errno;
+		CS_ERROR() << "write() failed: " << std::strerror(err) << std::endl;
+		return PollEventResult::ERROR;
+	}
+
+	if (this->isWriteToCgiCompleted()) {
+		return PollEventResult::DISPOSE_REQUEST;
+	}
+
+	return PollEventResult::OK;
+}
+PollEventResultType CgiExecuter::onEventGot(
 	short revents,
 	std::vector<Pollable *> &pollableList
 )
 {
 	(void)pollableList;
-	if (!IS_POLLOUT(revents)) {
-		return PollEventResult::OK;
-	}
-
-	// TODO: implement
-
-	// readerのcompleteによって、自動的にwriterもcompleteになる
-	return PollEventResult::OK;
+	return this->onEventGot(revents);
 }
 
-CgiHandler *CgiExecuter::getCgiHandler() const
+pid_t CgiExecuter::getPid() const
 {
-	return this->_cgiHandler;
+	return this->_pid;
+}
+
+bool CgiExecuter::isWriteToCgiCompleted() const
+{
+	return this->_requestBody.size() <= this->_writtenCount;
 }
 
 }	 // namespace webserv
