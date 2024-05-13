@@ -4,6 +4,14 @@
 #include <http/HttpRequest.hpp>
 
 #define REQ_LINE_CASE_1 "GET /index.html HTTP/1.1\r\n"
+
+#define REQ_LINE_CASE_2 "GET /index.html? HTTP/1.1\r\n"
+#define REQ_LINE_CASE_3 "GET /index.html?abc HTTP/1.1\r\n"
+#define REQ_LINE_CASE_4 "GET /index.html?abc=def HTTP/1.1\r\n"
+#define REQ_LINE_CASE_5 "GET /index.html?abc=#def HTTP/1.1\r\n"
+#define REQ_LINE_CASE_6 "GET /index.html#def?abc HTTP/1.1\r\n"
+#define REQ_LINE_CASE_7 "GET /index.html#def?abc= HTTP/1.1\r\n"
+
 #define REQ_HEADER_CASE_1 REQ_LINE_CASE_1 "TestKey: TestValue\r\n"
 
 #define REQ_HEADER_CASE_2 REQ_HEADER_CASE_1 "\r\n"
@@ -39,6 +47,26 @@ TEST(HttpRequest, RequestLine)
 	EXPECT_EQ(request.getPath(), "/index.html");
 	EXPECT_EQ(request.getVersion(), "HTTP/1.1");
 }
+
+#define REQ_LINE_TEST(num, expectedQuery) \
+	TEST(HttpRequest, RequestLine##num) \
+	{ \
+		webserv::HttpRequest request; \
+		std::string reqLine = REQ_LINE_CASE_##num; \
+		std::vector<uint8_t> reqPacket(reqLine.begin(), reqLine.end()); \
+\
+		EXPECT_EQ(request.pushRequestRaw(reqPacket), true); \
+		EXPECT_EQ(request.isRequestLineParsed(), true); \
+		EXPECT_EQ(request.getPath(), "/index.html"); \
+		EXPECT_EQ(request.getQuery(), expectedQuery); \
+	}
+
+REQ_LINE_TEST(2, "")
+REQ_LINE_TEST(3, "abc")
+REQ_LINE_TEST(4, "abc=def")
+REQ_LINE_TEST(5, "abc=")
+REQ_LINE_TEST(6, "abc")
+REQ_LINE_TEST(7, "abc=")
 
 TEST(HttpRequest, RequestHeader)
 {

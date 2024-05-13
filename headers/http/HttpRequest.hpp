@@ -16,6 +16,7 @@ class HttpRequest
  private:
 	std::string _Method;
 	std::string _Path;
+	std::string _Query;
 	std::string _Version;
 	HttpFieldMap _Headers;
 	std::vector<uint8_t> _Body;
@@ -47,6 +48,7 @@ class HttpRequest
 
 	const std::string &getMethod() const;
 	const std::string &getPath() const;
+	const std::string &getQuery() const;
 	const std::string &getVersion() const;
 	const HttpFieldMap &getHeaders() const;
 	const std::vector<uint8_t> &getBody() const;
