@@ -14,9 +14,13 @@ CgiHandler::CgiHandler(
 	const Logger &logger,
 	int fdReadFromCgi
 ) : Pollable(fdReadFromCgi),
-		logger(logger)
+		logger(logger),
+		_errorPageProvider(errorPageProvider),
+		_response(),
+		_isResponseReady(false),
+		_isDisposeRequested(false)
 {
-	(void)errorPageProvider;
+	this->_response = this->_errorPageProvider.notImplemented();
 }
 
 CgiHandler::~CgiHandler()
@@ -37,6 +41,9 @@ PollEventResultType CgiHandler::onEventGot(
 )
 {
 	(void)pollableList;
+	if (this->_isDisposeRequested) {
+		return PollEventResult::DISPOSE_REQUEST;
+	}
 	if (!IS_POLLIN(revents)) {
 		return PollEventResult::OK;
 	}
@@ -48,17 +55,37 @@ PollEventResultType CgiHandler::onEventGot(
 		CS_ERROR()
 			<< "Failed to read from CGI: " << std::strerror(errorNum) << std::endl;
 
-		return PollEventResult::ERROR;
+		this->_response = this->_errorPageProvider.internalServerError();
+		this->_isResponseReady = true;
+		return PollEventResult::OK;
 	}
 
 	if (readResult == 0) {
-		LS_INFO() << "CGI read complete" << std::endl;
-		return PollEventResult::DISPOSE_REQUEST;
+		LS_ERROR() << "CGI read complete (unexpected)" << std::endl;
+		this->_response = this->_errorPageProvider.internalServerError();
+		this->_isResponseReady = true;
+		return PollEventResult::OK;
 	}
 
 	CS_LOG() << "Read from CGI: " << std::string(buf, readResult) << std::endl;
 	// TODO: CGIからのレスポンスを受け取る処理を実装する
-	return PollEventResult::DISPOSE_REQUEST;
+	this->_isResponseReady = true;
+	return PollEventResult::OK;
+}
+
+bool CgiHandler::isResponseReady() const
+{
+	return this->_isResponseReady;
+}
+
+HttpResponse CgiHandler::getResponse() const
+{
+	return this->_response;
+}
+
+void CgiHandler::setDisposeRequested(bool value)
+{
+	this->_isDisposeRequested = value;
 }
 
 }	 // namespace webserv

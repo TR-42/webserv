@@ -61,6 +61,26 @@ CgiService::CgiService(
 
 	// 環境変数を準備
 	env::EnvManager envManager;
+	envManager.set("GATEWAY_INTERFACE", "CGI/1.1");
+	// /abc/index.php/extra/def の場合、PATH_INFOは /extra/def
+	// TODO: PATH_INFOの実装
+	envManager.set("PATH_INFO", "");
+	// TODO: PATH_TRANSLATEDの実装
+	envManager.set("PATH_TRANSLATED", "." + request.getNormalizedPath());
+	envManager.set("QUERY_STRING", request.getQuery());
+	envManager.set("REQUEST_METHOD", request.getMethod());
+	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /extra/index.php
+	// TODO: SCRIPT_NAMEの実装
+	envManager.set("SCRIPT_NAME", request.getPath());
+	// TODO: アドレス系実装
+	envManager.set("REMOTE_ADDR", "127.0.0.1");
+	envManager.set("REMOTE_HOST", "localhost");
+	envManager.set("REMOTE_PORT", "12345");
+	envManager.set("SERVER_NAME", "localhost");
+	envManager.set("SERVER_PORT", "80");
+
+	envManager.set("SERVER_PROTOCOL", request.getVersion());
+	envManager.set("SERVER_SOFTWARE", "webserv/1.0");
 
 	char **envp = envManager.toEnvp();
 	if (envp == NULL) {
@@ -113,7 +133,11 @@ CgiService::CgiService(
 		this->_cgiExecuter = NULL;
 	}
 
-	// TODO: CgiHandlerを作成
+	this->_cgiHandler = new CgiHandler(
+		errorPageProvider,
+		logger,
+		fdReadFromCgi
+	);
 
 	if (this->_cgiHandler != NULL) {
 		pollableList.push_back(this->_cgiHandler);
@@ -151,19 +175,36 @@ ServiceEventResultType CgiService::onEventGot(
 		return ServiceEventResult::ERROR;
 	}
 
-	if (this->_cgiExecuter == NULL) {
-		// TODO:　Handlerの終了を検知する -> 条件を満たした場合のみCOMPLETEにする
+	// TODO: waitpidをイベントループ内で行なってしまう
+
+	// エラーの場合でもResponseReadyになる
+	if (this->_cgiHandler->isResponseReady()) {
+		C_DEBUG("ResponseReady");
+		this->_response = this->_cgiHandler->getResponse();
+		this->_cgiHandler->setDisposeRequested(true);
+		this->_cgiHandler = NULL;
 		return ServiceEventResult::COMPLETE;
+	}
+
+	if (this->_cgiExecuter == NULL) {
+		C_DEBUG("this->_cgiExecuter == NULL ... continue");
+		return ServiceEventResult::CONTINUE;
 	}
 
 	PollEventResultType executerResult = this->_cgiExecuter->onEventGot(revents);
 	switch (executerResult) {
 		case PollEventResult::OK:
+			C_DEBUG("Executer OK");
 			return ServiceEventResult::CONTINUE;
+
 		case PollEventResult::ERROR:
-			// TODO: エラーの場合はHandler側にエラー通知する
+			C_ERROR("Executer ERROR");
+			this->_cgiHandler->setDisposeRequested(true);
+			this->_cgiHandler = NULL;
 			return ServiceEventResult::ERROR;
+
 		case PollEventResult::DISPOSE_REQUEST:
+			C_DEBUG("Executer DISPOSE_REQUEST");
 			delete this->_cgiExecuter;
 			this->_cgiExecuter = NULL;
 			// Handler側が終了するまで、このService自体は続行する
@@ -171,6 +212,8 @@ ServiceEventResultType CgiService::onEventGot(
 	}
 
 	// ここに来るはずはない
+	this->_cgiHandler->setDisposeRequested(true);
+	this->_cgiHandler = NULL;
 	return ServiceEventResult::ERROR;
 }
 
