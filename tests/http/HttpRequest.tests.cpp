@@ -48,7 +48,7 @@ TEST(HttpRequest, RequestLine)
 	EXPECT_EQ(request.getVersion(), "HTTP/1.1");
 }
 
-#define REQ_LINE_TEST(num, expectedQuery) \
+#define REQ_LINE_TEST_FULL(num, expectedPath, expectedQuery) \
 	TEST(HttpRequest, RequestLine##num) \
 	{ \
 		webserv::HttpRequest request; \
@@ -57,16 +57,17 @@ TEST(HttpRequest, RequestLine)
 \
 		EXPECT_EQ(request.pushRequestRaw(reqPacket), true); \
 		EXPECT_EQ(request.isRequestLineParsed(), true); \
-		EXPECT_EQ(request.getPath(), "/index.html"); \
+		EXPECT_EQ(request.getPath(), expectedPath); \
 		EXPECT_EQ(request.getQuery(), expectedQuery); \
 	}
+#define REQ_LINE_TEST(num, expectedQuery) REQ_LINE_TEST_FULL(num, "/index.html", expectedQuery)
 
 REQ_LINE_TEST(2, "")
 REQ_LINE_TEST(3, "abc")
 REQ_LINE_TEST(4, "abc=def")
-REQ_LINE_TEST(5, "abc=")
-REQ_LINE_TEST(6, "abc")
-REQ_LINE_TEST(7, "abc=")
+REQ_LINE_TEST(5, "abc=#def")
+REQ_LINE_TEST_FULL(6, "/index.html#def", "abc")
+REQ_LINE_TEST_FULL(7, "/index.html#def", "abc=")
 
 TEST(HttpRequest, RequestHeader)
 {
