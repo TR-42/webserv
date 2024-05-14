@@ -7,6 +7,9 @@ DEPS_DIR	=	./deps
 OBJS_DEBUG_DIR	=	./objs_debug
 DEPS_DEBUG_DIR	=	./deps_debug
 
+SRCS_CGI =\
+	CgiResponse.cpp\
+
 SRCS_CONFIG	=\
 	CgiConfig.cpp\
 	HttpRedirectConfig.cpp\
