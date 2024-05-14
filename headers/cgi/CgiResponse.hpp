@@ -18,15 +18,19 @@ class CgiResponse
 	~CgiResponse();
 	CgiResponse(const CgiResponse &other);
 	CgiResponse &operator=(const CgiResponse &other);
-	void setResponseBody(const std::string &body);
 	std::vector<uint8_t> generateResponsePacket() const;
-	void setStatusCode(const std::string &statusCode);
-	void setReasonPhrase(const std::string &reasonPhrase);
-	void setContentType(const std::string &contentType);
+
+	CgiResponseModeType getMode() const;
+	const std::string &getContentType() const;
+	const std::string &getLocalLocation() const;
+	const std::string &getClientLocation() const;
+	const std::string &getStatusCode() const;
+	const std::string &getReasonPhrase() const;
+	const HttpFieldMap &getProtocolFieldMap() const;
+	const HttpFieldMap &getExtensionFieldMap() const;
+	const std::vector<uint8_t> &getResponseBody() const;
 
  private:
-	int _fd;
-	utils::ErrorPageProvider _errorPageProvider;
 	CgiResponseModeType _mode;
 	std::string _ContentType;
 	std::string _LocalLocation;
