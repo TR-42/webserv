@@ -16,8 +16,6 @@ const std::vector<uint8_t> &HttpRequest::getBody() const { return _Body; }
 bool HttpRequest::isRequestLineParsed() const { return _IsRequestLineParsed; }
 bool HttpRequest::isRequestHeaderParsed() const { return _IsRequestHeaderParsed; }
 
-std::vector<uint8_t> *pickLine(std::vector<uint8_t> &unpickedData);
-
 HttpRequest::HttpRequest()
 		: _IsRequestLineParsed(false),
 			_IsRequestHeaderParsed(false),
