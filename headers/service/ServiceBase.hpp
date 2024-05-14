@@ -19,6 +19,7 @@ class ServiceBase
 	HttpResponse _response;
 	const utils::ErrorPageProvider &_errorPageProvider;
 	const Logger &logger;
+	bool _canDispose;
 
  public:
 	ServiceBase(
@@ -37,6 +38,7 @@ class ServiceBase
 	) = 0;
 
 	const HttpResponse &getResponse() const;
+	virtual bool canDispose() const;
 };
 
 }	 // namespace webserv

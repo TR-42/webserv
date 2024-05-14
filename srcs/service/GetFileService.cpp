@@ -146,6 +146,7 @@ ServiceEventResultType GetFileService::onEventGot(
 )
 {
 	if (this->_fd < 0) {
+		this->_canDispose = true;
 		return ServiceEventResult::COMPLETE;
 	}
 
@@ -161,6 +162,7 @@ ServiceEventResultType GetFileService::onEventGot(
 		CS_ERROR() << "Failed to read file: " << strerror(errorNum) << std::endl;
 		this->_response = this->_errorPageProvider.internalServerError();
 
+		this->_canDispose = true;
 		return ServiceEventResult::COMPLETE;
 	}
 
@@ -168,6 +170,7 @@ ServiceEventResultType GetFileService::onEventGot(
 		std::string bodySize = utils::to_string(this->_response.getBody().size());
 		this->_response.getHeaders().addValue("Content-Length", bodySize);
 		LS_INFO() << "File read complete: " << bodySize << " bytes" << std::endl;
+		this->_canDispose = true;
 		return ServiceEventResult::COMPLETE;
 	}
 

@@ -32,6 +32,8 @@ class CgiService : public ServiceBase
 	virtual ServiceEventResultType onEventGot(
 		short revents
 	);
+
+	virtual bool canDispose() const;
 };
 
 };	// namespace webserv

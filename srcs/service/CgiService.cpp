@@ -1,7 +1,10 @@
+#include <signal.h>
 #include <unistd.h>
 
 #include <EnvManager.hpp>
 #include <service/CgiService.hpp>
+
+#define STR(v) #v
 
 namespace webserv
 {
@@ -139,9 +142,7 @@ CgiService::CgiService(
 		fdReadFromCgi
 	);
 
-	if (this->_cgiHandler != NULL) {
-		pollableList.push_back(this->_cgiHandler);
-	}
+	pollableList.push_back(this->_cgiHandler);
 }
 
 CgiService::~CgiService()
@@ -149,6 +150,46 @@ CgiService::~CgiService()
 	if (this->_cgiExecuter != NULL) {
 		delete this->_cgiExecuter;
 		this->_cgiExecuter = NULL;
+	}
+
+	if (this->_cgiHandler != NULL) {
+		this->_cgiHandler->setDisposeRequested(true);
+		this->_cgiHandler = NULL;
+	}
+
+	if (0 < this->_pid) {
+		// 子プロセスが終了するまで待つ
+		int status;
+		int waitResult = waitpid(this->_pid, &status, WNOHANG);
+		if (waitResult < 0) {
+			errno_t err = errno;
+			CS_ERROR() << "waitpid() failed: " << std::strerror(err) << std::endl;
+		} else if (waitResult == 0) {
+			CS_DEBUG() << "waitpid() returned 0" << std::endl;
+		} else {
+			CS_INFO() << "waitpid() returned " << waitResult << std::endl;
+		}
+
+		if (waitResult == 0) {
+			// 子プロセスが終了していない場合、強制終了
+			if (kill(this->_pid, SIGKILL) < 0) {
+				errno_t err = errno;
+				CS_ERROR() << "kill() failed: " << std::strerror(err) << std::endl;
+			}
+			CS_INFO() << "kill() called with signal" STR(SIGKILL) << std::endl;
+
+			waitResult = waitpid(this->_pid, &status, 0);
+			if (waitResult < 0) {
+				errno_t err = errno;
+				CS_ERROR() << "waitpid() retry failed: " << std::strerror(err) << std::endl;
+			} else if (waitResult == 0) {
+				CS_DEBUG() << "waitpid() retry returned 0" << std::endl;
+			} else {
+				CS_INFO() << "waitpid() retry returned " << waitResult << std::endl;
+			}
+		}
+
+		this->_pid = -1;
 	}
 }
 
@@ -171,11 +212,28 @@ ServiceEventResultType CgiService::onEventGot(
 {
 	(void)revents;
 	if (this->_cgiHandler == NULL) {
-		CS_ERROR() << "this->_cgiExecuter == NULL || this->_cgiHandler == NULL" << std::endl;
-		return ServiceEventResult::ERROR;
-	}
+		// waitpidをイベントループ内で行なってしまう
+		int status;
+		int waitResult = waitpid(this->_pid, &status, WNOHANG);
+		if (waitResult < 0) {
+			errno_t err = errno;
+			CS_ERROR() << "waitpid() failed: " << std::strerror(err) << std::endl;
+			// エラーの場合は強制終了する
+			if (kill(this->_pid, SIGKILL) < 0) {
+				err = errno;
+				CS_ERROR() << "kill() failed: " << std::strerror(err) << std::endl;
+			}
+			CS_INFO() << "kill() called with signal" STR(SIGKILL) << std::endl;
+			return ServiceEventResult::ERROR;
+		} else if (waitResult == 0) {
+			CS_DEBUG() << "waitpid() returned 0" << std::endl;
+		} else {
+			CS_INFO() << "waitpid() returned " << waitResult << std::endl;
+			this->_pid = -1;
+		}
 
-	// TODO: waitpidをイベントループ内で行なってしまう
+		return ServiceEventResult::COMPLETE;
+	}
 
 	// エラーの場合でもResponseReadyになる
 	if (this->_cgiHandler->isResponseReady()) {
@@ -183,6 +241,11 @@ ServiceEventResultType CgiService::onEventGot(
 		this->_response = this->_cgiHandler->getResponse();
 		this->_cgiHandler->setDisposeRequested(true);
 		this->_cgiHandler = NULL;
+		if (this->_cgiExecuter != NULL) {
+			delete this->_cgiExecuter;
+			this->_cgiExecuter = NULL;
+		}
+		// 子プロセスの終了を待つ必要がある
 		return ServiceEventResult::COMPLETE;
 	}
 
@@ -215,6 +278,14 @@ ServiceEventResultType CgiService::onEventGot(
 	this->_cgiHandler->setDisposeRequested(true);
 	this->_cgiHandler = NULL;
 	return ServiceEventResult::ERROR;
+}
+
+bool CgiService::canDispose() const
+{
+	if (this->_cgiHandler != NULL) {
+		return false;
+	}
+	return this->_canDispose || this->_pid <= 0;
 }
 
 }	 // namespace webserv

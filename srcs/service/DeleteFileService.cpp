@@ -87,6 +87,7 @@ ServiceEventResultType DeleteFileService::onEventGot(
 )
 {
 	(void)revents;
+	this->_canDispose = true;
 	return ServiceEventResult::COMPLETE;
 }
 
