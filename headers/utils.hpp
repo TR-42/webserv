@@ -2,6 +2,7 @@
 
 #include <sys/socket.h>
 
+#include <cstring>
 #include <ctime>
 #include <socket/SockEventResult.hpp>
 #include <string>
