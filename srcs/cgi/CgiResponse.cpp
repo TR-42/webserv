@@ -28,8 +28,20 @@ CgiResponse::~CgiResponse()
 		close(_fd);
 }
 
-CgiResponse::CgiResponse(const CgiResponse &other)
-		: _fd(other._fd), _errorPageProvider(other._errorPageProvider), _mode(other._mode), _ContentType(other._ContentType), _LocalLocation(other._LocalLocation), _ClientLocation(other._ClientLocation), _StatusCode(other._StatusCode), _ReasonPhrase(other._ReasonPhrase), _ProtocolFieldMap(other._ProtocolFieldMap), _ExtensionFieldMap(other._ExtensionFieldMap), _responseBody(other._responseBody)
+CgiResponse::CgiResponse(
+	const CgiResponse &other
+)
+		: _fd(other._fd),
+			_errorPageProvider(other._errorPageProvider),
+			_mode(other._mode),
+			_ContentType(other._ContentType),
+			_LocalLocation(other._LocalLocation),
+			_ClientLocation(other._ClientLocation),
+			_StatusCode(other._StatusCode),
+			_ReasonPhrase(other._ReasonPhrase),
+			_ProtocolFieldMap(other._ProtocolFieldMap),
+			_ExtensionFieldMap(other._ExtensionFieldMap),
+			_responseBody(other._responseBody)
 {
 }
 
@@ -58,9 +70,30 @@ void CgiResponse::setResponseBody(const std::string &body)
 	_responseBody = std::vector<uint8_t>(body.begin(), body.end());
 }
 
+void CgiResponse::setStatusCode(const std::string &statusCode)
+{
+	_StatusCode = statusCode;
+}
+
+void CgiResponse::setReasonPhrase(const std::string &reasonPhrase)
+{
+	_ReasonPhrase = reasonPhrase;
+}
+
+void CgiResponse::setContentType(const std::string &contentType)
+{
+	_ContentType = contentType;
+}
+
 std::vector<uint8_t> CgiResponse::generateResponsePacket() const
 {
-	// TODO: implement
+	HttpResponse httpResponse;
+	httpResponse.setVersion("HTTP/1.1");
+	httpResponse.setStatusCode(_StatusCode);
+	httpResponse.setReasonPhrase("CGI Response");
+	httpResponse.getHeaders().addValue("Content-Type", _ContentType);
+	httpResponse.setBody(_responseBody);
+	return httpResponse.generateResponsePacket();
 }
 
 }	 // namespace webserv

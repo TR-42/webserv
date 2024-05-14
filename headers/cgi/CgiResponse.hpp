@@ -20,6 +20,9 @@ class CgiResponse
 	CgiResponse &operator=(const CgiResponse &other);
 	void setResponseBody(const std::string &body);
 	std::vector<uint8_t> generateResponsePacket() const;
+	void setStatusCode(const std::string &statusCode);
+	void setReasonPhrase(const std::string &reasonPhrase);
+	void setContentType(const std::string &contentType);
 
  private:
 	int _fd;
