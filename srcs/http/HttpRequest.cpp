@@ -203,29 +203,13 @@ bool HttpRequest::parseRequestHeader(
 	const std::vector<uint8_t> &requestRawLine
 )
 {
-	const uint8_t *requestRawData = requestRawLine.data();
-	size_t newlinePos = requestRawLine.size();
-	const uint8_t *separatorPos = (const uint8_t *)std::memchr(requestRawData, ':', newlinePos);
-	if (separatorPos == NULL) {
-		C_WARN("separatorPos was NULL");
+	std::pair<std::string, std::string> nameValue = utils::splitNameValue(requestRawLine, ':');
+	if (nameValue.first.empty()) {
+		C_WARN("nameValue.first was empty");
 		return false;
 	}
-	C_DEBUG("separatorPos was not null");
-	size_t lenToSeparatorPos = separatorPos - requestRawData;
-	if (lenToSeparatorPos == 0) {
-		return false;
-	}
-	std::string _Key = std::string((const char *)requestRawData, lenToSeparatorPos);
-	size_t keyLen = _Key.size();
-	CS_DEBUG() << "keyLen: " << keyLen << " Key: " << _Key << std::endl;
-	// TODO: keyのバリデーションの実装
-	if (std::isspace(_Key[keyLen - 1])) {
-		C_DEBUG("isspace(_Key[keyLen - 1]) was true");
-		return false;
-	}
-	std::string _Value = utils::strtrim(std::string((const char *)separatorPos + 1, newlinePos - lenToSeparatorPos - 1));
-	CS_DEBUG() << "Value: " << _Value << std::endl;
-	_Headers.addValue(_Key, _Value);
+	this->_Headers.addValue(nameValue.first, nameValue.second);
+
 	return true;
 }
 

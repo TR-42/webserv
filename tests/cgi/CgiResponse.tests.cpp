@@ -16,8 +16,9 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 	httpResponse.setHeaders(HttpFieldMap());
 	httpResponse.setBody(std::vector<uint8_t>());
 
-	CgiResponse response;
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket();
+	CgiResponse response((Logger()));
+	std::vector<uint8_t>
+		expected = httpResponse.generateResponsePacket();
 	std::vector<uint8_t> actual = response.generateResponsePacket();
 
 	EXPECT_EQ(actual, expected);
@@ -26,7 +27,7 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 // getterのテスト
 TEST(CgiResponseTest, Getters)
 {
-	CgiResponse response;
+	CgiResponse response((Logger()));
 	EXPECT_EQ(response.getMode(), CgiResponseMode::DOCUMENT);
 	EXPECT_EQ(response.getContentType(), "text/html");
 	EXPECT_EQ(response.getLocalLocation(), "");

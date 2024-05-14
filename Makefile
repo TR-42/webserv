@@ -57,6 +57,7 @@ SRCS_UTILS	=\
 	modeToString.cpp\
 	normalizePath.cpp\
 	pickLine.cpp\
+	splitNameValue.cpp\
 	stoul.cpp\
 	strtrim.cpp\
 	to_string.cpp\

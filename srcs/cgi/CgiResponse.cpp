@@ -6,18 +6,23 @@
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
 #include "service/ServiceEventResult.hpp"
+#include "utils.hpp"
 #include "utils/ErrorPageProvider.hpp"
 
 namespace webserv
 {
 
 CgiResponse::CgiResponse(
+	const Logger &logger
 ) : _mode(CgiResponseMode::DOCUMENT),
 		_ContentType("text/html"),
 		_LocalLocation(""),
 		_ClientLocation(""),
 		_StatusCode("200"),
-		_ReasonPhrase("OK")
+		_ReasonPhrase("OK"),
+		_IsResponseHeaderParsed(false),
+		_IsParseCompleted(false),
+		logger(logger)
 {
 }
 
@@ -72,6 +77,57 @@ std::vector<uint8_t> CgiResponse::generateResponsePacket() const
 
 	httpResponse.setBody(_responseBody);
 	return httpResponse.generateResponsePacket();
+}
+
+bool CgiResponse::pushResponseRaw(
+	const std::vector<uint8_t> &responseRaw
+)
+{
+	_UnparsedResponseRaw.insert(
+		_UnparsedResponseRaw.end(),
+		responseRaw.begin(),
+		responseRaw.end()
+	);
+
+	std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw);
+	if (responseRawLine == NULL) {
+		return true;
+	}
+
+	if (_IsResponseHeaderParsed == false) {
+		_IsResponseHeaderParsed = parseResponseHeader(*responseRawLine);
+		delete responseRawLine;
+		if (_IsResponseHeaderParsed == false) {
+			_IsParseCompleted = true;
+			return false;
+		}
+		responseRawLine = utils::pickLine(_UnparsedResponseRaw);
+		if (responseRawLine == NULL) {
+			return true;
+		}
+	}
+
+	delete responseRawLine;
+	return true;
+}
+
+std::vector<uint8_t> CgiResponse::getUnparsedResponseRaw() const
+{
+	return _UnparsedResponseRaw;
+}
+
+bool CgiResponse::parseResponseHeader(
+	const std::vector<uint8_t> &responseRawLine
+)
+{
+	std::pair<std::string, std::string> nameValue = utils::splitNameValue(responseRawLine, ':');
+	if (nameValue.first.empty()) {
+		C_WARN("nameValue.first was empty");
+		return false;
+	}
+	this->_ProtocolFieldMap.addValue(nameValue.first, nameValue.second);
+
+	return true;
 }
 
 CgiResponseModeType CgiResponse::getMode() const

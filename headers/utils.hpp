@@ -71,6 +71,11 @@ std::vector<uint8_t> *pickLine(
 	std::vector<uint8_t> &unpickedData
 );
 
+std::pair<std::string, std::string> splitNameValue(
+	const std::vector<uint8_t> &data,
+	const char delim
+);
+
 }	 // namespace utils
 
 }	 // namespace webserv

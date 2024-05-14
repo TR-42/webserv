@@ -4,9 +4,11 @@
 
 #include <vector>
 
+#include "Logger.hpp"
 #include "cgi/CgiResponseMode.hpp"
 #include "http/HttpFieldMap.hpp"
 #include "service/ServiceEventResult.hpp"
+#include "utils.hpp"
 #include "utils/ErrorPageProvider.hpp"
 
 namespace webserv
@@ -14,7 +16,7 @@ namespace webserv
 class CgiResponse
 {
  public:
-	CgiResponse();
+	CgiResponse(const Logger &logger);
 	~CgiResponse();
 	CgiResponse(const CgiResponse &other);
 	CgiResponse &operator=(const CgiResponse &other);
@@ -30,7 +32,12 @@ class CgiResponse
 	const HttpFieldMap &getExtensionFieldMap() const;
 	const std::vector<uint8_t> &getResponseBody() const;
 
+	bool pushResponseRaw(const std::vector<uint8_t> &responseRaw);
+
+	std::vector<uint8_t> getUnparsedResponseRaw() const;
+
  private:
+	Logger logger;
 	CgiResponseModeType _mode;
 	std::string _ContentType;
 	std::string _LocalLocation;
@@ -42,6 +49,13 @@ class CgiResponse
 	HttpFieldMap _ExtensionFieldMap;
 
 	std::vector<uint8_t> _responseBody;
+
+	bool _IsResponseHeaderParsed;
+	bool _IsParseCompleted;
+
+	std::vector<uint8_t> _UnparsedResponseRaw;
+
+	bool parseResponseHeader(const std::vector<uint8_t> &responseRawLine);
 };
 
 }	 // namespace webserv
