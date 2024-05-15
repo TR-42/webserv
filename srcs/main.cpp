@@ -5,6 +5,7 @@
 #include <Logger.hpp>
 #include <config/ServerRunningConfig.hpp>
 #include <cstdio>
+#include <fstream>
 #include <iostream>
 #include <poll/Poll.hpp>
 #include <signal/signal_handler.hpp>
@@ -81,7 +82,8 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 
 int main(int argc, const char *argv[])
 {
-	webserv::Logger logger;
+	std::ofstream logFile("./log_webserv.log", std::ios_base::app);
+	webserv::Logger logger(logFile);
 	webserv::utils::ErrorPageProvider errorPageProvider;
 
 	std::cout << "Hello, World!" << std::endl;
