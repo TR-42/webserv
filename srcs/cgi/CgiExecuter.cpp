@@ -16,7 +16,7 @@ namespace webserv
 
 CgiExecuter::CgiExecuter(
 	const std::vector<uint8_t> &requestBody,
-	const std::string &executablePath,
+	std::string executablePath,
 	char **argv,
 	char **envp,
 	const Logger &logger,
@@ -25,13 +25,13 @@ CgiExecuter::CgiExecuter(
 	int fdReadFromCgi,
 	int fdWriteToParent,
 	std::vector<Pollable *> &pollableList
-) : Pollable(-1),
-		_requestBody(requestBody),
+) : _requestBody(requestBody),
 		_fdWriteToCgi(fdWriteToCgi),
 		_pid(-1),
 		logger(logger),
 		_writtenCount(0)
 {
+	C_DEBUG("initializing...");
 	this->_pid = fork();
 	if (this->_pid < 0) {
 		errno_t err = errno;
@@ -55,6 +55,10 @@ CgiExecuter::CgiExecuter(
 		);
 	}
 
+	CS_DEBUG()
+		<< "forked: pid=" << this->_pid
+		<< std::endl;
+
 	// 親から渡されたリソースの解放は親が行う (fdWriteToCgiだけはdestructorで自分で閉じる)
 }
 
@@ -77,7 +81,11 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	}
 	pollableList.clear();
 
+	char *executablePath = new char[cgiPath.size() + 1];
+	std::strcpy(executablePath, cgiPath.c_str());
+
 	// stdin, stdoutをpipeに接続
+	C_DEBUG("Connecting stdin to pipe...");
 	if (dup2(fdReadFromParent, STDIN_FILENO) < 0) {
 		errno_t err = errno;
 		CS_ERROR() << "dup2() failed: " << std::strerror(err) << std::endl;
@@ -87,6 +95,7 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	}
 	close(fdReadFromParent);
 
+	C_DEBUG("Connecting stdout to pipe...");
 	if (dup2(fdWriteToParent, STDOUT_FILENO) < 0) {
 		errno_t err = errno;
 		CS_ERROR() << "dup2() failed: " << std::strerror(err) << std::endl;
@@ -95,7 +104,7 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	}
 	close(fdWriteToParent);
 
-	int result = execve(cgiPath.c_str(), argv, envp);
+	int result = execve(executablePath, argv, envp);
 	errno_t err = errno;
 	CS_ERROR() << "execve() failed with code " << result << ": " << std::strerror(err) << std::endl;
 	std::exit(1);
@@ -105,7 +114,11 @@ CgiExecuter::~CgiExecuter()
 {
 	if (0 <= this->_fdWriteToCgi) {
 		close(this->_fdWriteToCgi);
+		CS_DEBUG()
+			<< "closed fdWriteToCgi: " << this->_fdWriteToCgi
+			<< std::endl;
 	}
+	C_DEBUG("disposed");
 }
 
 void CgiExecuter::setToPollFd(

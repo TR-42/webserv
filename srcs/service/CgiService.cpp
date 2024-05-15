@@ -44,6 +44,8 @@ static bool _preparePipe(
 	return true;
 }
 
+#define PATH_PHP_CGI "/opt/homebrew/bin/php-cgi"
+
 CgiService::CgiService(
 	const HttpRequest &request,
 	const utils::ErrorPageProvider &errorPageProvider,
@@ -54,13 +56,16 @@ CgiService::CgiService(
 		_cgiExecuter(NULL),
 		_cgiHandler(NULL)
 {
-	(void)this->_cgiHandler;
+	C_DEBUG("initializing...");
 
 	// argvを準備
 	char **argv = new char *[2];
-	argv[0] = new char[request.getPath().size() + 1];
-	std::strcpy(argv[0], request.getPath().c_str());
+	argv[0] = new char[sizeof(PATH_PHP_CGI)];
+	std::strcpy(argv[0], PATH_PHP_CGI);
 	argv[1] = NULL;
+	CS_DEBUG()
+		<< "argv[0]: " << argv[0]
+		<< std::endl;
 
 	// 環境変数を準備
 	env::EnvManager envManager;
@@ -93,19 +98,28 @@ CgiService::CgiService(
 	}
 
 	// pipeを作成
+	C_DEBUG("Creating pipe...");
 	int fdWriteToCgi = -1;
 	int fdReadFromParent = -1;
 	int fdReadFromCgi = -1;
 	int fdWriteToParent = -1;
 	if (!_preparePipe(fdWriteToCgi, fdReadFromParent, fdReadFromCgi, fdWriteToParent, logger)) {
+		CS_ERROR() << "_preparePipe() failed" << std::endl;
 		env::EnvManager::freeEnvp(&argv);
 		env::EnvManager::freeEnvp(&envp);
 		return;
 	}
 
+	CS_DEBUG()
+		<< "fdWriteToCgi: " << fdWriteToCgi
+		<< ", fdReadFromParent: " << fdReadFromParent
+		<< ", fdReadFromCgi: " << fdReadFromCgi
+		<< ", fdWriteToParent: " << fdWriteToParent
+		<< std::endl;
+
 	this->_cgiExecuter = new CgiExecuter(
 		request.getBody(),
-		request.getPath(),
+		PATH_PHP_CGI,
 		argv,
 		envp,
 		logger,
@@ -121,6 +135,11 @@ CgiService::CgiService(
 	close(fdReadFromParent);
 	close(fdWriteToParent);
 	// fdReadFromCgiはCgiHandlerで使う & そちらで閉じる
+
+	CS_DEBUG()
+		<< "CgiExecuter created: "
+		<< "pid: " << this->_cgiExecuter->getPid()
+		<< std::endl;
 
 	this->_pid = this->_cgiExecuter->getPid();
 	if (this->_pid < 0) {
@@ -142,7 +161,13 @@ CgiService::CgiService(
 		fdReadFromCgi
 	);
 
+	CS_DEBUG()
+		<< "CgiHandler created"
+		<< std::endl;
+
 	pollableList.push_back(this->_cgiHandler);
+
+	C_DEBUG("initialized");
 }
 
 CgiService::~CgiService()

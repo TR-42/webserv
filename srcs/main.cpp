@@ -49,10 +49,17 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	httpRouteConfig3.setIsDocumentListingEnabled(false);
 	httpRouteConfig3.setRequestPath("/simple");
 
+	// /resources/php-cgi
+	webserv::HttpRouteConfig httpRouteConfigPhpCgi;
+	httpRouteConfigPhpCgi.setDocumentRoot("./");
+	httpRouteConfigPhpCgi.setIsDocumentListingEnabled(false);
+	httpRouteConfigPhpCgi.setRequestPath("/resources/php-cgi");
+
 	webserv::RouteListType routeList;
 	routeList.push_back(httpRouteConfig1);
 	routeList.push_back(httpRouteConfig2);
 	routeList.push_back(httpRouteConfig3);
+	routeList.push_back(httpRouteConfigPhpCgi);
 
 	std::vector<std::string> hostNameList;
 	hostNameList.push_back("localhost");

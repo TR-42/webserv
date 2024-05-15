@@ -1,6 +1,5 @@
 #pragma once
 
-#include <poll/Pollable.hpp>
 #include <service/ServiceBase.hpp>
 
 #include "./CgiHandler.hpp"
@@ -8,7 +7,7 @@
 namespace webserv
 {
 
-class CgiExecuter : public Pollable
+class CgiExecuter
 {
  private:
 	std::vector<uint8_t> _requestBody;
@@ -29,7 +28,7 @@ class CgiExecuter : public Pollable
  public:
 	CgiExecuter(
 		const std::vector<uint8_t> &requestBody,
-		const std::string &executablePath,
+		std::string executablePath,
 		char **argv,
 		char **envp,
 		const Logger &logger,

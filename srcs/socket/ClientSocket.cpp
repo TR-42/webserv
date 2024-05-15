@@ -24,14 +24,18 @@ PollEventResultType ClientSocket::onEventGot(
 	// TODO: タイムアウト監視 (呼び出し元でのreventチェックを取り除いて実装)
 
 	if (this->_service != NULL) {
-		return this->_processPollService(revents);
+		if (this->_isServiceDisposing) {
+			this->_processPollService(0);
+		} else {
+			return this->_processPollService(revents);
+		}
 	}
 
 	if (IS_POLLIN(revents)) {
 		CS_DEBUG()
 			<< "POLLIN event"
 			<< std::endl;
-		return this->_processPollIn();
+		return this->_processPollIn(pollableList);
 	} else if (IS_POLLOUT(revents)) {
 		CS_DEBUG()
 			<< "POLLOUT event"
@@ -42,7 +46,9 @@ PollEventResultType ClientSocket::onEventGot(
 	}
 }
 
-PollEventResultType ClientSocket::_processPollIn()
+PollEventResultType ClientSocket::_processPollIn(
+	std::vector<Pollable *> &pollableList
+)
 {
 	char buffer[RECV_BUFFER_SIZE];
 	ssize_t recvSize = recv(
@@ -96,6 +102,7 @@ PollEventResultType ClientSocket::_processPollIn()
 	this->_service = pickService(
 		this->_listenConfigList,
 		this->httpRequest,
+		pollableList,
 		this->logger
 	);
 	if (this->_service == NULL) {
@@ -158,8 +165,12 @@ PollEventResultType ClientSocket::_processPollService(short revents)
 				<< "ServiceEventResult::COMPLETE"
 				<< std::endl;
 			this->_setResponse(this->_service->getResponse());
-			delete this->_service;
-			this->_service = NULL;
+			if (this->_service->canDispose()) {
+				delete this->_service;
+				this->_service = NULL;
+			} else {
+				this->_isServiceDisposing = true;
+			}
 			return PollEventResult::OK;
 
 		case ServiceEventResult::ERROR:
@@ -168,7 +179,11 @@ PollEventResultType ClientSocket::_processPollService(short revents)
 				<< std::endl;
 			delete this->_service;
 			this->_service = NULL;
-			this->_setResponse(utils::ErrorPageProvider().internalServerError());
+			if (this->_isServiceDisposing) {
+				C_ERROR("ServiceEventResult::ERROR && this->_isServiceDisposing == true");
+			} else {
+				this->_setResponse(utils::ErrorPageProvider().internalServerError());
+			}
 			return PollEventResult::OK;
 
 		case ServiceEventResult::CONTINUE:
@@ -211,7 +226,7 @@ void ClientSocket::setToPollFd(
 	struct pollfd &pollFd
 ) const
 {
-	if (this->_service == NULL) {
+	if (this->_service == NULL || this->_isServiceDisposing) {
 		CS_DEBUG()
 			<< "ClientSocket::setToPollFd() called - this->_service == NULL"
 			<< std::endl;
