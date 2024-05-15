@@ -241,12 +241,15 @@ ClientSocket::~ClientSocket()
 ClientSocket::ClientSocket(
 	int fd,
 	const std::string &serverLoggerCustomId,
-	const ServerRunningConfigListType &listenConfigList
+	const ServerRunningConfigListType &listenConfigList,
+	const Logger &logger
 ) : Pollable(fd),
 		_listenConfigList(listenConfigList),
-		logger(serverLoggerCustomId + ", Connection=" + Pollable::getUUID().toString()),
+		logger(logger, serverLoggerCustomId + ", Connection=" + Pollable::getUUID().toString()),
+		httpRequest(this->logger),
 		_IsResponseSet(false),
-		_service(NULL)
+		_service(NULL),
+		_isServiceDisposing(false)
 {
 	CS_DEBUG()
 		<< "ClientSocket(fd:" << utils::to_string(fd) << ")"

@@ -41,7 +41,8 @@ class ClientSocket : public Pollable
 	ClientSocket(
 		int fd,
 		const std::string &serverLoggerCustomId,
-		const ServerRunningConfigListType &listenConfigList
+		const ServerRunningConfigListType &listenConfigList,
+		const Logger &logger
 	);
 	virtual ~ClientSocket();
 

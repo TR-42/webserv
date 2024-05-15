@@ -41,12 +41,14 @@ static std::vector<uint8_t> *_pickLine(
 	return requestRawLine;
 }
 
-HttpRequest::HttpRequest()
-		: _IsRequestLineParsed(false),
-			_IsRequestHeaderParsed(false),
-			_IsParseCompleted(false),
-			_ContentLength(0),
-			_IsChunkedRequest(false)
+HttpRequest::HttpRequest(
+	const Logger &logger
+) : logger(logger),
+		_IsRequestLineParsed(false),
+		_IsRequestHeaderParsed(false),
+		_IsParseCompleted(false),
+		_ContentLength(0),
+		_IsChunkedRequest(false)
 {
 }
 

@@ -51,8 +51,10 @@ PollEventResultType ServerSocket::onEventGot(
 
 	utils::UUID clientUuid = utils::UUIDv7();
 	Pollable *clientSocket = new ClientSocket(
-		clientFd, this->logger.getCustomId(),
-		this->_listenConfigList
+		clientFd,
+		this->logger.getCustomId(),
+		this->_listenConfigList,
+		this->logger
 	);
 	pollableList.push_back(clientSocket);
 	CS_DEBUG()
