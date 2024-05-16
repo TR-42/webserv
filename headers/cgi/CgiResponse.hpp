@@ -34,8 +34,6 @@ class CgiResponse
 
 	bool pushResponseRaw(const std::vector<uint8_t> &responseRaw);
 
-	std::vector<uint8_t> getUnparsedResponseRaw() const;
-
  private:
 	Logger logger;
 	CgiResponseModeType _mode;
@@ -47,8 +45,6 @@ class CgiResponse
 
 	HttpFieldMap _ProtocolFieldMap;
 	HttpFieldMap _ExtensionFieldMap;
-
-	std::vector<uint8_t> _responseBody;
 
 	bool _IsResponseHeaderParsed;
 	bool _IsParseCompleted;

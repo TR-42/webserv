@@ -77,6 +77,16 @@ std::pair<std::string, std::string> splitNameValue(
 	const char delim
 );
 
+bool strcasecmp(
+	const std::string &str1,
+	const std::string &str2
+);
+
+std::vector<std::string> splitWithSpace(
+	const std::string &str,
+	const size_t maxCount
+);
+
 }	 // namespace utils
 
 }	 // namespace webserv

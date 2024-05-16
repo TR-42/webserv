@@ -58,7 +58,9 @@ SRCS_UTILS	=\
 	normalizePath.cpp\
 	pickLine.cpp\
 	splitNameValue.cpp\
+	splitWithSpace.cpp\
 	stoul.cpp\
+	strcasecmp.cpp\
 	strtrim.cpp\
 	to_string.cpp\
 	url_decode.cpp\
@@ -71,6 +73,7 @@ SRCS_MAIN	=\
 SRCS_OTHER	=\
 
 SRC_FILES	=\
+	$(addprefix cgi/, $(SRCS_CGI))\
 	$(addprefix config/, $(SRCS_CONFIG))\
 	$(addprefix env/, $(SRCS_ENV))\
 	$(addprefix http/, $(SRCS_HTTP))\

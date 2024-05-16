@@ -14,15 +14,15 @@ namespace webserv
 
 CgiResponse::CgiResponse(
 	const Logger &logger
-) : _mode(CgiResponseMode::DOCUMENT),
-		_ContentType("text/html"),
+) : logger(logger),
+		_mode(CgiResponseMode::DOCUMENT),
+		_ContentType(""),
 		_LocalLocation(""),
 		_ClientLocation(""),
 		_StatusCode("200"),
 		_ReasonPhrase("OK"),
 		_IsResponseHeaderParsed(false),
-		_IsParseCompleted(false),
-		logger(logger)
+		_IsParseCompleted(false)
 {
 }
 
@@ -39,8 +39,7 @@ CgiResponse::CgiResponse(
 		_StatusCode(other._StatusCode),
 		_ReasonPhrase(other._ReasonPhrase),
 		_ProtocolFieldMap(other._ProtocolFieldMap),
-		_ExtensionFieldMap(other._ExtensionFieldMap),
-		_responseBody(other._responseBody)
+		_ExtensionFieldMap(other._ExtensionFieldMap)
 {
 }
 
@@ -58,7 +57,6 @@ CgiResponse &CgiResponse::operator=(const CgiResponse &other)
 	_ReasonPhrase = other._ReasonPhrase;
 	_ProtocolFieldMap = other._ProtocolFieldMap;
 	_ExtensionFieldMap = other._ExtensionFieldMap;
-	_responseBody = other._responseBody;
 
 	return *this;
 }
@@ -70,12 +68,12 @@ std::vector<uint8_t> CgiResponse::generateResponsePacket() const
 	httpResponse.setStatusCode(_StatusCode);
 	httpResponse.setReasonPhrase(_ReasonPhrase);
 	httpResponse.setHeaders(_ProtocolFieldMap);
+	httpResponse.setBody(_UnparsedResponseRaw);
 
-	if (_ContentType.empty()) {
+	if (!_ContentType.empty()) {
 		httpResponse.getHeaders().addValue("Content-Type", _ContentType);
 	}
 
-	httpResponse.setBody(_responseBody);
 	return httpResponse.generateResponsePacket();
 }
 
@@ -89,31 +87,31 @@ bool CgiResponse::pushResponseRaw(
 		responseRaw.end()
 	);
 
-	std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw);
-	if (responseRawLine == NULL) {
+	if (_IsResponseHeaderParsed) {
 		return true;
 	}
 
-	if (_IsResponseHeaderParsed == false) {
-		_IsResponseHeaderParsed = parseResponseHeader(*responseRawLine);
-		delete responseRawLine;
-		if (_IsResponseHeaderParsed == false) {
-			_IsParseCompleted = true;
-			return false;
-		}
-		responseRawLine = utils::pickLine(_UnparsedResponseRaw);
+	// std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw); 戻り値がNULLになるまで繰り返す
+	while (true) {
+		std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw);
 		if (responseRawLine == NULL) {
-			return true;
+			break;
+		}
+
+		if (responseRawLine->empty()) {
+			_IsResponseHeaderParsed = true;
+			delete responseRawLine;
+			break;
+		}
+
+		bool isParseSuccess = parseResponseHeader(*responseRawLine);
+		delete responseRawLine;
+		if (!isParseSuccess) {
+			return false;
 		}
 	}
 
-	delete responseRawLine;
 	return true;
-}
-
-std::vector<uint8_t> CgiResponse::getUnparsedResponseRaw() const
-{
-	return _UnparsedResponseRaw;
 }
 
 bool CgiResponse::parseResponseHeader(
@@ -125,7 +123,37 @@ bool CgiResponse::parseResponseHeader(
 		C_WARN("nameValue.first was empty");
 		return false;
 	}
-	this->_ProtocolFieldMap.addValue(nameValue.first, nameValue.second);
+	// ヘッダを取り除く
+	// 取り除くもの: contenttype, location, statuscode, x-cgi-*
+
+	if (utils::strcasecmp(nameValue.first, "content-type")) {
+		_ContentType = nameValue.second;
+		return true;
+	}
+
+	if (utils::strcasecmp(nameValue.first, "location")) {
+		// Modeによってセットする先を変える？
+		_ClientLocation = nameValue.second;
+		return true;
+	}
+
+	if (utils::strcasecmp(nameValue.first, "status")) {
+		std::vector<std::string> statusParts = utils::splitWithSpace(nameValue.second, 2);
+		if (statusParts.size() < 2) {
+			C_WARN("statusParts.size() < 2");
+			return false;
+		}
+		_StatusCode = statusParts[0];
+		_ReasonPhrase = statusParts[1];
+		return true;
+	}
+
+	if (utils::strcasecmp(nameValue.first.substr(0, 6), "x-cgi-")) {
+		_ExtensionFieldMap.addValue(nameValue.first, nameValue.second);
+		return true;
+	}
+
+	_ProtocolFieldMap.addValue(nameValue.first, nameValue.second);
 
 	return true;
 }
@@ -172,7 +200,7 @@ const HttpFieldMap &CgiResponse::getExtensionFieldMap() const
 
 const std::vector<uint8_t> &CgiResponse::getResponseBody() const
 {
-	return this->_responseBody;
+	return this->_UnparsedResponseRaw;
 }
 
 }	 // namespace webserv
