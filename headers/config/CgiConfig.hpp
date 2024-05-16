@@ -1,5 +1,6 @@
 #pragma once
 
+#include <EnvManager.hpp>
 #include <string>
 
 #include "../classDefUtils.hpp"
@@ -11,11 +12,13 @@ class CgiConfig
 {
 	DECL_VAR_REF_GETTER_SETTER(std::string, ExtensionWithoutDot)
 	DECL_VAR_REF_GETTER_SETTER(std::string, CgiExecutableFullPath)
+	DECL_VAR_REF_GETTER_SETTER(env::EnvManager, EnvPreset)
 
  private:
 	void setProps(
 		const std::string &extensionWithoutDot,
-		const std::string &cgiExecutableFullPath
+		const std::string &cgiExecutableFullPath,
+		const env::EnvManager &envPreset
 	);
 
  public:
@@ -30,7 +33,8 @@ class CgiConfig
 
 	CgiConfig(
 		const std::string &extensionWithoutDot,
-		const std::string &cgiExecutableFullPath
+		const std::string &cgiExecutableFullPath,
+		const env::EnvManager &envPreset
 	);
 };
 
