@@ -110,4 +110,30 @@ bool webserv::HttpFieldMap::tryGetContentLength(
 	return true;
 }
 
+bool operator==(
+	const HttpFieldMap &lhs,
+	const HttpFieldMap &rhs
+)
+{
+	if (lhs.fieldMap.size() != rhs.fieldMap.size()) {
+		return false;
+	}
+
+	for (
+		HttpFieldMap::FieldMapType::const_iterator it = lhs.fieldMap.begin();
+		it != lhs.fieldMap.end();
+		++it
+	) {
+		if (rhs.fieldMap.find(it->first) == rhs.fieldMap.end()) {
+			return false;
+		}
+
+		if (it->second != rhs.fieldMap.at(it->first)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 }	 // namespace webserv

@@ -10,6 +10,7 @@ DEPS_DEBUG_DIR	=	./deps_debug
 SRCS_CGI	=\
 	CgiExecuter.cpp\
 	CgiHandler.cpp\
+	CgiResponse.cpp\
 
 SRCS_CONFIG	=\
 	CgiConfig.cpp\
@@ -60,7 +61,11 @@ SRCS_UTILS	=\
 	getHttpTimeStr.cpp\
 	modeToString.cpp\
 	normalizePath.cpp\
+	pickLine.cpp\
+	splitNameValue.cpp\
+	splitWithSpace.cpp\
 	stoul.cpp\
+	strcasecmp.cpp\
 	strtrim.cpp\
 	to_string.cpp\
 	url_decode.cpp\

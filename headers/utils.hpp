@@ -2,9 +2,11 @@
 
 #include <sys/socket.h>
 
+#include <cstring>
 #include <ctime>
 #include <poll/PollEventResult.hpp>
 #include <string>
+#include <vector>
 
 namespace webserv
 {
@@ -64,6 +66,24 @@ std::string modeToString(
 
 std::string normalizePath(
 	const std::string &path
+);
+
+std::vector<uint8_t> *pickLine(
+	std::vector<uint8_t> &unpickedData
+);
+
+std::pair<std::string, std::string> splitNameValue(
+	const std::vector<uint8_t> &data
+);
+
+bool strcasecmp(
+	const std::string &str1,
+	const std::string &str2
+);
+
+std::vector<std::string> splitWithSpace(
+	const std::string &str,
+	const size_t maxCount
 );
 
 }	 // namespace utils
