@@ -18,7 +18,8 @@ CgiHandler::CgiHandler(
 		_errorPageProvider(errorPageProvider),
 		_response(),
 		_isResponseReady(false),
-		_isDisposeRequested(false)
+		_isDisposeRequested(false),
+		_cgiResponse(logger)
 {
 	this->_response = this->_errorPageProvider.notImplemented();
 }
@@ -61,15 +62,14 @@ PollEventResultType CgiHandler::onEventGot(
 	}
 
 	if (readResult == 0) {
-		LS_ERROR() << "CGI read complete (unexpected)" << std::endl;
-		this->_response = this->_errorPageProvider.internalServerError();
+		LS_ERROR() << "CGI read complete" << std::endl;
+		this->_response = this->_cgiResponse.getHttpResponse();
 		this->_isResponseReady = true;
 		return PollEventResult::OK;
 	}
 
-	CS_LOG() << "Read from CGI: " << std::string(buf, readResult) << std::endl;
-	// TODO: CGIからのレスポンスを受け取る処理を実装する
-	this->_isResponseReady = true;
+	CS_LOG() << "Read from CGI length: " << readResult << std::endl;
+	this->_cgiResponse.pushResponseRaw(std::vector<uint8_t>(buf, buf + readResult));
 	return PollEventResult::OK;
 }
 
@@ -80,6 +80,9 @@ bool CgiHandler::isResponseReady() const
 
 HttpResponse CgiHandler::getResponse() const
 {
+	if (!this->_isResponseReady) {
+		return this->_cgiResponse.getHttpResponse();
+	}
 	return this->_response;
 }
 

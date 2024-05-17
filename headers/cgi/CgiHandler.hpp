@@ -4,6 +4,8 @@
 #include <poll/Pollable.hpp>
 #include <utils/ErrorPageProvider.hpp>
 
+#include "./CgiResponse.hpp"
+
 namespace webserv
 {
 
@@ -15,6 +17,7 @@ class CgiHandler : public Pollable
 	HttpResponse _response;
 	bool _isResponseReady;
 	bool _isDisposeRequested;
+	CgiResponse _cgiResponse;
 
  public:
 	CgiHandler(
