@@ -203,7 +203,7 @@ bool HttpRequest::parseRequestHeader(
 	const std::vector<uint8_t> &requestRawLine
 )
 {
-	std::pair<std::string, std::string> nameValue = utils::splitNameValue(requestRawLine, ':');
+	std::pair<std::string, std::string> nameValue = utils::splitNameValue(requestRawLine);
 	if (nameValue.first.empty()) {
 		C_WARN("nameValue.first was empty");
 		return false;

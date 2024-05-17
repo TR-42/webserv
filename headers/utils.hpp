@@ -73,8 +73,7 @@ std::vector<uint8_t> *pickLine(
 );
 
 std::pair<std::string, std::string> splitNameValue(
-	const std::vector<uint8_t> &data,
-	const char delim
+	const std::vector<uint8_t> &data
 );
 
 bool strcasecmp(

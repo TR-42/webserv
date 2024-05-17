@@ -18,15 +18,16 @@ std::vector<std::string> splitWithSpace(const std::string &str, const size_t max
 			++end;
 		}
 		start = end;
+		if (maxCount != 0 && maxCount - 1 <= count) {
+			result.push_back(str.substr(end));
+			break;
+		}
 		while (end < str.size() && str[end] != ' ') {
 			++end;
 		}
 		if (start < end) {
 			result.push_back(str.substr(start, end - start));
 			++count;
-		}
-		if (maxCount != 0 && count >= maxCount) {
-			break;
 		}
 	}
 

@@ -118,13 +118,11 @@ bool CgiResponse::parseResponseHeader(
 	const std::vector<uint8_t> &responseRawLine
 )
 {
-	std::pair<std::string, std::string> nameValue = utils::splitNameValue(responseRawLine, ':');
+	std::pair<std::string, std::string> nameValue = utils::splitNameValue(responseRawLine);
 	if (nameValue.first.empty()) {
 		C_WARN("nameValue.first was empty");
 		return false;
 	}
-	// ヘッダを取り除く
-	// 取り除くもの: contenttype, location, statuscode, x-cgi-*
 
 	if (utils::strcasecmp(nameValue.first, "content-type")) {
 		_ContentType = nameValue.second;
@@ -139,12 +137,14 @@ bool CgiResponse::parseResponseHeader(
 
 	if (utils::strcasecmp(nameValue.first, "status")) {
 		std::vector<std::string> statusParts = utils::splitWithSpace(nameValue.second, 2);
+
 		if (statusParts.size() < 2) {
 			C_WARN("statusParts.size() < 2");
 			return false;
 		}
 		_StatusCode = statusParts[0];
 		_ReasonPhrase = statusParts[1];
+
 		return true;
 	}
 

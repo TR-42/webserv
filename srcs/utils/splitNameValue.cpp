@@ -7,13 +7,12 @@ namespace utils
 {
 
 std::pair<std::string, std::string> splitNameValue(
-	const std::vector<uint8_t> &data,
-	const char delim
+	const std::vector<uint8_t> &data
 )
 {
 	const uint8_t *requestRawData = data.data();
 	size_t newlinePos = data.size();
-	const uint8_t *separatorPos = (const uint8_t *)std::memchr(requestRawData, delim, newlinePos);
+	const uint8_t *separatorPos = (const uint8_t *)std::memchr(requestRawData, ':', newlinePos);
 	if (separatorPos == NULL) {
 		return std::pair<std::string, std::string>();
 	}
