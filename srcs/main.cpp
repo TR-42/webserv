@@ -55,6 +55,16 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	httpRouteConfigPhpCgi.setIsDocumentListingEnabled(false);
 	httpRouteConfigPhpCgi.setRequestPath("/resources/php-cgi");
 
+	webserv::CgiConfig cgiConfigPhp;
+	cgiConfigPhp.setExtensionWithoutDot("php");
+	cgiConfigPhp.setCgiExecutableFullPath("/opt/homebrew/bin/php-cgi");
+	webserv::env::EnvManager envManagerPhp;
+	envManagerPhp.set("REDIRECT_STATUS", "200");
+	cgiConfigPhp.setEnvPreset(envManagerPhp);
+	webserv::CgiConfigListType cgiConfigListPhp;
+	cgiConfigListPhp.push_back(cgiConfigPhp);
+	httpRouteConfigPhpCgi.setCgiConfigList(cgiConfigListPhp);
+
 	webserv::RouteListType routeList;
 	routeList.push_back(httpRouteConfig1);
 	routeList.push_back(httpRouteConfig2);

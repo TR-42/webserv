@@ -67,6 +67,7 @@ static ServiceBase *pickService(
 		return new CgiService(
 			request,
 			errorPageProvider,
+			routeConfig.getCgiConfigList()[0].getEnvPreset(),
 			logger,
 			pollableList
 		);

@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 
+#include <EnvManager.hpp>
 #include <cgi/CgiExecuter.hpp>
 #include <cgi/CgiHandler.hpp>
 #include <service/ServiceBase.hpp>
@@ -20,6 +21,7 @@ class CgiService : public ServiceBase
 	CgiService(
 		const HttpRequest &request,
 		const utils::ErrorPageProvider &errorPageProvider,
+		const env::EnvManager &envPreset,
 		const Logger &logger,
 		std::vector<Pollable *> &pollableList
 	);

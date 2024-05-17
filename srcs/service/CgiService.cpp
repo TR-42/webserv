@@ -49,6 +49,7 @@ static bool _preparePipe(
 CgiService::CgiService(
 	const HttpRequest &request,
 	const utils::ErrorPageProvider &errorPageProvider,
+	const env::EnvManager &envPreset,
 	const Logger &logger,
 	std::vector<Pollable *> &pollableList
 ) : ServiceBase(request, errorPageProvider, logger),
@@ -68,7 +69,7 @@ CgiService::CgiService(
 		<< std::endl;
 
 	// 環境変数を準備
-	env::EnvManager envManager;
+	env::EnvManager envManager = envPreset;
 	envManager.set("GATEWAY_INTERFACE", "CGI/1.1");
 	// /abc/index.php/extra/def の場合、PATH_INFOは /extra/def
 	// TODO: PATH_INFOの実装
