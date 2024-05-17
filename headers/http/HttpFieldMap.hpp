@@ -34,6 +34,8 @@ class HttpFieldMap
 	 * @return false ContentLengthが設定されていなかった (見つからなかった)
 	 */
 	bool tryGetContentLength(size_t &contentLength) const;
+
+	friend bool operator==(const HttpFieldMap &lhs, const HttpFieldMap &rhs);
 };
 
 }	 // namespace webserv
