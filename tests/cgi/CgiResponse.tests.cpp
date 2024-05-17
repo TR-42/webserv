@@ -251,9 +251,11 @@ TEST(CgiResponseTest, Getters3)
 	EXPECT_EQ(response.getClientLocation(), "");
 	EXPECT_EQ(response.getStatusCode(), "501");
 	EXPECT_EQ(response.getReasonPhrase(), "Not Implemented");
+	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
 	if (response.getProtocolFieldMap().isNameExists("X-Powered-By")) {
 		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[0], "PHP/8.3.4 abc");
 	}
+	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("date"), true);
 	if (response.getProtocolFieldMap().isNameExists("date")) {
 		EXPECT_EQ(response.getProtocolFieldMap().getValueList("date")[0], "Wed, 15 May 2024 12 : 34 : 56 GMT");
 	}
