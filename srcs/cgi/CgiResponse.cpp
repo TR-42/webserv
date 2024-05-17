@@ -91,7 +91,6 @@ bool CgiResponse::pushResponseRaw(
 		return true;
 	}
 
-	// std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw); 戻り値がNULLになるまで繰り返す
 	while (true) {
 		std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw);
 		if (responseRawLine == NULL) {
