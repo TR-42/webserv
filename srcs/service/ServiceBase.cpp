@@ -10,7 +10,7 @@ ServiceBase::ServiceBase(
 ) : _request(request),
 		_errorPageProvider(errorPageProvider),
 		logger(logger),
-		_canDispose(false)
+		_isDisposingFromChildProcess(false)
 {
 }
 
@@ -23,9 +23,14 @@ const HttpResponse &ServiceBase::getResponse() const
 	return this->_response;
 }
 
-bool ServiceBase::canDispose() const
+bool ServiceBase::isDisposingFromChildProcess() const
 {
-	return this->_canDispose;
+	return this->_isDisposingFromChildProcess;
+}
+
+void ServiceBase::setIsDisposingFromChildProcess(bool value)
+{
+	this->_isDisposingFromChildProcess = value;
 }
 
 }	 // namespace webserv

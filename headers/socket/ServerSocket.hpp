@@ -40,6 +40,7 @@ class ServerSocket : public Pollable
 	) const;
 
 	virtual PollEventResultType onEventGot(
+		int fd,
 		short revents,
 		std::vector<Pollable *> &pollableList
 	);

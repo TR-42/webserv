@@ -16,6 +16,7 @@ namespace webserv
 {
 
 PollEventResultType ClientSocket::onEventGot(
+	int fd,
 	short revents,
 	std::vector<Pollable *> &pollableList
 )
@@ -24,10 +25,11 @@ PollEventResultType ClientSocket::onEventGot(
 	// TODO: タイムアウト監視 (呼び出し元でのreventチェックを取り除いて実装)
 
 	if (this->_service != NULL) {
-		if (this->_isServiceDisposing) {
+		if (this->isFdSame(fd)) {
 			this->_processPollService(0);
 		} else {
-			return this->_processPollService(revents);
+			this->_processPollService(revents);
+			return PollEventResult::OK;
 		}
 	}
 
@@ -113,7 +115,8 @@ PollEventResultType ClientSocket::_processPollIn(
 		this->_setResponse(utils::ErrorPageProvider().notImplemented());
 		return PollEventResult::OK;
 	}
-	return this->_processPollService(0);
+	this->_processPollService(0);
+	return PollEventResult::OK;
 }
 
 PollEventResultType ClientSocket::_processPollOut()
@@ -156,7 +159,7 @@ PollEventResultType ClientSocket::_processPollOut()
 	return PollEventResult::OK;
 }
 
-PollEventResultType ClientSocket::_processPollService(short revents)
+void ClientSocket::_processPollService(short revents)
 {
 	ServiceEventResultType serviceResult = this->_service->onEventGot(revents);
 	switch (serviceResult) {
@@ -164,39 +167,43 @@ PollEventResultType ClientSocket::_processPollService(short revents)
 			CS_DEBUG()
 				<< "ServiceEventResult::COMPLETE"
 				<< std::endl;
-			this->_setResponse(this->_service->getResponse());
-			if (this->_service->canDispose()) {
-				delete this->_service;
-				this->_service = NULL;
-			} else {
-				this->_isServiceDisposing = true;
+			if (!this->_IsResponseSet) {
+				this->_setResponse(this->_service->getResponse());
 			}
-			return PollEventResult::OK;
+			delete this->_service;
+			this->_service = NULL;
+			return;
+
+		case ServiceEventResult::RESPONSE_READY:
+			CS_DEBUG()
+				<< "ServiceEventResult::RESPONSE_READY"
+				<< std::endl;
+			if (!this->_IsResponseSet) {
+				this->_setResponse(this->_service->getResponse());
+			}
+			return;
 
 		case ServiceEventResult::ERROR:
 			CS_DEBUG()
 				<< "ServiceEventResult::ERROR"
 				<< std::endl;
+			this->_service->setIsDisposingFromChildProcess(this->isDisposingFromChildProcess());
 			delete this->_service;
 			this->_service = NULL;
-			if (this->_isServiceDisposing) {
-				C_ERROR("ServiceEventResult::ERROR && this->_isServiceDisposing == true");
-			} else {
-				this->_setResponse(utils::ErrorPageProvider().internalServerError());
-			}
-			return PollEventResult::OK;
+			this->_setResponse(utils::ErrorPageProvider().internalServerError());
+			return;
 
 		case ServiceEventResult::CONTINUE:
 			CS_DEBUG()
 				<< "ServiceEventResult::CONTINUE"
 				<< std::endl;
-			return PollEventResult::OK;
+			return;
 
 		default:
 			CS_DEBUG()
 				<< "ServiceEventResult::UNKNOWN"
 				<< std::endl;
-			return PollEventResult::OK;
+			return;
 	}
 }
 
@@ -204,8 +211,17 @@ void ClientSocket::_setResponse(
 	const std::vector<uint8_t> &response
 )
 {
-	this->httpResponseBuffer = response;
-	this->_IsResponseSet = true;
+	if (this->_IsResponseSet) {
+		CS_WARN()
+			<< "Response is already set"
+			<< std::endl;
+	} else {
+		this->httpResponseBuffer = response;
+		CS_DEBUG()
+			<< "Response set (size: " << this->httpResponseBuffer.size() << ")"
+			<< std::endl;
+		this->_IsResponseSet = true;
+	}
 }
 
 void ClientSocket::_setResponse(
@@ -226,11 +242,11 @@ void ClientSocket::setToPollFd(
 	struct pollfd &pollFd
 ) const
 {
-	if (this->_service == NULL || this->_isServiceDisposing) {
+	Pollable::setToPollFd(pollFd);
+	if (this->_service == NULL) {
 		CS_DEBUG()
 			<< "ClientSocket::setToPollFd() called - this->_service == NULL"
 			<< std::endl;
-		Pollable::setToPollFd(pollFd);
 		pollFd.events = this->_IsResponseSet ? POLLOUT : POLLIN;
 	} else {
 		CS_DEBUG()
@@ -249,14 +265,24 @@ ClientSocket::~ClientSocket()
 {
 	if (this->_service != NULL) {
 		C_ERROR("Service is not disposed -> disposing...");
+		this->_service->setIsDisposingFromChildProcess(this->isDisposingFromChildProcess());
 		delete this->_service;
 		this->_service = NULL;
 	}
 
 	CS_INFO()
 		<< "ClientSocket(fd:" << this->getFD() << ")"
-		<< " destroyed"
+		<< " destroying"
 		<< std::endl;
+
+#if DEBUG
+	if (!this->isDisposingFromChildProcess() && 0 <= this->getFD()) {
+		CS_DEBUG()
+			<< "Shutdown socket: " << this->getFD()
+			<< std::endl;
+		shutdown(this->getFD(), SHUT_RDWR);
+	}
+#endif
 }
 
 ClientSocket::ClientSocket(
@@ -269,8 +295,7 @@ ClientSocket::ClientSocket(
 		logger(logger, serverLoggerCustomId + ", Connection=" + Pollable::getUUID().toString()),
 		httpRequest(this->logger),
 		_IsResponseSet(false),
-		_service(NULL),
-		_isServiceDisposing(false)
+		_service(NULL)
 {
 	CS_DEBUG()
 		<< "ClientSocket(fd:" << utils::to_string(fd) << ")"

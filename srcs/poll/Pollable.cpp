@@ -10,7 +10,8 @@ namespace webserv
 Pollable::Pollable(
 	int fd
 ) : _fd(fd),
-		_uuid(utils::UUIDv7())
+		_uuid(utils::UUIDv7()),
+		_isDisposingFromChildProcess(false)
 {
 	if (fd < 0) {
 		throw std::invalid_argument("Invalid FD");
@@ -41,6 +42,23 @@ void Pollable::setToPollFd(
 utils::UUID Pollable::getUUID() const
 {
 	return this->_uuid;
+}
+
+bool Pollable::isFdSame(int fd) const
+{
+	return this->_fd == fd;
+}
+
+bool Pollable::isDisposingFromChildProcess() const
+{
+	return this->_isDisposingFromChildProcess;
+}
+
+void Pollable::setIsDisposingFromChildProcess(
+	bool value
+)
+{
+	this->_isDisposingFromChildProcess = value;
 }
 
 #pragma region invalid operation

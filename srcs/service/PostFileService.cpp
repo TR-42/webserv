@@ -117,7 +117,6 @@ ServiceEventResultType PostFileService::onEventGot(
 )
 {
 	if (this->_fd < 0) {
-		this->_canDispose = true;
 		return ServiceEventResult::COMPLETE;
 	}
 
@@ -139,7 +138,6 @@ ServiceEventResultType PostFileService::onEventGot(
 		CS_ERROR() << "Failed to write: " << strerror(errorNum) << std::endl;
 		this->_response = this->_errorPageProvider.internalServerError();
 
-		this->_canDispose = true;
 		return ServiceEventResult::COMPLETE;
 	}
 

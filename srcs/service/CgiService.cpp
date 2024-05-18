@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <EnvManager.hpp>
+#include <macros.hpp>
 #include <service/CgiService.hpp>
 
 #define STR(v) #v
@@ -160,7 +161,9 @@ CgiService::CgiService(
 	this->_cgiHandler = new CgiHandler(
 		errorPageProvider,
 		logger,
-		fdReadFromCgi
+		fdReadFromCgi,
+		&(this->_cgiHandler),
+		&(this->_response)
 	);
 
 	CS_DEBUG()
@@ -168,6 +171,9 @@ CgiService::CgiService(
 		<< std::endl;
 
 	pollableList.push_back(this->_cgiHandler);
+
+	// レスポンスが返ってこなかった場合等はInternalServerErrorなので、あらかじめここで設定しておく
+	this->_response = errorPageProvider.internalServerError();
 
 	C_DEBUG("initialized");
 }
@@ -180,11 +186,12 @@ CgiService::~CgiService()
 	}
 
 	if (this->_cgiHandler != NULL) {
-		this->_cgiHandler->setDisposeRequested(true);
+		this->_cgiHandler->setDisposeRequested();
 		this->_cgiHandler = NULL;
 	}
 
-	if (0 < this->_pid) {
+	// 他の子プロセスから閉じられる可能性があるため。
+	if (!this->isDisposingFromChildProcess() && 0 < this->_pid) {
 		// 子プロセスが終了するまで待つ
 		int status;
 		int waitResult = waitpid(this->_pid, &status, WNOHANG);
@@ -225,7 +232,7 @@ void CgiService::setToPollFd(
 ) const
 {
 	if (this->_cgiExecuter == NULL) {
-		pollFd.fd = 0;
+		// CgiExecuterが終了している場合はCgiExecuterのFDをセットする必要もないため、親のFDを確認してもらう
 		pollFd.events = 0;
 		pollFd.revents = 0;
 	} else {
@@ -237,8 +244,46 @@ ServiceEventResultType CgiService::onEventGot(
 	short revents
 )
 {
-	(void)revents;
+	if (IS_POLL_ANY_ERROR(revents)) {
+		// 子プロセスの終了によるエラーの場合は、サービス自体を終了する
+		C_DEBUG("IS_POLL_ANY_ERROR(revents)");
+		if (this->_pid <= 0) {
+			C_ERROR("this->_pid <= 0");
+			return ServiceEventResult::ERROR;
+		}
+
+		int status;
+		int waitResult = waitpid(this->_pid, &status, WNOHANG);
+		if (waitResult < 0) {
+			errno_t err = errno;
+			CS_ERROR() << "waitpid() failed: " << std::strerror(err) << std::endl;
+			return ServiceEventResult::ERROR;
+		} else if (waitResult == 0) {
+			CS_DEBUG() << "waitpid() returned 0 -> handle it in CgiExecuter" << std::endl;
+		} else {
+			CS_INFO() << "waitpid() returned " << waitResult << std::endl;
+			this->_pid = -1;
+			return ServiceEventResult::ERROR;
+		}
+	}
+
 	if (this->_cgiHandler == NULL) {
+		if (this->_pid <= 0) {
+			C_DEBUG("this->_pid <= 0");
+			return ServiceEventResult::COMPLETE;
+		}
+
+		if (this->_cgiExecuter != NULL) {
+			C_DEBUG("this->_cgiExecuter != NULL -> dispose");
+			delete this->_cgiExecuter;
+			this->_cgiExecuter = NULL;
+			if (kill(this->_pid, SIGKILL) < 0) {
+				errno_t err = errno;
+				CS_ERROR() << "kill() failed: " << std::strerror(err) << std::endl;
+				return ServiceEventResult::ERROR;
+			}
+		}
+
 		// waitpidをイベントループ内で行なってしまう
 		int status;
 		int waitResult = waitpid(this->_pid, &status, WNOHANG);
@@ -254,26 +299,12 @@ ServiceEventResultType CgiService::onEventGot(
 			return ServiceEventResult::ERROR;
 		} else if (waitResult == 0) {
 			CS_DEBUG() << "waitpid() returned 0" << std::endl;
+			return ServiceEventResult::CONTINUE;
 		} else {
 			CS_INFO() << "waitpid() returned " << waitResult << std::endl;
 			this->_pid = -1;
+			return ServiceEventResult::COMPLETE;
 		}
-
-		return ServiceEventResult::COMPLETE;
-	}
-
-	// エラーの場合でもResponseReadyになる
-	if (this->_cgiHandler->isResponseReady()) {
-		C_DEBUG("ResponseReady");
-		this->_response = this->_cgiHandler->getResponse();
-		this->_cgiHandler->setDisposeRequested(true);
-		this->_cgiHandler = NULL;
-		if (this->_cgiExecuter != NULL) {
-			delete this->_cgiExecuter;
-			this->_cgiExecuter = NULL;
-		}
-		// 子プロセスの終了を待つ必要がある
-		return ServiceEventResult::COMPLETE;
 	}
 
 	if (this->_cgiExecuter == NULL) {
@@ -289,7 +320,7 @@ ServiceEventResultType CgiService::onEventGot(
 
 		case PollEventResult::ERROR:
 			C_ERROR("Executer ERROR");
-			this->_cgiHandler->setDisposeRequested(true);
+			this->_cgiHandler->setDisposeRequested();
 			this->_cgiHandler = NULL;
 			return ServiceEventResult::ERROR;
 
@@ -302,17 +333,9 @@ ServiceEventResultType CgiService::onEventGot(
 	}
 
 	// ここに来るはずはない
-	this->_cgiHandler->setDisposeRequested(true);
+	this->_cgiHandler->setDisposeRequested();
 	this->_cgiHandler = NULL;
 	return ServiceEventResult::ERROR;
-}
-
-bool CgiService::canDispose() const
-{
-	if (this->_cgiHandler != NULL) {
-		return false;
-	}
-	return this->_canDispose || this->_pid <= 0;
 }
 
 }	 // namespace webserv

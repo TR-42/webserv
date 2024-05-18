@@ -12,20 +12,27 @@ namespace webserv
 CgiHandler::CgiHandler(
 	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
-	int fdReadFromCgi
+	int fdReadFromCgi,
+	CgiHandler **_cgiServiceCgiHandlerField,
+	HttpResponse *_cgiServiceHttpResponseField
 ) : Pollable(fdReadFromCgi),
 		logger(logger),
 		_errorPageProvider(errorPageProvider),
-		_response(),
-		_isResponseReady(false),
-		_isDisposeRequested(false),
-		_cgiResponse(logger)
+		_isAnyResponseReceived(false),
+		_cgiResponse(logger),
+		_cgiServiceCgiHandlerField(_cgiServiceCgiHandlerField),
+		_cgiServiceHttpResponseField(_cgiServiceHttpResponseField)
 {
-	this->_response = this->_errorPageProvider.notImplemented();
 }
 
 CgiHandler::~CgiHandler()
 {
+	if (this->_cgiServiceCgiHandlerField != NULL) {
+		*(this->_cgiServiceCgiHandlerField) = NULL;
+	}
+	if (this->_cgiServiceHttpResponseField != NULL && this->_isAnyResponseReceived) {
+		*(this->_cgiServiceHttpResponseField) = this->_cgiResponse.getHttpResponse();
+	}
 }
 
 void CgiHandler::setToPollFd(
@@ -37,12 +44,15 @@ void CgiHandler::setToPollFd(
 }
 
 PollEventResultType CgiHandler::onEventGot(
+	int fd,
 	short revents,
 	std::vector<Pollable *> &pollableList
 )
 {
+	(void)fd;
 	(void)pollableList;
-	if (this->_isDisposeRequested) {
+	if (this->_cgiServiceCgiHandlerField == NULL || this->_cgiServiceHttpResponseField == NULL) {
+		C_WARN("CgiHandler is not set to CGI service");
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 	if (!IS_POLLIN(revents)) {
@@ -56,39 +66,31 @@ PollEventResultType CgiHandler::onEventGot(
 		CS_ERROR()
 			<< "Failed to read from CGI: " << std::strerror(errorNum) << std::endl;
 
-		this->_response = this->_errorPageProvider.internalServerError();
-		this->_isResponseReady = true;
-		return PollEventResult::OK;
+		*(this->_cgiServiceHttpResponseField) = this->_errorPageProvider.internalServerError();
+		*(this->_cgiServiceCgiHandlerField) = NULL;
+		this->_cgiServiceCgiHandlerField = NULL;
+		this->_cgiServiceHttpResponseField = NULL;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	if (readResult == 0) {
-		LS_ERROR() << "CGI read complete" << std::endl;
-		this->_response = this->_cgiResponse.getHttpResponse();
-		this->_isResponseReady = true;
-		return PollEventResult::OK;
+		C_ERROR("CGI read complete");
+		*(this->_cgiServiceHttpResponseField) = this->_cgiResponse.getHttpResponse();
+		this->_cgiServiceCgiHandlerField = NULL;
+		*(this->_cgiServiceCgiHandlerField) = NULL;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	CS_LOG() << "Read from CGI length: " << readResult << std::endl;
+	this->_isAnyResponseReceived = true;
 	this->_cgiResponse.pushResponseRaw(std::vector<uint8_t>(buf, buf + readResult));
 	return PollEventResult::OK;
 }
 
-bool CgiHandler::isResponseReady() const
+void CgiHandler::setDisposeRequested()
 {
-	return this->_isResponseReady;
-}
-
-HttpResponse CgiHandler::getResponse() const
-{
-	if (!this->_isResponseReady) {
-		return this->_cgiResponse.getHttpResponse();
-	}
-	return this->_response;
-}
-
-void CgiHandler::setDisposeRequested(bool value)
-{
-	this->_isDisposeRequested = value;
+	this->_cgiServiceCgiHandlerField = NULL;
+	this->_cgiServiceHttpResponseField = NULL;
 }
 
 }	 // namespace webserv

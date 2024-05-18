@@ -22,13 +22,12 @@ class ClientSocket : public Pollable
 	std::vector<uint8_t> httpResponseBuffer;
 	bool _IsResponseSet;
 	ServiceBase *_service;
-	bool _isServiceDisposing;
 
 	PollEventResultType _processPollIn(
 		std::vector<Pollable *> &pollableList
 	);
 	PollEventResultType _processPollOut();
-	PollEventResultType _processPollService(short revents);
+	void _processPollService(short revents);
 
 	void _setResponse(
 		const std::vector<uint8_t> &response
@@ -54,6 +53,7 @@ class ClientSocket : public Pollable
 	) const;
 
 	virtual PollEventResultType onEventGot(
+		int fd,
 		short revents,
 		std::vector<Pollable *> &pollableList
 	);

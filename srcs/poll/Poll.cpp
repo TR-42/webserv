@@ -60,13 +60,20 @@ bool Poll::loop()
 	for (size_t i = 0; i < pollableCount; i++) {
 		utils::UUID pollableUuid = _PollableListCopy[i]->getUUID();
 
+		int fd = _PollFdList[i].fd;
 		short revents = _PollFdList[i].revents;
-		if (IS_POLLERR(revents) || IS_POLLHUP(revents) || IS_POLLNVAL(revents)) {
-			CS_ERROR()
+		bool isFdSame = _PollableListCopy[i]->isFdSame(fd);
+		bool isPollErr = IS_POLLERR(revents) != 0;
+		bool isPollHup = IS_POLLHUP(revents) != 0;
+		bool isPollNval = IS_POLLNVAL(revents) != 0;
+		if (isFdSame && (isPollErr || isPollHup || isPollNval)) {
+			CS_WARN()
 				<< "Error event got from pollable " << pollableUuid
-				<< " (pollerr: " << std::boolalpha << (IS_POLLERR(revents) != 0)
-				<< ", pollhup: " << std::boolalpha << (IS_POLLHUP(revents) != 0)
-				<< ", pollnval: " << std::boolalpha << (IS_POLLNVAL(revents) != 0)
+				<< " ("
+				<< "fd: " << fd
+				<< ", pollerr: " << std::boolalpha << isPollErr
+				<< ", pollhup: " << std::boolalpha << isPollHup
+				<< ", pollnval: " << std::boolalpha << isPollNval
 				<< ", revents: " << revents
 				<< ")"
 				<< std::endl;
@@ -76,6 +83,7 @@ bool Poll::loop()
 		}
 
 		const PollEventResultType result = _PollableListCopy[i]->onEventGot(
+			fd,
 			revents,
 			_PollableList
 		);

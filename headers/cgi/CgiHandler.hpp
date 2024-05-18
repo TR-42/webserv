@@ -14,16 +14,18 @@ class CgiHandler : public Pollable
  private:
 	Logger logger;
 	const utils::ErrorPageProvider &_errorPageProvider;
-	HttpResponse _response;
-	bool _isResponseReady;
-	bool _isDisposeRequested;
+	bool _isAnyResponseReceived;
 	CgiResponse _cgiResponse;
+	CgiHandler **_cgiServiceCgiHandlerField;
+	HttpResponse *_cgiServiceHttpResponseField;
 
  public:
 	CgiHandler(
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger,
-		int fdReadFromCgi
+		int fdReadFromCgi,
+		CgiHandler **_cgiServiceCgiHandlerField,
+		HttpResponse *_cgiServiceHttpResponseField
 	);
 	virtual ~CgiHandler();
 
@@ -32,13 +34,12 @@ class CgiHandler : public Pollable
 	) const;
 
 	virtual PollEventResultType onEventGot(
+		int fd,
 		short revents,
 		std::vector<Pollable *> &pollableList
 	);
 
-	bool isResponseReady() const;
-	HttpResponse getResponse() const;
-	void setDisposeRequested(bool value);
+	void setDisposeRequested();
 
 	// TODO: Redirect対応
 };

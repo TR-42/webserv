@@ -15,10 +15,12 @@ namespace webserv
 {
 
 PollEventResultType ServerSocket::onEventGot(
+	int fd,
 	short revents,
 	std::vector<Pollable *> &pollableList
 )
 {
+	(void)fd;
 	if (!IS_POLLIN(revents)) {
 		CS_DEBUG()
 			<< "No POLLIN event"

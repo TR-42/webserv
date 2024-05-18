@@ -68,11 +68,13 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	char **envp
 )
 {
+	C_DEBUG("child process started");
 	size_t pollableListSize = pollableList.size();
 	for (size_t i = 0; i < pollableListSize; i++) {
 		if (pollableList[i] == NULL) {
 			continue;
 		}
+		pollableList[i]->setIsDisposingFromChildProcess(true);
 		delete pollableList[i];
 		pollableList[i] = NULL;
 	}

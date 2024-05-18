@@ -46,7 +46,6 @@ ServiceEventResultType SimpleService::onEventGot(
 )
 {
 	(void)revents;
-	this->_canDispose = true;
 	return ServiceEventResult::COMPLETE;
 }
 
