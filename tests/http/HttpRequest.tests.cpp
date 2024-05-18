@@ -35,9 +35,11 @@
 #define REQ_LINE_ERR_CASE_9 " GET /index.html HTTP/1.1\r\n"
 #define REQ_LINE_ERR_CASE_10 "GET /index.html HTTP/1.1 \r\n"
 
+static webserv::Logger logger;
+
 TEST(HttpRequest, RequestLine)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqLine = REQ_LINE_CASE_1;
 	std::vector<uint8_t> reqPacket(reqLine.begin(), reqLine.end());
 
@@ -51,7 +53,7 @@ TEST(HttpRequest, RequestLine)
 #define REQ_LINE_TEST_FULL(num, expectedPath, expectedQuery) \
 	TEST(HttpRequest, RequestLine##num) \
 	{ \
-		webserv::HttpRequest request; \
+		webserv::HttpRequest request(logger); \
 		std::string reqLine = REQ_LINE_CASE_##num; \
 		std::vector<uint8_t> reqPacket(reqLine.begin(), reqLine.end()); \
 \
@@ -71,7 +73,7 @@ REQ_LINE_TEST_FULL(7, "/index.html#def", "abc=")
 
 TEST(HttpRequest, RequestHeader)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = REQ_HEADER_CASE_1;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -83,7 +85,7 @@ TEST(HttpRequest, RequestHeader)
 
 TEST(HttpRequest, RequestHeader2)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = REQ_HEADER_CASE_2;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -94,7 +96,7 @@ TEST(HttpRequest, RequestHeader2)
 
 TEST(HttpRequest, RequestHeader_MultiKey)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = REQ_HEADER_CASE_3;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -107,7 +109,7 @@ TEST(HttpRequest, RequestHeader_MultiKey)
 
 TEST(HttpRequest, RequestHeader_MultiValue)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = REQ_HEADER_CASE_4;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -120,7 +122,7 @@ TEST(HttpRequest, RequestHeader_MultiValue)
 
 TEST(HttpRequest, RequestHeader5_NoSPC)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = REQ_HEADER_CASE_5;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -131,7 +133,7 @@ TEST(HttpRequest, RequestHeader5_NoSPC)
 
 TEST(HttpRequest, RequestHeader6_MultiSPC)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = REQ_HEADER_CASE_6;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -142,7 +144,7 @@ TEST(HttpRequest, RequestHeader6_MultiSPC)
 
 TEST(HttpRequest, RequestHeader_ContentLength)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = CONTENT_LENGTH_CASE_1;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -154,7 +156,7 @@ TEST(HttpRequest, RequestHeader_ContentLength)
 
 TEST(HttpRequest, RequestBody)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = BODY_CASE_1;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -170,7 +172,7 @@ TEST(HttpRequest, RequestBody)
 
 TEST(HttpRequest, RequestBody_Partially)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = BODY_CASE_1;
 	size_t reqStrSize = reqStr.size();
 	for (size_t i = 0; i < reqStrSize; ++i) {
@@ -190,7 +192,7 @@ TEST(HttpRequest, RequestBody_Partially)
 
 TEST(HttpRequest, RequestBody_TooMuch)
 {
-	webserv::HttpRequest request;
+	webserv::HttpRequest request(logger);
 	std::string reqStr = BODY_CASE_1 BODY_1;
 	std::vector<uint8_t> reqPacket(reqStr.begin(), reqStr.end());
 
@@ -207,7 +209,7 @@ TEST(HttpRequest, RequestBody_TooMuch)
 #define TEST_REQ_LINE_ERROR_CASE(CASE) \
 	TEST(HttpRequest, RequestLineError_##CASE) \
 	{ \
-		webserv::HttpRequest request; \
+		webserv::HttpRequest request(logger); \
 		std::string reqLine = CASE; \
 		std::vector<uint8_t> reqPacket(reqLine.begin(), reqLine.end()); \
 		EXPECT_EQ(request.pushRequestRaw(reqPacket), false); \

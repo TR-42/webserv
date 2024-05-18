@@ -6,6 +6,8 @@
 namespace webserv
 {
 
+static webserv::Logger logger;
+
 // generateResponsePacket()メソッドのテスト
 TEST(CgiResponseTest, GenerateResponsePacket)
 {
@@ -16,7 +18,7 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 	httpResponse.setHeaders(HttpFieldMap());
 	httpResponse.setBody(std::vector<uint8_t>());
 
-	CgiResponse response((Logger()));
+	CgiResponse response(logger);
 	std::vector<uint8_t>
 		expected = httpResponse.generateResponsePacket();
 	std::string expectedStr(expected.begin(), expected.end());
@@ -29,7 +31,7 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 // getterのテスト
 TEST(CgiResponseTest, Getters)
 {
-	CgiResponse response((Logger()));
+	CgiResponse response(logger);
 	EXPECT_EQ(response.getMode(), CgiResponseMode::DOCUMENT);
 	EXPECT_EQ(response.getContentType(), "");
 	EXPECT_EQ(response.getLocalLocation(), "");
@@ -43,7 +45,6 @@ TEST(CgiResponseTest, Getters)
 
 TEST(CgiResponseTest, Parse)
 {
-	Logger logger;
 	CgiResponse cgiResponse(logger);
 	std::string cgiResponseStr =
 		"X-Powered-By: PHP/8.3.4\n"
@@ -132,7 +133,6 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 	std::vector<uint8_t> expected = httpResponse.generateResponsePacket();
 	std::string expectedStr(expected.begin(), expected.end());
 
-	Logger logger;
 	CgiResponse cgiResponse(logger);
 	std::string cgiResponseStr =
 		"X-Powered-By: PHP/8.3.4\n"
@@ -165,7 +165,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 // getterのテスト2
 TEST(CgiResponseTest, Getters2)
 {
-	CgiResponse response((Logger()));
+	CgiResponse response(logger);
 	std::string cgiResponseStr =
 		"Status: 500 Internal Server Error\n"
 		"X-Powered-By: PHP/8.3.4\n"
@@ -216,7 +216,6 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 	std::vector<uint8_t> expected = httpResponse.generateResponsePacket();
 	std::string expectedStr(expected.begin(), expected.end());
 
-	Logger logger;
 	CgiResponse cgiResponse(logger);
 	std::string cgiResponseStr =
 		"Status: 404 Not Found\n"
@@ -236,7 +235,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 // getterのテスト3
 TEST(CgiResponseTest, Getters3)
 {
-	CgiResponse response((Logger()));
+	CgiResponse response(logger);
 	std::string cgiResponseStr =
 		"Status: 501 Not Implemented\n"
 		"x-powered-by: PHP/8.3.4 abc\n"
@@ -292,7 +291,6 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 	std::vector<uint8_t> expected = httpResponse.generateResponsePacket();
 	std::string expectedStr(expected.begin(), expected.end());
 
-	Logger logger;
 	CgiResponse cgiResponse(logger);
 	std::string cgiResponseStr =
 		"status: 501 Not Implemented\n"
