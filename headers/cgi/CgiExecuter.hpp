@@ -20,7 +20,6 @@ class CgiExecuter
 		std::vector<Pollable *> &pollableList,
 		int fdReadFromParent,
 		int fdWriteToParent,
-		const std::string &cgiPath,
 		char **argv,
 		char **envp
 	);
@@ -28,7 +27,6 @@ class CgiExecuter
  public:
 	CgiExecuter(
 		const std::vector<uint8_t> &requestBody,
-		std::string executablePath,
 		char **argv,
 		char **envp,
 		const Logger &logger,

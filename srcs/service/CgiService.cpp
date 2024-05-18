@@ -49,6 +49,7 @@ static bool _preparePipe(
 
 CgiService::CgiService(
 	const HttpRequest &request,
+	const std::string &cgiPath,
 	const utils::ErrorPageProvider &errorPageProvider,
 	const env::EnvManager &envPreset,
 	const Logger &logger,
@@ -62,8 +63,8 @@ CgiService::CgiService(
 
 	// argvを準備
 	char **argv = new char *[2];
-	argv[0] = new char[sizeof(PATH_PHP_CGI)];
-	std::strcpy(argv[0], PATH_PHP_CGI);
+	argv[0] = new char[cgiPath.size() + 1];
+	std::strcpy(argv[0], cgiPath.c_str());
 	argv[1] = NULL;
 	CS_DEBUG()
 		<< "argv[0]: " << argv[0]
@@ -121,7 +122,6 @@ CgiService::CgiService(
 
 	this->_cgiExecuter = new CgiExecuter(
 		request.getBody(),
-		PATH_PHP_CGI,
 		argv,
 		envp,
 		logger,

@@ -16,7 +16,6 @@ namespace webserv
 
 CgiExecuter::CgiExecuter(
 	const std::vector<uint8_t> &requestBody,
-	std::string executablePath,
 	char **argv,
 	char **envp,
 	const Logger &logger,
@@ -49,7 +48,6 @@ CgiExecuter::CgiExecuter(
 			pollableList,
 			fdReadFromParent,
 			fdWriteToParent,
-			executablePath,
 			argv,
 			envp
 		);
@@ -66,7 +64,6 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	std::vector<Pollable *> &pollableList,
 	int fdReadFromParent,
 	int fdWriteToParent,
-	const std::string &cgiPath,
 	char **argv,
 	char **envp
 )
@@ -80,9 +77,6 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 		pollableList[i] = NULL;
 	}
 	pollableList.clear();
-
-	char *executablePath = new char[cgiPath.size() + 1];
-	std::strcpy(executablePath, cgiPath.c_str());
 
 	// stdin, stdoutをpipeに接続
 	C_DEBUG("Connecting stdin to pipe...");
@@ -104,7 +98,7 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	}
 	close(fdWriteToParent);
 
-	int result = execve(executablePath, argv, envp);
+	int result = execve(argv[0], argv, envp);
 	errno_t err = errno;
 	CS_ERROR() << "execve() failed with code " << result << ": " << std::strerror(err) << std::endl;
 	std::exit(1);

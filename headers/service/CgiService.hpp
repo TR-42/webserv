@@ -20,6 +20,7 @@ class CgiService : public ServiceBase
  public:
 	CgiService(
 		const HttpRequest &request,
+		const std::string &cgiPath,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const env::EnvManager &envPreset,
 		const Logger &logger,

@@ -64,10 +64,13 @@ static ServiceBase *pickService(
 		);
 	} else if (routeConfig.getRequestPath() == "/resources/php-cgi") {
 		L_INFO("CgiService selected");
+		// TODO: CGI設定も適切に選択する
+		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
 		return new CgiService(
 			request,
+			cgiConfig.getCgiExecutableFullPath(),
 			errorPageProvider,
-			routeConfig.getCgiConfigList()[0].getEnvPreset(),
+			cgiConfig.getEnvPreset(),
 			logger,
 			pollableList
 		);
