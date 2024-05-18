@@ -58,7 +58,7 @@ SRCS_SOCKET	=\
 
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
-	getHttpTimeStr.cpp\
+	getTimeStr.cpp\
 	modeToString.cpp\
 	normalizePath.cpp\
 	pickLine.cpp\

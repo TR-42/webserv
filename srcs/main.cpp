@@ -99,7 +99,7 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 
 int main(int argc, const char *argv[])
 {
-	std::ofstream logFile("./log_webserv.log", std::ios_base::app);
+	std::ofstream logFile("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log", std::ios_base::app);
 	webserv::Logger logger(logFile);
 	webserv::utils::ErrorPageProvider errorPageProvider;
 
