@@ -247,6 +247,12 @@ void ClientSocket::setToPollFd(
 
 ClientSocket::~ClientSocket()
 {
+	if (this->_service != NULL) {
+		C_ERROR("Service is not disposed -> disposing...");
+		delete this->_service;
+		this->_service = NULL;
+	}
+
 	CS_INFO()
 		<< "ClientSocket(fd:" << this->getFD() << ")"
 		<< " destroyed"

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <macros.hpp>
 #include <poll/Poll.hpp>
 #include <utils.hpp>
 
@@ -58,8 +59,24 @@ bool Poll::loop()
 	size_t removedCount = 0;
 	for (size_t i = 0; i < pollableCount; i++) {
 		utils::UUID pollableUuid = _PollableListCopy[i]->getUUID();
+
+		short revents = _PollFdList[i].revents;
+		if (IS_POLLERR(revents) || IS_POLLHUP(revents) || IS_POLLNVAL(revents)) {
+			CS_ERROR()
+				<< "Error event got from pollable " << pollableUuid
+				<< " (pollerr: " << std::boolalpha << (IS_POLLERR(revents) != 0)
+				<< ", pollhup: " << std::boolalpha << (IS_POLLHUP(revents) != 0)
+				<< ", pollnval: " << std::boolalpha << (IS_POLLNVAL(revents) != 0)
+				<< ", revents: " << revents
+				<< ")"
+				<< std::endl;
+			this->_onPollableDisposeRequested(i - removedCount, pollableUuid);
+			++removedCount;
+			continue;
+		}
+
 		const PollEventResultType result = _PollableListCopy[i]->onEventGot(
-			_PollFdList[i].revents,
+			revents,
 			_PollableList
 		);
 
