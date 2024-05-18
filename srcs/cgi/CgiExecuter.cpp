@@ -3,6 +3,7 @@
 
 #include <EnvManager.hpp>
 #include <cgi/CgiExecuter.hpp>
+#include <climits>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
@@ -134,10 +135,14 @@ PollEventResultType CgiExecuter::onEventGot(
 		return PollEventResult::OK;
 	}
 
+	size_t sizeToWrite = this->_requestBody.size() - this->_writtenCount;
+	if (INT_MAX < sizeToWrite) {
+		sizeToWrite = INT_MAX;
+	}
 	ssize_t writtenCount = write(
 		this->_fdWriteToCgi,
 		this->_requestBody.data() + this->_writtenCount,
-		this->_requestBody.size() - this->_writtenCount
+		sizeToWrite
 	);
 
 	if (writtenCount < 0) {
