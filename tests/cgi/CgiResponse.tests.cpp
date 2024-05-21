@@ -8,7 +8,7 @@ namespace webserv
 
 static webserv::Logger logger;
 
-// generateResponsePacket()メソッドのテスト
+// generateResponsePacket(true)メソッドのテスト
 TEST(CgiResponseTest, GenerateResponsePacket)
 {
 	HttpResponse httpResponse;
@@ -20,9 +20,9 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 
 	CgiResponse response(logger);
 	std::vector<uint8_t>
-		expected = httpResponse.generateResponsePacket();
+		expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
-	std::vector<uint8_t> actual = response.generateResponsePacket();
+	std::vector<uint8_t> actual = response.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
 
 	EXPECT_EQ(actualStr, expectedStr);
@@ -100,7 +100,7 @@ TEST(CgiResponseTest, Parse)
 	EXPECT_EQ(responseBodyStr, bodyStr);
 }
 
-// generateResponsePacket()メソッドのテスト
+// generateResponsePacket(true)メソッドのテスト
 TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 {
 	HttpResponse httpResponse;
@@ -130,7 +130,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 	std::vector<uint8_t> body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket();
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger);
@@ -156,7 +156,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 		"</html>\n";
 	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
 	cgiResponse.pushResponseRaw(cgiResponseVector);
-	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket();
+	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
 
 	EXPECT_EQ(actualStr, expectedStr);
@@ -195,7 +195,7 @@ TEST(CgiResponseTest, Getters2)
 	EXPECT_EQ(responseBodyStr, "No input file specified.");
 }
 
-// generateResponsePacket()メソッドのテスト2
+// generateResponsePacket(true)メソッドのテスト2
 TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 {
 	HttpResponse httpResponse;
@@ -213,7 +213,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 		body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket();
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger);
@@ -226,7 +226,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 		"No input file specified.";
 	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
 	cgiResponse.pushResponseRaw(cgiResponseVector);
-	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket();
+	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
 
 	EXPECT_EQ(actualStr, expectedStr);
@@ -270,7 +270,7 @@ TEST(CgiResponseTest, Getters3)
 	EXPECT_EQ(responseBodyStr, "");
 }
 
-// generateResponsePacket()メソッドのテスト3
+// generateResponsePacket(true)メソッドのテスト3
 TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 {
 	HttpResponse httpResponse;
@@ -288,7 +288,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 	std::vector<uint8_t> body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket();
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger);
@@ -300,7 +300,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 		"x-ghi-abc: def ghi\n";
 	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
 	cgiResponse.pushResponseRaw(cgiResponseVector);
-	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket();
+	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
 
 	EXPECT_EQ(actualStr, expectedStr);
