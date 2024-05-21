@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include <ctime>
-#include <socket/SockEventResult.hpp>
+#include <poll/PollEventResult.hpp>
 #include <string>
 #include <vector>
 
@@ -52,11 +52,16 @@ std::string to_string(
 );
 
 std::string to_string(
-	const SockEventResultType &result
+	const PollEventResultType &result
 );
 
 std::string getHttpTimeStr();
 std::string getHttpTimeStr(
+	time_t time
+);
+
+std::string getIso8601ShortTimeStr();
+std::string getIso8601ShortTimeStr(
 	time_t time
 );
 

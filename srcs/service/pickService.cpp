@@ -1,5 +1,6 @@
 #include <config/ListenConfig.hpp>
 #include <config/ServerRunningConfig.hpp>
+#include <service/CgiService.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
 #include <service/PostFileService.hpp>
@@ -44,6 +45,7 @@ static ServiceBase *pickService(
 	const HttpRouteConfig &routeConfig,
 	const HttpRequest &request,
 	const utils::ErrorPageProvider &errorPageProvider,
+	std::vector<Pollable *> &pollableList,
 	const Logger &logger
 )
 {
@@ -59,6 +61,18 @@ static ServiceBase *pickService(
 			routeConfig,
 			errorPageProvider,
 			logger
+		);
+	} else if (routeConfig.getRequestPath() == "/resources/php-cgi") {
+		L_INFO("CgiService selected");
+		// TODO: CGI設定も適切に選択する
+		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
+		return new CgiService(
+			request,
+			cgiConfig.getCgiExecutableFullPath(),
+			errorPageProvider,
+			cgiConfig.getEnvPreset(),
+			logger,
+			pollableList
 		);
 	}
 
@@ -93,6 +107,7 @@ static ServiceBase *pickService(
 ServiceBase *pickService(
 	const ServerRunningConfigListType &listenConfigList,
 	const HttpRequest &request,
+	std::vector<Pollable *> &pollableList,
 	const Logger &logger
 )
 {
@@ -107,6 +122,7 @@ ServiceBase *pickService(
 		routeConfig,
 		request,
 		serverConfig.getErrorPageProvider(),
+		pollableList,
 		logger
 	);
 }

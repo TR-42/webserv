@@ -14,8 +14,10 @@ namespace webserv
 class HttpRequest
 {
  private:
+	const Logger &logger;
 	std::string _Method;
 	std::string _Path;
+	std::string _Query;
 	std::string _Version;
 	HttpFieldMap _Headers;
 	std::vector<uint8_t> _Body;
@@ -32,8 +34,7 @@ class HttpRequest
 	// chunkは後で実装
 
  public:
-	HttpRequest();
-	HttpRequest(const std::string &requestText) : requestText(requestText) {}
+	HttpRequest(const Logger &logger);
 	/**
 	 * @brief 今までに受け取ったパケットとともに、HTTPリクエストを解析する
 	 *
@@ -47,6 +48,7 @@ class HttpRequest
 
 	const std::string &getMethod() const;
 	const std::string &getPath() const;
+	const std::string &getQuery() const;
 	const std::string &getVersion() const;
 	const HttpFieldMap &getHeaders() const;
 	const std::vector<uint8_t> &getBody() const;
@@ -69,7 +71,6 @@ class HttpRequest
 		const std::vector<uint8_t> &requestRawLine
 	);
 
-	Logger logger;
 	std::string requestText;
 };
 

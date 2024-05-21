@@ -2,10 +2,11 @@
 
 #include <poll.h>
 
+#include <utils/UUID.hpp>
 #include <vector>
 
 #include "../Logger.hpp"
-#include "./Socket.hpp"
+#include "./Pollable.hpp"
 
 namespace webserv
 {
@@ -15,19 +16,19 @@ class Poll
  private:
 	typedef struct pollfd Pollfd;
 
-	std::vector<Socket *> _SocketList;
+	std::vector<Pollable *> _PollableList;
 	std::vector<Pollfd> _PollFdList;
 
 	Logger logger;
 
-	void _onSocketDisposeRequested(
+	void _onPollableDisposeRequested(
 		size_t index,
-		utils::UUID socketUuid
+		utils::UUID pollableUuid
 	);
 
  public:
 	Poll(
-		const std::vector<Socket *> &initialSocketList,
+		const std::vector<Pollable *> &initialPollableList,
 		const Logger &logger
 	);
 	~Poll();

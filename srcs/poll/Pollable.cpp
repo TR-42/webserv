@@ -1,35 +1,36 @@
 #include <unistd.h>
 
-#include <socket/Socket.hpp>
+#include <poll/Pollable.hpp>
 #include <stdexcept>
 #include <utils/UUIDv7.hpp>
 
 namespace webserv
 {
 
-Socket::Socket(
+Pollable::Pollable(
 	int fd
 ) : _fd(fd),
-		_uuid(utils::UUIDv7())
+		_uuid(utils::UUIDv7()),
+		_isDisposingFromChildProcess(false)
 {
 	if (fd < 0) {
 		throw std::invalid_argument("Invalid FD");
 	}
 }
 
-Socket::~Socket()
+Pollable::~Pollable()
 {
 	if (0 <= this->_fd) {
 		close(this->_fd);
 	}
 }
 
-int Socket::getFD() const
+int Pollable::getFD() const
 {
 	return this->_fd;
 }
 
-void Socket::setToPollFd(
+void Pollable::setToPollFd(
 	struct pollfd &pollFd
 ) const
 {
@@ -38,21 +39,38 @@ void Socket::setToPollFd(
 	pollFd.revents = 0;
 }
 
-utils::UUID Socket::getUUID() const
+utils::UUID Pollable::getUUID() const
 {
 	return this->_uuid;
 }
 
+bool Pollable::isFdSame(int fd) const
+{
+	return this->_fd == fd;
+}
+
+bool Pollable::isDisposingFromChildProcess() const
+{
+	return this->_isDisposingFromChildProcess;
+}
+
+void Pollable::setIsDisposingFromChildProcess(
+	bool value
+)
+{
+	this->_isDisposingFromChildProcess = value;
+}
+
 #pragma region invalid operation
-Socket::Socket(
-	const Socket &src
+Pollable::Pollable(
+	const Pollable &src
 ) : _fd(src._fd),
 		_uuid(src._uuid)
 {
 	*this = src;
 }
 
-Socket *Socket::operator=(const Socket &src)
+Pollable *Pollable::operator=(const Pollable &src)
 {
 	(void)src;
 	throw std::logic_error("Not Allowed Operation");

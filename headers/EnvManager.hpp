@@ -26,6 +26,7 @@ class EnvManager
 	std::string &operator[](const std::string &key);
 
 	char **toEnvp() const;
+	static void freeEnvp(char ***envp);
 };
 
 }	 // namespace env

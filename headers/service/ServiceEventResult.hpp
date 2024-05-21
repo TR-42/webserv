@@ -17,6 +17,7 @@ enum
 	ServiceEventResult {
 		CONTINUE,
 		COMPLETE,
+		RESPONSE_READY,
 		ERROR,
 	};
 

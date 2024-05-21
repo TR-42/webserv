@@ -21,6 +21,7 @@ class CgiResponse
 	CgiResponse(const CgiResponse &other);
 	CgiResponse &operator=(const CgiResponse &other);
 	std::vector<uint8_t> generateResponsePacket() const;
+	HttpResponse getHttpResponse() const;
 
 	CgiResponseModeType getMode() const;
 	const std::string &getContentType() const;
@@ -47,7 +48,6 @@ class CgiResponse
 	HttpFieldMap _ExtensionFieldMap;
 
 	bool _IsResponseHeaderParsed;
-	bool _IsParseCompleted;
 
 	std::vector<uint8_t> _UnparsedResponseRaw;
 

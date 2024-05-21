@@ -21,8 +21,7 @@ CgiResponse::CgiResponse(
 		_ClientLocation(""),
 		_StatusCode("200"),
 		_ReasonPhrase("OK"),
-		_IsResponseHeaderParsed(false),
-		_IsParseCompleted(false)
+		_IsResponseHeaderParsed(false)
 {
 }
 
@@ -63,18 +62,23 @@ CgiResponse &CgiResponse::operator=(const CgiResponse &other)
 
 std::vector<uint8_t> CgiResponse::generateResponsePacket() const
 {
+	return this->getHttpResponse().generateResponsePacket();
+}
+
+HttpResponse CgiResponse::getHttpResponse() const
+{
 	HttpResponse httpResponse;
 	httpResponse.setVersion("HTTP/1.1");
-	httpResponse.setStatusCode(_StatusCode);
-	httpResponse.setReasonPhrase(_ReasonPhrase);
-	httpResponse.setHeaders(_ProtocolFieldMap);
-	httpResponse.setBody(_UnparsedResponseRaw);
+	httpResponse.setStatusCode(this->_StatusCode);
+	httpResponse.setReasonPhrase(this->_ReasonPhrase);
+	httpResponse.setHeaders(this->_ProtocolFieldMap);
+	httpResponse.setBody(this->_UnparsedResponseRaw);
 
-	if (!_ContentType.empty()) {
-		httpResponse.getHeaders().addValue("Content-Type", _ContentType);
+	if (!this->_ContentType.empty()) {
+		httpResponse.getHeaders().addValue("Content-Type", this->_ContentType);
 	}
 
-	return httpResponse.generateResponsePacket();
+	return httpResponse;
 }
 
 bool CgiResponse::pushResponseRaw(

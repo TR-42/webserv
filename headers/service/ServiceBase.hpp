@@ -19,6 +19,7 @@ class ServiceBase
 	HttpResponse _response;
 	const utils::ErrorPageProvider &_errorPageProvider;
 	const Logger &logger;
+	bool _isDisposingFromChildProcess;
 
  public:
 	ServiceBase(
@@ -37,6 +38,9 @@ class ServiceBase
 	) = 0;
 
 	const HttpResponse &getResponse() const;
+
+	bool isDisposingFromChildProcess() const;
+	void setIsDisposingFromChildProcess(bool value);
 };
 
 }	 // namespace webserv

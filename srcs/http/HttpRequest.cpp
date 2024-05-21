@@ -10,18 +10,21 @@ namespace webserv
 
 const std::string &HttpRequest::getMethod() const { return _Method; }
 const std::string &HttpRequest::getPath() const { return _Path; }
+const std::string &HttpRequest::getQuery() const { return this->_Query; }
 const std::string &HttpRequest::getVersion() const { return _Version; }
 const HttpFieldMap &HttpRequest::getHeaders() const { return _Headers; }
 const std::vector<uint8_t> &HttpRequest::getBody() const { return _Body; }
 bool HttpRequest::isRequestLineParsed() const { return _IsRequestLineParsed; }
 bool HttpRequest::isRequestHeaderParsed() const { return _IsRequestHeaderParsed; }
 
-HttpRequest::HttpRequest()
-		: _IsRequestLineParsed(false),
-			_IsRequestHeaderParsed(false),
-			_IsParseCompleted(false),
-			_ContentLength(0),
-			_IsChunkedRequest(false)
+HttpRequest::HttpRequest(
+	const Logger &logger
+) : logger(logger),
+		_IsRequestLineParsed(false),
+		_IsRequestHeaderParsed(false),
+		_IsParseCompleted(false),
+		_ContentLength(0),
+		_IsChunkedRequest(false)
 {
 }
 
@@ -143,6 +146,22 @@ bool HttpRequest::pushRequestRaw(
 	return true;
 }
 
+void separatePathAndQuery(
+	std::string &path,
+	std::string &query
+)
+{
+	// ハッシュはサーバに送信されないため、存在を確認しない
+	size_t queryPos = path.find('?');
+	if (queryPos == std::string::npos) {
+		query = "";
+	} else {
+		bool isQueryEmpty = queryPos + 1 == path.size();
+		query = isQueryEmpty ? "" : path.substr(queryPos + 1);
+		path = path.substr(0, queryPos);
+	}
+}
+
 bool HttpRequest::parseRequestLine(
 	const std::vector<uint8_t> &requestRawLine
 )
@@ -177,9 +196,12 @@ bool HttpRequest::parseRequestLine(
 	}
 	CS_DEBUG() << "lenToSpacePos2: " << lenToSpacePos2 << std::endl;
 	_Path = std::string((const char *)pathSegment, lenToSpacePos2);
+	CS_DEBUG() << "PathSegment: `" << _Path << "`" << std::endl;
+	separatePathAndQuery(this->_Path, this->_Query);
 	this->_NormalizedPath = utils::normalizePath(_Path);
 	CS_DEBUG()
 		<< "Path: `" << _Path << "`, "
+		<< "Query: `" << _Query << "`, "
 		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
 		<< std::endl;
 	const uint8_t *versionSegment = spacePos2 + 1;

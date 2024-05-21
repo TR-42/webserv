@@ -1,5 +1,4 @@
-#include <cstring>
-#include <service/SimpleService.hpp>
+#include <service/ServiceBase.hpp>
 
 namespace webserv
 {
@@ -10,7 +9,8 @@ ServiceBase::ServiceBase(
 	const Logger &logger
 ) : _request(request),
 		_errorPageProvider(errorPageProvider),
-		logger(logger)
+		logger(logger),
+		_isDisposingFromChildProcess(false)
 {
 }
 
@@ -21,6 +21,16 @@ ServiceBase::~ServiceBase()
 const HttpResponse &ServiceBase::getResponse() const
 {
 	return this->_response;
+}
+
+bool ServiceBase::isDisposingFromChildProcess() const
+{
+	return this->_isDisposingFromChildProcess;
+}
+
+void ServiceBase::setIsDisposingFromChildProcess(bool value)
+{
+	this->_isDisposingFromChildProcess = value;
 }
 
 }	 // namespace webserv

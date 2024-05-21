@@ -7,7 +7,9 @@ DEPS_DIR	=	./deps
 OBJS_DEBUG_DIR	=	./objs_debug
 DEPS_DEBUG_DIR	=	./deps_debug
 
-SRCS_CGI =\
+SRCS_CGI	=\
+	CgiExecuter.cpp\
+	CgiHandler.cpp\
 	CgiResponse.cpp\
 
 SRCS_CONFIG	=\
@@ -33,7 +35,12 @@ SRCS_MATH =\
 	can_add.cpp\
 	can_mul.cpp\
 
+SRCS_POLL	=\
+	Poll.cpp\
+	Pollable.cpp\
+
 SRCS_SERVICE	=\
+	CgiService.cpp\
 	DeleteFileService.cpp\
 	GetFileService.cpp\
 	getRequestedFilePath.cpp\
@@ -47,13 +54,11 @@ SRCS_SIGNAL	=\
 
 SRCS_SOCKET	=\
 	ClientSocket.cpp\
-	Poll.cpp\
 	ServerSocket.cpp\
-	Socket.cpp\
 
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
-	getHttpTimeStr.cpp\
+	getTimeStr.cpp\
 	modeToString.cpp\
 	normalizePath.cpp\
 	pickLine.cpp\
@@ -79,6 +84,7 @@ SRC_FILES	=\
 	$(addprefix http/, $(SRCS_HTTP))\
 	$(addprefix logger/, $(SRCS_LOGGER))\
 	$(addprefix math/, $(SRCS_MATH))\
+	$(addprefix poll/, $(SRCS_POLL))\
 	$(addprefix service/, $(SRCS_SERVICE))\
 	$(addprefix signal/, $(SRCS_SIGNAL))\
 	$(addprefix socket/, $(SRCS_SOCKET))\
