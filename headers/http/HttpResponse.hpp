@@ -19,7 +19,7 @@ class HttpResponse
 	DECL_VAR_REF_NO_CONST_GETTER_SETTER(std::vector<uint8_t>, Body)
 
  public:
-	std::vector<uint8_t> generateResponsePacket() const;
+	std::vector<uint8_t> generateResponsePacket(bool withBody) const;
 	void setBody(const std::string &body);
 	HttpResponse();
 };

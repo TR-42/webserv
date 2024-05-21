@@ -20,7 +20,7 @@ class CgiResponse
 	~CgiResponse();
 	CgiResponse(const CgiResponse &other);
 	CgiResponse &operator=(const CgiResponse &other);
-	std::vector<uint8_t> generateResponsePacket() const;
+	std::vector<uint8_t> generateResponsePacket(bool withBody) const;
 	HttpResponse getHttpResponse() const;
 
 	CgiResponseModeType getMode() const;

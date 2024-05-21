@@ -60,9 +60,11 @@ CgiResponse &CgiResponse::operator=(const CgiResponse &other)
 	return *this;
 }
 
-std::vector<uint8_t> CgiResponse::generateResponsePacket() const
+std::vector<uint8_t> CgiResponse::generateResponsePacket(
+	bool withBody
+) const
 {
-	return this->getHttpResponse().generateResponsePacket();
+	return this->getHttpResponse().generateResponsePacket(withBody);
 }
 
 HttpResponse CgiResponse::getHttpResponse() const
