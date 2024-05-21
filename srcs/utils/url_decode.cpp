@@ -54,7 +54,7 @@ std::string webserv::utils::url_decode(
 			percent_index = str_len;
 		}
 		size_t copy_len = percent_index - str_index;
-		memcpy(decoded_c_str + c_str_index, str.c_str() + str_index, copy_len);
+		std::memcpy(decoded_c_str + c_str_index, str.c_str() + str_index, copy_len);
 		c_str_index += copy_len;
 		if (str[percent_index] == URL_ENCODE_ESCAPE_CHAR) {
 			if (str_len <= percent_index + 2) {

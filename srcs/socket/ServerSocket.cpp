@@ -93,14 +93,20 @@ ServerSocket *ServerSocket::createServerSocket(
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (fd < 0) {
-		perror("socket");
+		errno_t err = errno;
+		LS_ERROR()
+			<< "socket() failed: " << std::strerror(err)
+			<< std::endl;
 		return NULL;
 	}
 	LS_DEBUG()
 		<< "ServerSocket created: fd=" << fd
 		<< std::endl;
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		perror("bind");
+		errno_t err = errno;
+		LS_ERROR()
+			<< "bind() failed: " << std::strerror(err)
+			<< std::endl;
 		close(fd);
 		return NULL;
 	}
@@ -108,7 +114,10 @@ ServerSocket *ServerSocket::createServerSocket(
 		<< "ServerSocket bind to: " << utils::to_string(addr)
 		<< std::endl;
 	if (listen(fd, ACCEPT_BACKLOG) < 0) {
-		perror("listen");
+		errno_t err = errno;
+		LS_ERROR()
+			<< "listen() failed: " << std::strerror(err)
+			<< std::endl;
 		close(fd);
 		return NULL;
 	}
