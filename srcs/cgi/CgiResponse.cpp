@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include <iostream>
+
 #include "cgi/CgiResponseMode.hpp"
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
@@ -17,11 +19,17 @@ CgiResponse::CgiResponse(
 ) : logger(logger),
 		_mode(CgiResponseMode::DOCUMENT),
 		_ContentType(""),
-		_LocalLocation(""),
-		_ClientLocation(""),
+		_Location(""),
 		_StatusCode("200"),
 		_ReasonPhrase("OK"),
-		_IsResponseHeaderParsed(false)
+		_IsResponseHeaderParsed(false),
+		isSetContentType(false),
+		isSetLocation(false),
+		isSetStatus(false),
+		isSetProtocolFieldMap(false),
+		isSetExtensionFieldMap(false),
+		isSetResponseBody(false),
+		isAbsolutePath(false)
 {
 }
 
@@ -33,8 +41,7 @@ CgiResponse::CgiResponse(
 	const CgiResponse &other
 ) : _mode(other._mode),
 		_ContentType(other._ContentType),
-		_LocalLocation(other._LocalLocation),
-		_ClientLocation(other._ClientLocation),
+		_Location(other._Location),
 		_StatusCode(other._StatusCode),
 		_ReasonPhrase(other._ReasonPhrase),
 		_ProtocolFieldMap(other._ProtocolFieldMap),
@@ -50,8 +57,7 @@ CgiResponse &CgiResponse::operator=(const CgiResponse &other)
 
 	_mode = other._mode;
 	_ContentType = other._ContentType;
-	_LocalLocation = other._LocalLocation;
-	_ClientLocation = other._ClientLocation;
+	_Location = other._Location;
 	_StatusCode = other._StatusCode;
 	_ReasonPhrase = other._ReasonPhrase;
 	_ProtocolFieldMap = other._ProtocolFieldMap;
@@ -104,6 +110,60 @@ bool CgiResponse::pushResponseRaw(
 		if (responseRawLine->empty()) {
 			_IsResponseHeaderParsed = true;
 			delete responseRawLine;
+
+			CS_INFO()
+				<< "isSetContentType: " << std::boolalpha << this->isSetContentType
+				<< ", isSetLocation: " << std::boolalpha << this->isSetLocation
+				<< ", isSetStatus: " << std::boolalpha << this->isSetStatus
+				<< ", isSetProtocolFieldMap: " << std::boolalpha << this->isSetProtocolFieldMap
+				<< ", isSetExtensionFieldMap: " << std::boolalpha << this->isSetExtensionFieldMap
+				<< ", isSetResponseBody: " << std::boolalpha << this->isSetResponseBody
+				<< ", isAbsolutePath: " << std::boolalpha << this->isAbsolutePath
+				<< std::endl;
+
+			if (
+				this->isSetContentType &&
+				!this->isSetLocation
+			) {
+				this->_mode = CgiResponseMode::DOCUMENT;
+			}
+
+			// location以外存在しないことを確認
+			else if (
+				this->isSetLocation &&
+				!this->isSetStatus &&
+				!this->isSetProtocolFieldMap &&
+				!this->isSetExtensionFieldMap &&
+				!this->isSetResponseBody &&
+				!this->isSetContentType &&
+				this->isAbsolutePath
+			) {
+				this->_mode = CgiResponseMode::LOCAL_REDIRECT;
+			}
+
+			// protocol, status, contenttype入れられない
+			else if (
+				!this->isSetProtocolFieldMap &&
+				!this->isSetStatus &&
+				!this->isSetContentType &&
+				!this->isAbsolutePath &&
+				this->isSetLocation
+			) {
+				this->_mode = CgiResponseMode::CLIENT_REDIRECT;
+			}
+
+			else if (
+				this->isSetStatus &&
+				this->isSetContentType &&
+				this->isSetLocation &&
+				!this->isAbsolutePath
+			) {
+				this->_mode = CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT;
+			}
+
+			else {
+				return false;
+			}
 			break;
 		}
 
@@ -128,13 +188,19 @@ bool CgiResponse::parseResponseHeader(
 	}
 
 	if (utils::strcasecmp(nameValue.first, "content-type")) {
+		this->isSetContentType = true;
 		_ContentType = nameValue.second;
 		return true;
 	}
 
 	if (utils::strcasecmp(nameValue.first, "location")) {
-		// Modeによってセットする先を変える？
-		_ClientLocation = nameValue.second;
+		this->isSetLocation = true;
+		if (nameValue.second.empty()) {
+			C_WARN("nameValue.second was empty");
+			return false;
+		}
+		this->isAbsolutePath = nameValue.second[0] == '/';
+		_Location = nameValue.second;
 		return true;
 	}
 
@@ -145,6 +211,7 @@ bool CgiResponse::parseResponseHeader(
 			C_WARN("statusParts.size() < 2");
 			return false;
 		}
+		isSetStatus = true;
 		_StatusCode = statusParts[0];
 		_ReasonPhrase = statusParts[1];
 
@@ -171,14 +238,9 @@ const std::string &CgiResponse::getContentType() const
 	return this->_ContentType;
 }
 
-const std::string &CgiResponse::getLocalLocation() const
+const std::string &CgiResponse::getLocation() const
 {
-	return this->_LocalLocation;
-}
-
-const std::string &CgiResponse::getClientLocation() const
-{
-	return this->_ClientLocation;
+	return this->_Location;
 }
 
 const std::string &CgiResponse::getStatusCode() const

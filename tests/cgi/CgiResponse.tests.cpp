@@ -34,8 +34,7 @@ TEST(CgiResponseTest, Getters)
 	CgiResponse response(logger);
 	EXPECT_EQ(response.getMode(), CgiResponseMode::DOCUMENT);
 	EXPECT_EQ(response.getContentType(), "");
-	EXPECT_EQ(response.getLocalLocation(), "");
-	EXPECT_EQ(response.getClientLocation(), "");
+	EXPECT_EQ(response.getLocation(), "");
 	EXPECT_EQ(response.getStatusCode(), "200");
 	EXPECT_EQ(response.getReasonPhrase(), "OK");
 	EXPECT_EQ(response.getProtocolFieldMap(), HttpFieldMap());
@@ -68,8 +67,7 @@ TEST(CgiResponseTest, Parse)
 
 	EXPECT_EQ(cgiResponse.getMode(), CgiResponseMode::DOCUMENT);
 	EXPECT_EQ(cgiResponse.getContentType(), "text/html; charset=UTF-8");
-	EXPECT_EQ(cgiResponse.getLocalLocation(), "");
-	EXPECT_EQ(cgiResponse.getClientLocation(), "");
+	EXPECT_EQ(cgiResponse.getLocation(), "");
 	EXPECT_EQ(cgiResponse.getStatusCode(), "200");
 	EXPECT_EQ(cgiResponse.getReasonPhrase(), "OK");
 	EXPECT_EQ(cgiResponse.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
@@ -177,8 +175,7 @@ TEST(CgiResponseTest, Getters2)
 	response.pushResponseRaw(cgiResponseVector);
 	EXPECT_EQ(response.getMode(), CgiResponseMode::DOCUMENT);
 	EXPECT_EQ(response.getContentType(), "text/html; charset=UTF-8");
-	EXPECT_EQ(response.getLocalLocation(), "");
-	EXPECT_EQ(response.getClientLocation(), "");
+	EXPECT_EQ(response.getLocation(), "");
 	EXPECT_EQ(response.getStatusCode(), "500");
 	EXPECT_EQ(response.getReasonPhrase(), "Internal Server Error");
 	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
@@ -246,8 +243,7 @@ TEST(CgiResponseTest, Getters3)
 	response.pushResponseRaw(cgiResponseVector);
 	EXPECT_EQ(response.getMode(), CgiResponseMode::DOCUMENT);
 	EXPECT_EQ(response.getContentType(), "");
-	EXPECT_EQ(response.getLocalLocation(), "");
-	EXPECT_EQ(response.getClientLocation(), "");
+	EXPECT_EQ(response.getLocation(), "");
 	EXPECT_EQ(response.getStatusCode(), "501");
 	EXPECT_EQ(response.getReasonPhrase(), "Not Implemented");
 	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
@@ -304,6 +300,62 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 	std::string actualStr(actual.begin(), actual.end());
 
 	EXPECT_EQ(actualStr, expectedStr);
+}
+
+TEST(CgiResponseTest, ResponseModeDocument)
+{
+	CgiResponse response(logger);
+	std::string cgiResponseStr =
+		"Status: 200 OK\n"
+		"Content-type: text/html; charset=UTF-8\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector));
+	EXPECT_EQ(response.getMode(), CgiResponseMode::DOCUMENT);
+	EXPECT_EQ(response.getContentType(), "text/html; charset=UTF-8");
+	EXPECT_EQ(response.getStatusCode(), "200");
+	EXPECT_EQ(response.getReasonPhrase(), "OK");
+}
+
+TEST(CgiResponseTest, ResponseModeLocalRedirect)
+{
+	CgiResponse response(logger);
+	std::string cgiResponseStr =
+		"Location: /index.html\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector2(cgiResponseStr.begin(), cgiResponseStr.end());
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector2));
+	EXPECT_EQ(response.getMode(), CgiResponseMode::LOCAL_REDIRECT);
+	EXPECT_EQ(response.getLocation(), "/index.html");
+}
+
+TEST(CgiResponseTest, ResponseModeClientRedirect)
+{
+	CgiResponse response(logger);
+	std::string cgiResponseStr =
+		"Location: http://localhost/index.html\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector3(cgiResponseStr.begin(), cgiResponseStr.end());
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector3));
+	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT);
+	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
+}
+
+TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
+{
+	CgiResponse response(logger);
+	std::string cgiResponseStr =
+		"Status: 301 Moved Permanently\n"
+		"Location: http://example.com/index.html\n"
+		"Content-type: text/html; charset=UTF-8\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector4(cgiResponseStr.begin(), cgiResponseStr.end());
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector4));
+	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT);
+	EXPECT_EQ(response.getLocation(), "http://example.com/index.html");
+	EXPECT_EQ(response.getStatusCode(), "301");
+	EXPECT_EQ(response.getContentType(), "text/html; charset=UTF-8");
+	EXPECT_EQ(response.getReasonPhrase(), "Moved Permanently");
 }
 
 }	 // namespace webserv

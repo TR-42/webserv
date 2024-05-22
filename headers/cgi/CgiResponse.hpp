@@ -25,8 +25,7 @@ class CgiResponse
 
 	CgiResponseModeType getMode() const;
 	const std::string &getContentType() const;
-	const std::string &getLocalLocation() const;
-	const std::string &getClientLocation() const;
+	const std::string &getLocation() const;
 	const std::string &getStatusCode() const;
 	const std::string &getReasonPhrase() const;
 	const HttpFieldMap &getProtocolFieldMap() const;
@@ -34,13 +33,19 @@ class CgiResponse
 	const std::vector<uint8_t> &getResponseBody() const;
 
 	bool pushResponseRaw(const std::vector<uint8_t> &responseRaw);
+	bool isSetContentType;
+	bool isSetLocation;
+	bool isSetStatus;
+	bool isSetProtocolFieldMap;
+	bool isSetExtensionFieldMap;
+	bool isSetResponseBody;
+	bool isAbsolutePath;
 
  private:
 	Logger logger;
 	CgiResponseModeType _mode;
 	std::string _ContentType;
-	std::string _LocalLocation;
-	std::string _ClientLocation;
+	std::string _Location;
 	std::string _StatusCode;
 	std::string _ReasonPhrase;
 
