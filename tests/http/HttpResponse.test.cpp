@@ -17,7 +17,7 @@ TEST(HttpResponse, test1)
 	std::string body = "Hello, World!";
 	std::vector<uint8_t> bodyVec(body.begin(), body.end());
 	response.setBody(bodyVec);
-	std::vector<uint8_t> responsePacket = response.generateResponsePacket();
+	std::vector<uint8_t> responsePacket = response.generateResponsePacket(true);
 	time_t time = std::time(NULL);
 	std::string responsePacketStr(responsePacket.begin(), responsePacket.end());
 	std::string timeStr = webserv::utils::getHttpTimeStr(time);

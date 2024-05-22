@@ -25,7 +25,9 @@ void HttpResponse::setBody(const std::string &body)
 	this->_Body = std::vector<uint8_t>(body.begin(), body.end());
 }
 
-std::vector<uint8_t> HttpResponse::generateResponsePacket() const
+std::vector<uint8_t> HttpResponse::generateResponsePacket(
+	bool withBody
+) const
 {
 	std::vector<uint8_t> responsePacket;
 	responsePacket.reserve(1024);
@@ -42,7 +44,9 @@ std::vector<uint8_t> HttpResponse::generateResponsePacket() const
 	responsePacket.push_back('\r');
 	responsePacket.push_back('\n');
 
-	responsePacket.insert(responsePacket.end(), this->_Body.begin(), this->_Body.end());
+	if (withBody) {
+		responsePacket.insert(responsePacket.end(), this->_Body.begin(), this->_Body.end());
+	}
 
 	return responsePacket;
 }

@@ -77,7 +77,7 @@ static ServiceBase *pickService(
 	}
 
 	// TODO: RouteによるServiceの選択 (特にCGI対応)
-	if (request.getMethod() == "GET") {
+	if (request.getMethod() == "GET" || request.getMethod() == "HEAD") {
 		L_INFO("GetFileService selected");
 		return new GetFileService(
 			request,
