@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "http/HttpResponse.hpp"
+#include "utils/getTimeStr.hpp"
 
 namespace webserv
 {
@@ -339,6 +340,18 @@ TEST(CgiResponseTest, ResponseModeClientRedirect)
 	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector3));
 	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT);
 	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
+
+	std::vector<uint8_t> actual = response.generateResponsePacket(true);
+	std::string timeStr = webserv::utils::getHttpTimeStr();
+	std::string httpStr =
+		"HTTP/1.1 301 Moved Permanently\r\n"
+		"Location: http://localhost/index.html\r\n"
+		"Date: " +
+		timeStr +
+		"\r\n"
+		"\r\n";
+	std::string actualStr(actual.begin(), actual.end());
+	EXPECT_EQ(actualStr, httpStr);
 }
 
 TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
@@ -346,16 +359,51 @@ TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
 	CgiResponse response(logger);
 	std::string cgiResponseStr =
 		"Status: 301 Moved Permanently\n"
-		"Location: http://example.com/index.html\n"
+		"Location: http://localhost/index.html\n"
 		"Content-type: text/html; charset=UTF-8\n"
 		"\n";
 	std::vector<uint8_t> cgiResponseVector4(cgiResponseStr.begin(), cgiResponseStr.end());
 	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector4));
 	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT);
-	EXPECT_EQ(response.getLocation(), "http://example.com/index.html");
+	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
 	EXPECT_EQ(response.getStatusCode(), "301");
 	EXPECT_EQ(response.getContentType(), "text/html; charset=UTF-8");
 	EXPECT_EQ(response.getReasonPhrase(), "Moved Permanently");
+
+	std::vector<uint8_t> actual = response.generateResponsePacket(true);
+	std::string timeStr = webserv::utils::getHttpTimeStr();
+	std::string httpStr =
+		"HTTP/1.1 301 Moved Permanently\r\n"
+		"Location: http://localhost/index.html\r\n"
+		"Content-Type: text/html; charset=UTF-8\r\n"
+		"Date: " +
+		timeStr +
+		"\r\n"
+		"\r\n";
+
+	std::string actualStr(actual.begin(), actual.end());
+	EXPECT_EQ(actualStr, httpStr);
+}
+
+// 同じ名前のフィールドが複数ある場合の処理
+TEST(CgiResponseTest, MultipleFields)
+{
+	CgiResponse response(logger);
+	std::string cgiResponseStr =
+		"X-Powered-By: PHP/8.3.4\n"
+		"X-Powered-By: PHP/8.3.5\n"
+		"X-Powered-By: PHP/8.3.6\n"
+		"Content-type: text/html; charset=UTF-8\n"
+		"Date: Wed, 15 May 2024 12:34:56 GMT\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
+	response.pushResponseRaw(cgiResponseVector);
+	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
+	if (response.getProtocolFieldMap().isNameExists("X-Powered-By")) {
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[0], "PHP/8.3.4");
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[1], "PHP/8.3.5");
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[2], "PHP/8.3.6");
+	}
 }
 
 }	 // namespace webserv

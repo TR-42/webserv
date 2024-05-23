@@ -89,6 +89,10 @@ HttpResponse CgiResponse::getHttpResponse() const
 		httpResponse.getHeaders().addValue("Content-Type", this->_ContentType);
 	}
 
+	if (this->_mode == CgiResponseMode::CLIENT_REDIRECT || this->_mode == CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT) {
+		httpResponse.getHeaders().addValue("Location", this->_Location);
+	}
+
 	return httpResponse;
 }
 
@@ -155,6 +159,8 @@ bool CgiResponse::pushResponseRaw(
 				this->isSetLocation
 			) {
 				this->_mode = CgiResponseMode::CLIENT_REDIRECT;
+				this->_StatusCode = "301";
+				this->_ReasonPhrase = "Moved Permanently";
 			}
 
 			else if (
