@@ -5,6 +5,7 @@
 #include <EnvManager.hpp>
 #include <macros.hpp>
 #include <service/CgiService.hpp>
+#include <utils/waitResultStatusToString.hpp>
 
 #define STR(v) #v
 
@@ -46,8 +47,6 @@ static bool _preparePipe(
 	return true;
 }
 
-#define PATH_PHP_CGI "/opt/homebrew/bin/php-cgi"
-
 CgiService::CgiService(
 	const HttpRequest &request,
 	const std::string &cgiPath,
@@ -63,10 +62,14 @@ CgiService::CgiService(
 	C_DEBUG("initializing...");
 
 	// argvを準備
-	char **argv = new char *[2];
+	char **argv = new char *[3];
 	argv[0] = new char[cgiPath.size() + 1];
 	std::strcpy(argv[0], cgiPath.c_str());
-	argv[1] = NULL;
+	// TODO: PATH_TRANSLATEDの実装
+	std::string pathTranslated = "." + request.getNormalizedPath();
+	argv[1] = new char[pathTranslated.size() + 1];
+	std::strcpy(argv[1], pathTranslated.c_str());
+	argv[2] = NULL;
 	CS_DEBUG()
 		<< "argv[0]: " << argv[0]
 		<< std::endl;
@@ -78,7 +81,7 @@ CgiService::CgiService(
 	// TODO: PATH_INFOの実装
 	envManager.set("PATH_INFO", "");
 	// TODO: PATH_TRANSLATEDの実装
-	envManager.set("PATH_TRANSLATED", "." + request.getNormalizedPath());
+	envManager.set("PATH_TRANSLATED", pathTranslated);
 	envManager.set("QUERY_STRING", request.getQuery());
 	envManager.set("REQUEST_METHOD", request.getMethod());
 	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /extra/index.php
@@ -201,7 +204,7 @@ CgiService::~CgiService()
 		} else if (waitResult == 0) {
 			CS_DEBUG() << "waitpid() returned 0" << std::endl;
 		} else {
-			CS_INFO() << "waitpid() returned " << waitResult << std::endl;
+			CS_INFO() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
 		}
 
 		if (waitResult == 0) {
@@ -219,7 +222,7 @@ CgiService::~CgiService()
 			} else if (waitResult == 0) {
 				CS_DEBUG() << "waitpid() retry returned 0" << std::endl;
 			} else {
-				CS_INFO() << "waitpid() retry returned " << waitResult << std::endl;
+				CS_INFO() << "waitpid() retry returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
 			}
 		}
 
@@ -261,7 +264,7 @@ ServiceEventResultType CgiService::onEventGot(
 		} else if (waitResult == 0) {
 			CS_DEBUG() << "waitpid() returned 0 -> handle it in CgiExecuter" << std::endl;
 		} else {
-			CS_INFO() << "waitpid() returned " << waitResult << std::endl;
+			CS_INFO() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
 			this->_pid = -1;
 			return ServiceEventResult::ERROR;
 		}
@@ -301,7 +304,7 @@ ServiceEventResultType CgiService::onEventGot(
 			CS_DEBUG() << "waitpid() returned 0" << std::endl;
 			return ServiceEventResult::CONTINUE;
 		} else {
-			CS_INFO() << "waitpid() returned " << waitResult << std::endl;
+			CS_INFO() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
 			this->_pid = -1;
 			return ServiceEventResult::COMPLETE;
 		}

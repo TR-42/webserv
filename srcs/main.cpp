@@ -66,11 +66,25 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	cgiConfigListPhp.push_back(cgiConfigPhp);
 	httpRouteConfigPhpCgi.setCgiConfigList(cgiConfigListPhp);
 
+	// /resources/sh-cgi
+	webserv::HttpRouteConfig httpRouteConfigShCgi;
+	httpRouteConfigShCgi.setDocumentRoot("./");
+	httpRouteConfigShCgi.setIsDocumentListingEnabled(false);
+	httpRouteConfigShCgi.setRequestPath("/resources/sh-cgi");
+
+	webserv::CgiConfig cgiConfigSh;
+	cgiConfigSh.setExtensionWithoutDot("sh");
+	cgiConfigSh.setCgiExecutableFullPath("/bin/sh");
+	webserv::CgiConfigListType cgiConfigListSh;
+	cgiConfigListSh.push_back(cgiConfigSh);
+	httpRouteConfigShCgi.setCgiConfigList(cgiConfigListSh);
+
 	webserv::RouteListType routeList;
 	routeList.push_back(httpRouteConfig1);
 	routeList.push_back(httpRouteConfig2);
 	routeList.push_back(httpRouteConfig3);
 	routeList.push_back(httpRouteConfigPhpCgi);
+	routeList.push_back(httpRouteConfigShCgi);
 
 	std::vector<std::string> hostNameList;
 	hostNameList.push_back("localhost");
