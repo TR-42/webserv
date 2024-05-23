@@ -1,3 +1,4 @@
+#include <cstring>
 #include <utils/splitNameValue.hpp>
 #include <utils/strtrim.hpp>
 
