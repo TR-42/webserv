@@ -71,6 +71,7 @@ SRCS_UTILS	=\
 	url_decode.cpp\
 	UUID.cpp\
 	UUIDv7.cpp\
+	waitResultStatusToString.cpp\
 
 SRCS_MAIN	=\
 	main.cpp\
