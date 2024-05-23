@@ -1,6 +1,7 @@
 #include <iostream>
 #include <macros.hpp>
 #include <poll/Poll.hpp>
+#include <stdexcept>
 #include <utils/to_string.hpp>
 
 #define POLL_TIMEOUT 1000

@@ -1,7 +1,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <EnvManager.hpp>
 #include <cgi/CgiExecuter.hpp>
 #include <climits>
 #include <cstring>
@@ -59,6 +58,22 @@ CgiExecuter::CgiExecuter(
 		<< std::endl;
 
 	// 親から渡されたリソースの解放は親が行う (fdWriteToCgiだけはdestructorで自分で閉じる)
+}
+
+CgiExecuter::CgiExecuter(
+	const CgiExecuter &src
+)
+{
+	(void)src;
+	throw std::runtime_error("CgiExecuter copy constructor is not allowed");
+}
+
+CgiExecuter &CgiExecuter::operator=(
+	const CgiExecuter &src
+)
+{
+	(void)src;
+	throw std::runtime_error("CgiExecuter copy assignment operator is not allowed");
 }
 
 __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(

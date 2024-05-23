@@ -23,17 +23,6 @@ class HttpRouteConfig
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, IndexFileList)
 	DECL_VAR_REF_GETTER_SETTER(CgiConfigListType, CgiConfigList)
 
- private:
-	void setProps(
-		const std::string &requestPath,
-		const std::vector<std::string> &methods,
-		const HttpRedirectConfig &redirect,
-		const std::string &documentRoot,
-		bool isDocumentListingEnabled,
-		const std::vector<std::string> &indexFileList,
-		const CgiConfigListType &cgiConfigList
-	);
-
  public:
 	HttpRouteConfig();
 	HttpRouteConfig(const HttpRouteConfig &from);

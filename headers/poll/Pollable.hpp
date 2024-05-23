@@ -2,6 +2,7 @@
 
 #include <poll.h>
 
+#include <stdexcept>
 #include <utils/UUID.hpp>
 #include <vector>
 
@@ -20,8 +21,14 @@ class Pollable
 	bool _isDisposingFromChildProcess;
 
 	// FDを扱う関係で、コピーは許可しない
-	Pollable *operator=(const Pollable &);
-	Pollable(const Pollable &);
+	Pollable *operator=(const Pollable &)
+	{
+		throw std::runtime_error("Pollable copy assignment operator is not allowed");
+	}
+	Pollable(const Pollable &src) : _uuid(src._uuid)
+	{
+		throw std::runtime_error("Pollable copy constructor is not allowed");
+	}
 
  protected:
 	Pollable(int fd);

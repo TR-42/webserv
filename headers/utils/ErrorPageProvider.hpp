@@ -14,7 +14,9 @@ class ErrorPageProvider
 {
  public:
 	ErrorPageProvider();
-	~ErrorPageProvider();
+	ErrorPageProvider(const ErrorPageProvider &src);
+	ErrorPageProvider &operator=(const ErrorPageProvider &src);
+	virtual ~ErrorPageProvider();
 	HttpResponse noContent() const;
 	HttpResponse badRequest() const;
 	HttpResponse permissionDenied() const;

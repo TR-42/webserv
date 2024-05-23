@@ -91,6 +91,23 @@ ServerRunningConfig::ServerRunningConfig(
 		<< std::endl;
 }
 
+ServerRunningConfig::ServerRunningConfig(
+	const ServerRunningConfig &from
+) : _serverNameList(from._serverNameList),
+		_errorPageProvider(from._errorPageProvider),
+		_requestBodyLimit(from._requestBodyLimit),
+		_routeList(from._routeList),
+		_uuid(from._uuid),
+		logger(from.logger)
+{
+}
+
+ServerRunningConfig &webserv::ServerRunningConfig::operator=(const ServerRunningConfig &from)
+{
+	(void)from;
+	throw std::runtime_error("ServerRunningConfig copy assignment operator is not allowed");
+}
+
 bool webserv::ServerRunningConfig::isServerNameMatch(
 	const std::string &serverName
 ) const

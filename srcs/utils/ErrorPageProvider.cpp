@@ -123,6 +123,25 @@ ErrorPageProvider::ErrorPageProvider()
 	this->_errorPages[ErrorPageProvider::HTTP_VERSION_NOT_SUPPORTED] = defaultHttpVersionNotSupported;
 }
 
+ErrorPageProvider::ErrorPageProvider(
+	const ErrorPageProvider &src
+) : _errorPages(src._errorPages)
+{
+}
+
+ErrorPageProvider &ErrorPageProvider::operator=(
+	const ErrorPageProvider &src
+)
+{
+	if (this == &src) {
+		return *this;
+	}
+
+	this->_errorPages = src._errorPages;
+
+	return *this;
+}
+
 void ErrorPageProvider::setErrorPageFromFile(
 	int statusCode,
 	const std::string &path

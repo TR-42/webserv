@@ -13,11 +13,6 @@ typedef std::map<uint16_t, ServerConfigListType> ListenMapType;
 
 class ListenConfig
 {
- private:
-	void setProps(
-		const ListenMapType &srcListenMap
-	);
-
  public:
 	ListenConfig();
 	ListenConfig(

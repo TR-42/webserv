@@ -30,13 +30,32 @@ static void _set_env_map(
 
 EnvManager::EnvManager()
 {
-	this->env.clear();
 	_set_env_map(this->env, (const char **)environ);
 }
 
-EnvManager::EnvManager(const char *envp[])
+EnvManager::EnvManager(
+	const EnvManager &src
+) : env(src.env)
 {
-	this->env.clear();
+}
+
+EnvManager &EnvManager::operator=(
+	const EnvManager &src
+)
+{
+	if (this == &src) {
+		return *this;
+	}
+
+	this->env = src.env;
+
+	return *this;
+}
+
+EnvManager::EnvManager(
+	const char *envp[]
+)
+{
 	_set_env_map(this->env, envp);
 }
 

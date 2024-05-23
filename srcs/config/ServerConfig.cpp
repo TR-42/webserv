@@ -16,9 +16,12 @@ ServerConfig::ServerConfig(
 
 webserv::ServerConfig::ServerConfig(
 	const ServerConfig &from
-)
+) : _ServerNameList(from._ServerNameList),
+		_Port(from._Port),
+		_RequestBodyLimit(from._RequestBodyLimit),
+		_ErrorPageMap(from._ErrorPageMap),
+		_RouteList(from._RouteList)
 {
-	*this = from;
 }
 
 ServerConfig::~ServerConfig()
@@ -32,13 +35,11 @@ ServerConfig &webserv::ServerConfig::operator=(
 	if (this == &from)
 		return *this;
 
-	this->setProps(
-		from._ServerNameList,
-		from._Port,
-		from._RequestBodyLimit,
-		from._ErrorPageMap,
-		from._RouteList
-	);
+	this->_ServerNameList = from._ServerNameList;
+	this->_Port = from._Port;
+	this->_RequestBodyLimit = from._RequestBodyLimit;
+	this->_ErrorPageMap = from._ErrorPageMap;
+	this->_RouteList = from._RouteList;
 
 	return *this;
 }
@@ -55,21 +56,6 @@ ServerConfig::ServerConfig(
 		_ErrorPageMap(errorPageMap),
 		_RouteList(routeList)
 {
-}
-
-void ServerConfig::setProps(
-	const std::vector<std::string> &serverNameList,
-	uint16_t port,
-	std::size_t requestBodyLimit,
-	const ErrorPageMapType &errorPages,
-	const RouteListType &routeList
-)
-{
-	this->_ServerNameList = serverNameList;
-	this->_Port = port;
-	this->_RequestBodyLimit = requestBodyLimit;
-	this->_ErrorPageMap = errorPages;
-	this->_RouteList = routeList;
 }
 
 IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, ServerNameList, ServerConfig::)

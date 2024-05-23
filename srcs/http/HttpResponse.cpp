@@ -20,6 +20,35 @@ HttpResponse::HttpResponse(
 {
 }
 
+HttpResponse::HttpResponse(
+	const HttpResponse &src
+) : _Version(src._Version),
+		_StatusCode(src._StatusCode),
+		_ReasonPhrase(src._ReasonPhrase),
+		_Headers(src._Headers),
+		_Body(src._Body)
+{
+}
+
+HttpResponse &HttpResponse::operator=(const HttpResponse &src)
+{
+	if (this == &src) {
+		return *this;
+	}
+
+	this->_Version = src._Version;
+	this->_StatusCode = src._StatusCode;
+	this->_ReasonPhrase = src._ReasonPhrase;
+	this->_Headers = src._Headers;
+	this->_Body = src._Body;
+
+	return *this;
+}
+
+HttpResponse::~HttpResponse()
+{
+}
+
 void HttpResponse::setBody(const std::string &body)
 {
 	this->_Body = std::vector<uint8_t>(body.begin(), body.end());

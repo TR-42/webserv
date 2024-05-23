@@ -10,9 +10,9 @@ HttpRedirectConfig::HttpRedirectConfig(
 
 webserv::HttpRedirectConfig::HttpRedirectConfig(
 	const HttpRedirectConfig &from
-)
+) : _To(from._To),
+		_Code(from._Code)
 {
-	*this = from;
 }
 
 HttpRedirectConfig::HttpRedirectConfig(
@@ -30,21 +30,10 @@ HttpRedirectConfig &webserv::HttpRedirectConfig::operator=(
 	if (this == &from)
 		return *this;
 
-	this->setProps(
-		from._To,
-		from._Code
-	);
+	this->_To = from._To;
+	this->_Code = from._Code;
 
 	return *this;
-}
-
-void webserv::HttpRedirectConfig::setProps(
-	const std::string &to,
-	uint16_t code
-)
-{
-	this->_To = to;
-	this->_Code = code;
 }
 
 webserv::HttpRedirectConfig::~HttpRedirectConfig()

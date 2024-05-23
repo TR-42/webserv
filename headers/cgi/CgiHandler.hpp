@@ -19,6 +19,9 @@ class CgiHandler : public Pollable
 	CgiHandler **_cgiServiceCgiHandlerField;
 	HttpResponse *_cgiServiceHttpResponseField;
 
+	CgiHandler(const CgiHandler &src);
+	CgiHandler &operator=(const CgiHandler &src);
+
  public:
 	CgiHandler(
 		const utils::ErrorPageProvider &errorPageProvider,

@@ -10,18 +10,14 @@ ListenConfig::ListenConfig(
 
 ListenConfig::ListenConfig(
 	const ListenConfig &from
-)
+) : _ListenMap(from._ListenMap)
 {
-	*this = from;
 }
 
 ListenConfig::ListenConfig(
 	const ListenMapType &listenMap
-)
+) : _ListenMap(listenMap)
 {
-	this->setProps(
-		listenMap
-	);
 }
 
 ListenConfig &ListenConfig::operator=(
@@ -31,18 +27,9 @@ ListenConfig &ListenConfig::operator=(
 	if (this == &from)
 		return *this;
 
-	this->setProps(
-		from._ListenMap
-	);
+	this->_ListenMap = from._ListenMap;
 
 	return *this;
-}
-
-void webserv::ListenConfig::setProps(
-	const ListenMapType &srcListenMap
-)
-{
-	this->_ListenMap = srcListenMap;
 }
 
 ListenConfig::~ListenConfig()

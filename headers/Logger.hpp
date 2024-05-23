@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <string>
 
 #ifdef DEBUG
@@ -159,7 +160,10 @@ class Logger
 		const char *func
 	) const;
 
-	Logger &operator=(const Logger &src);
+	Logger &operator=(const Logger &)
+	{
+		throw std::runtime_error("Logger copy assignment operator is not allowed");
+	}
 
  public:
 	Logger();

@@ -160,14 +160,6 @@ webserv::Logger::Logger(
 {
 }
 
-webserv::Logger &webserv::Logger::operator=(
-	const Logger &src
-)
-{
-	(void)src;
-	throw std::logic_error("Logger::operator= is not implemented");
-}
-
 std::string webserv::Logger::getCustomId() const
 {
 	return this->_CustomId;

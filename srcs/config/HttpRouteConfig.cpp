@@ -21,25 +21,6 @@ webserv::HttpRouteConfig::HttpRouteConfig(
 	*this = from;
 }
 
-void HttpRouteConfig::setProps(
-	const std::string &requestPath,
-	const std::vector<std::string> &methods,
-	const HttpRedirectConfig &redirect,
-	const std::string &documentRoot,
-	bool isDocumentListingEnabled,
-	const std::vector<std::string> &indexFileList,
-	const CgiConfigListType &cgiConfigList
-)
-{
-	this->_RequestPath = requestPath;
-	this->_Methods = methods;
-	this->_Redirect = redirect;
-	this->_DocumentRoot = documentRoot;
-	this->_IsDocumentListingEnabled = isDocumentListingEnabled;
-	this->_IndexFileList = indexFileList;
-	this->_CgiConfigList = cgiConfigList;
-}
-
 HttpRouteConfig &webserv::HttpRouteConfig::operator=(
 	const HttpRouteConfig &from
 )
@@ -47,15 +28,13 @@ HttpRouteConfig &webserv::HttpRouteConfig::operator=(
 	if (this == &from)
 		return *this;
 
-	this->setProps(
-		from._RequestPath,
-		from._Methods,
-		from._Redirect,
-		from._DocumentRoot,
-		from._IsDocumentListingEnabled,
-		from._IndexFileList,
-		from._CgiConfigList
-	);
+	this->_RequestPath = from._RequestPath;
+	this->_Methods = from._Methods;
+	this->_Redirect = from._Redirect;
+	this->_DocumentRoot = from._DocumentRoot;
+	this->_IsDocumentListingEnabled = from._IsDocumentListingEnabled;
+	this->_IndexFileList = from._IndexFileList;
+	this->_CgiConfigList = from._CgiConfigList;
 
 	return *this;
 }

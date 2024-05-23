@@ -14,13 +14,6 @@ class CgiConfig
 	DECL_VAR_REF_GETTER_SETTER(std::string, CgiExecutableFullPath)
 	DECL_VAR_REF_GETTER_SETTER(env::EnvManager, EnvPreset)
 
- private:
-	void setProps(
-		const std::string &extensionWithoutDot,
-		const std::string &cgiExecutableFullPath,
-		const env::EnvManager &envPreset
-	);
-
  public:
 	CgiConfig();
 	CgiConfig(

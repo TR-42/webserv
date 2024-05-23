@@ -24,6 +24,9 @@ class CgiExecuter
 		char **envp
 	);
 
+	CgiExecuter(const CgiExecuter &src);
+	CgiExecuter &operator=(const CgiExecuter &src);
+
  public:
 	CgiExecuter(
 		const std::vector<uint8_t> &requestBody,

@@ -19,9 +19,10 @@ CgiConfig::CgiConfig(
 
 CgiConfig::CgiConfig(
 	const CgiConfig &from
-)
+) : _ExtensionWithoutDot(from._ExtensionWithoutDot),
+		_CgiExecutableFullPath(from._CgiExecutableFullPath),
+		_EnvPreset(from._EnvPreset)
 {
-	*this = from;
 }
 
 CgiConfig &CgiConfig::operator=(
@@ -31,24 +32,11 @@ CgiConfig &CgiConfig::operator=(
 	if (this == &from)
 		return *this;
 
-	this->setProps(
-		from.getExtensionWithoutDot(),
-		from.getCgiExecutableFullPath(),
-		from.getEnvPreset()
-	);
+	this->_ExtensionWithoutDot = from._ExtensionWithoutDot;
+	this->_CgiExecutableFullPath = from._CgiExecutableFullPath;
+	this->_EnvPreset = from._EnvPreset;
 
 	return *this;
-}
-
-void CgiConfig::setProps(
-	const std::string &extensionWithoutDot,
-	const std::string &cgiExecutableFullPath,
-	const env::EnvManager &envPreset
-)
-{
-	this->_ExtensionWithoutDot = extensionWithoutDot;
-	this->_CgiExecutableFullPath = cgiExecutableFullPath;
-	this->_EnvPreset = envPreset;
 }
 
 CgiConfig::~CgiConfig()
