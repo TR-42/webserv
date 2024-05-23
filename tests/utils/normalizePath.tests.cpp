@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <utils.hpp>
+#include <utils/normalizePath.hpp>
 
 TEST(normalizePath, Empty)
 {

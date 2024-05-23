@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <utils.hpp>
+#include <utils/url_decode.hpp>
 
 TEST(url_decode, empty)
 {

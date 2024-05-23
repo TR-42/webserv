@@ -5,8 +5,8 @@
 #include <macros.hpp>
 #include <socket/ClientSocket.hpp>
 #include <socket/ServerSocket.hpp>
-#include <utils.hpp>
 #include <utils/UUIDv7.hpp>
+#include <utils/to_string.hpp>
 
 // 適当に決めた値
 #define ACCEPT_BACKLOG 16

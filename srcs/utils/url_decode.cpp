@@ -1,6 +1,6 @@
 #include <cstring>
 #include <stdexcept>
-#include <utils.hpp>
+#include <utils/url_decode.hpp>
 
 #include "types.hpp"
 #define URL_ENCODE_ESCAPE_CHAR '%'

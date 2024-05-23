@@ -1,4 +1,5 @@
-#include "utils.hpp"
+#include <utils/splitNameValue.hpp>
+#include <utils/strtrim.hpp>
 
 namespace webserv
 {

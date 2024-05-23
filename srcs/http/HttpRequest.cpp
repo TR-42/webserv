@@ -1,9 +1,11 @@
 #include <cstring>
 #include <http/HttpRequest.hpp>
 #include <iostream>
+#include <utils/normalizePath.hpp>
+#include <utils/pickLine.hpp>
+#include <utils/splitNameValue.hpp>
 
 #include "http/HttpFieldMap.hpp"
-#include "utils.hpp"
 
 namespace webserv
 {

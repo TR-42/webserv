@@ -1,7 +1,9 @@
 #include "http/HttpFieldMap.hpp"
 
 #include <cctype>
-#include <utils.hpp>
+#include <utils/getTimeStr.hpp>
+#include <utils/stoul.hpp>
+#include <utils/to_string.hpp>
 
 namespace webserv
 {
