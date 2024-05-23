@@ -1,5 +1,6 @@
+#include <utils/splitNameValue.hpp>
+
 #include "gtest/gtest.h"
-#include "utils.hpp"
 
 TEST(splitNameValue, EmptyString)
 {

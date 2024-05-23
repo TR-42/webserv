@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include <utils/strtrim.hpp>
 
 std::string webserv::utils::strtrim(
 	const std::string &str

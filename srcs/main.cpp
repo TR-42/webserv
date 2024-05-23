@@ -11,10 +11,11 @@
 #include <signal/signal_handler.hpp>
 #include <socket/ServerSocket.hpp>
 #include <string>
+#include <utils/getTimeStr.hpp>
+#include <utils/to_string.hpp>
 
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
-#include "utils.hpp"
 #include "utils/ErrorPageProvider.hpp"
 
 static std::string get_argv_str(int argc, const char *argv[])

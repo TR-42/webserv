@@ -10,7 +10,8 @@
 #include <service/PostFileService.hpp>
 #include <service/SimpleService.hpp>
 #include <types.hpp>
-#include <utils.hpp>
+#include <utils/getTimeStr.hpp>
+#include <utils/modeToString.hpp>
 
 namespace webserv
 {

@@ -1,5 +1,6 @@
+#include <utils/strtrim.hpp>
+
 #include "gtest/gtest.h"
-#include "utils.hpp"
 
 TEST(strtrim, EmptyString)
 {

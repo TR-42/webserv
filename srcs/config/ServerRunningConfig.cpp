@@ -5,7 +5,6 @@
 #include <iostream>
 #include <set>
 #include <stdexcept>
-#include <utils.hpp>
 #include <utils/ErrorPageProvider.hpp>
 #include <utils/UUIDv7.hpp>
 

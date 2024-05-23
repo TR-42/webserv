@@ -5,9 +5,10 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utils/stoul.hpp>
+#include <utils/to_string.hpp>
 
 #include "http/HttpFieldMap.hpp"
-#include "utils.hpp"
 
 namespace webserv
 {

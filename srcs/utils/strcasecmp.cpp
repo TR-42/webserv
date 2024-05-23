@@ -1,6 +1,5 @@
 #include <cctype>
-
-#include "utils.hpp"
+#include <utils/strcasecmp.hpp>
 
 namespace webserv
 {

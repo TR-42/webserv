@@ -1,5 +1,6 @@
+#include <utils/stoul.hpp>
+
 #include "math/math.hpp"
-#include "utils.hpp"
 
 namespace webserv
 {

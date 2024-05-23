@@ -6,7 +6,8 @@
 #include <iostream>
 #include <service/DeleteFileService.hpp>
 #include <service/getRequestedFilePath.hpp>
-#include <utils.hpp>
+#include <utils/getTimeStr.hpp>
+#include <utils/modeToString.hpp>
 
 namespace webserv
 {

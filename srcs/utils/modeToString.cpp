@@ -1,7 +1,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "utils.hpp"
+#include <utils/modeToString.hpp>
 
 namespace webserv
 {

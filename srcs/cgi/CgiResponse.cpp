@@ -3,12 +3,15 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <utils/pickLine.hpp>
+#include <utils/splitNameValue.hpp>
+#include <utils/splitWithSpace.hpp>
+#include <utils/strcasecmp.hpp>
 
 #include "cgi/CgiResponseMode.hpp"
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
 #include "service/ServiceEventResult.hpp"
-#include "utils.hpp"
 #include "utils/ErrorPageProvider.hpp"
 
 namespace webserv

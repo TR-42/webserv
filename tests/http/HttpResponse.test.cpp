@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <http/HttpResponse.hpp>
-#include <utils.hpp>
+#include <utils/getTimeStr.hpp>
 
 #include "http/HttpFieldMap.hpp"
 

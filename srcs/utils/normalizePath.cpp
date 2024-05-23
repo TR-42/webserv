@@ -1,4 +1,4 @@
-#include <utils.hpp>
+#include <utils/normalizePath.hpp>
 #include <vector>
 
 namespace webserv

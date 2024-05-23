@@ -15,7 +15,10 @@
 #include <service/getRequestedFilePath.hpp>
 #include <sstream>
 #include <types.hpp>
-#include <utils.hpp>
+#include <utils/getTimeStr.hpp>
+#include <utils/modeToString.hpp>
+#include <utils/normalizePath.hpp>
+#include <utils/to_string.hpp>
 
 namespace webserv
 {

@@ -1,5 +1,5 @@
 #include <service/getRequestedFilePath.hpp>
-#include <utils.hpp>
+#include <utils/normalizePath.hpp>
 
 namespace webserv
 {

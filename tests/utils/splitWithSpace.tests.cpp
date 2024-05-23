@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <utils.hpp>
+#include <utils/splitWithSpace.hpp>
 
 TEST(splitWithSpace, Empty)
 {

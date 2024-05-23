@@ -8,7 +8,6 @@
 #include "cgi/CgiResponseMode.hpp"
 #include "http/HttpFieldMap.hpp"
 #include "service/ServiceEventResult.hpp"
-#include "utils.hpp"
 #include "utils/ErrorPageProvider.hpp"
 
 namespace webserv
@@ -33,13 +32,6 @@ class CgiResponse
 	const std::vector<uint8_t> &getResponseBody() const;
 
 	bool pushResponseRaw(const std::vector<uint8_t> &responseRaw);
-	bool isSetContentType;
-	bool isSetLocation;
-	bool isSetStatus;
-	bool isSetProtocolFieldMap;
-	bool isSetExtensionFieldMap;
-	bool isSetResponseBody;
-	bool isAbsolutePath;
 
  private:
 	Logger logger;
@@ -53,6 +45,14 @@ class CgiResponse
 	HttpFieldMap _ExtensionFieldMap;
 
 	bool _IsResponseHeaderParsed;
+
+	bool isSetContentType;
+	bool isSetLocation;
+	bool isSetStatus;
+	bool isSetProtocolFieldMap;
+	bool isSetExtensionFieldMap;
+	bool isSetResponseBody;
+	bool isAbsolutePath;
 
 	std::vector<uint8_t> _UnparsedResponseRaw;
 

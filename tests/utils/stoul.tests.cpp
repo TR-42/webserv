@@ -1,5 +1,6 @@
+#include <utils/stoul.hpp>
+
 #include "gtest/gtest.h"
-#include "utils.hpp"
 
 TEST(stoul, EmptyString)
 {
