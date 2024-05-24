@@ -1,3 +1,4 @@
+#include <cerrno>
 #include <iostream>
 #include <macros.hpp>
 #include <poll/Poll.hpp>
