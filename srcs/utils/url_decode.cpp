@@ -5,7 +5,7 @@
 #include "types.hpp"
 #define URL_ENCODE_ESCAPE_CHAR '%'
 #if URL_ENCODE_ESCAPE_CHAR == '\0'
-#error URL_ENCODE_ESCAPE_CHAR must not be '\0'
+#define() error URL_ENCODE_ESCAPE_CHAR must not be '\0'
 #endif
 
 static webserv::uint8_t _hex_to_uint8(
