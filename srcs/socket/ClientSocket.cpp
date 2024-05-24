@@ -12,6 +12,7 @@
 #include <utils/to_string.hpp>
 
 #define RECV_BUFFER_SIZE 1024
+#define WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES (128 * 1024 * 1024)
 
 namespace webserv
 {
@@ -89,6 +90,14 @@ PollEventResultType ClientSocket::_processPollIn(
 			<< "httpRequest.pushRequestRaw() failed"
 			<< std::endl;
 		this->_setResponse(utils::ErrorPageProvider().badRequest());
+		return PollEventResult::OK;
+	}
+
+	if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getContentLength()) {
+		CS_WARN()
+			<< "Request body size is too large"
+			<< std::endl;
+		this->_setResponse(utils::ErrorPageProvider().requestEntityTooLarge());
 		return PollEventResult::OK;
 	}
 
