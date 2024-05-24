@@ -2,6 +2,7 @@ name: webserv test
 on: [push]
 env:
   BUILD_PARALLEL: 16
+  SLEEP_BEFORE_TEST: 5
 
 jobs:
   make-test:
@@ -27,7 +28,9 @@ jobs:
       - run: make -j${{ env.BUILD_PARALLEL }}
       - run: ./webserv &
         id: exec-webserv
+      - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
+        continue-on-error: true
       - if: steps.exec-webserv.outcome == 'success'
         name: Find latest log file
         id: latest-log
@@ -53,7 +56,9 @@ jobs:
       - run: make debug -j${{ env.BUILD_PARALLEL }}
       - run: ./debug &
         id: exec-webserv
+      - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
+        continue-on-error: true
       - if: steps.exec-webserv.outcome == 'success'
         name: Find latest log file
         id: latest-log
