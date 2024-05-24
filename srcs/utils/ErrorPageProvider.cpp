@@ -156,7 +156,7 @@ void ErrorPageProvider::setErrorPageFromFile(
 
 	std::stringstream buffer;
 	{
-		std::ifstream file(path);
+		std::ifstream file(path, std::ios::in);
 		if (!file.is_open()) {
 			throw std::runtime_error("ErrorPageProvider::setErrorPageFromFile: file not found");
 			return;
