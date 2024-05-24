@@ -2,6 +2,7 @@
 
 #include <Logger.hpp>
 #include <poll/Pollable.hpp>
+#include <types.hpp>
 #include <utils/ErrorPageProvider.hpp>
 
 #include "./CgiResponse.hpp"

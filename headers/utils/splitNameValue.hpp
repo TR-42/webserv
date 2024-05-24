@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <types.hpp>
 #include <vector>
 
 namespace webserv

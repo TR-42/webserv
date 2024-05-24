@@ -1,6 +1,7 @@
 #pragma once
 
 #include <service/ServiceBase.hpp>
+#include <types.hpp>
 
 #include "./CgiHandler.hpp"
 

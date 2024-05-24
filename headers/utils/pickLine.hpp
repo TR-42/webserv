@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <types.hpp>
 #include <vector>
 
 namespace webserv
