@@ -13,14 +13,14 @@ namespace utils
 std::string to_string(int i)
 {
 	char buf[16];
-	std::snprintf(buf, sizeof(buf), "%d", i);
+	std::sprintf(buf, "%d", i);
 	return std::string(buf);
 }
 
 std::string to_string(size_t i)
 {
 	char buf[32];
-	std::snprintf(buf, sizeof(buf), "%zu", i);
+	std::sprintf(buf, "%zu", i);
 	return std::string(buf);
 }
 
@@ -28,12 +28,11 @@ static std::string _ipv4_to_string(
 	const struct in_addr &addr
 )
 {
-	char buf[15];
+	char buf[16];
 
 	uint32_t addr32 = ntohl(addr.s_addr);
-	std::snprintf(
+	std::sprintf(
 		buf,
-		sizeof(buf),
 		"%d.%d.%d.%d",
 		(addr32 >> (3 * 8)) & 0xff,
 		(addr32 >> (2 * 8)) & 0xff,
@@ -53,9 +52,8 @@ static std::string _ipv6_to_string(
 
 	for (size_t i = 0; i < 8; i++) {
 		uint16_t part = ntohs(*((uint16_t *)(&addr.s6_addr[i * 2])));
-		int len = std::snprintf(
+		int len = std::sprintf(
 			bufPtr,
-			sizeof(buf) - (bufPtr - buf),
 			"%x:",
 			part
 		);

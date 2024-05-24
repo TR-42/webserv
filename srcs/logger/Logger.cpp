@@ -68,7 +68,7 @@ _get_timestamp()
 	const std::tm tm = *std::gmtime(&t);
 	char buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF)];
 	size_t tm_body_len = std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm);
-	std::snprintf(buf + tm_body_len, sizeof(buf) - tm_body_len, TIMESTAMP_US_FORMAT, NS_TO_US(ts.tv_nsec));
+	std::sprintf(buf + tm_body_len, TIMESTAMP_US_FORMAT, NS_TO_US(ts.tv_nsec));
 
 	return std::string(buf);
 }
