@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include <cerrno>
 #include <cgi/CgiHandler.hpp>
 #include <cstdio>
 #include <cstring>

@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <cerrno>
 #include <config/ServerRunningConfig.hpp>
 #include <macros.hpp>
 #include <service/DeleteFileService.hpp>

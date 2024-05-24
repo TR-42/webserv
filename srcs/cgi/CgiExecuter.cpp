@@ -1,8 +1,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <cgi/CgiExecuter.hpp>
 #include <climits>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>

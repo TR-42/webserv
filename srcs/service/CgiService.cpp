@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <EnvManager.hpp>
+#include <cerrno>
 #include <macros.hpp>
 #include <service/CgiService.hpp>
 #include <utils/waitResultStatusToString.hpp>
