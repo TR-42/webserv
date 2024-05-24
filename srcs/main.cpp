@@ -120,11 +120,11 @@ static void generatePidFile(
 )
 {
 #ifdef DEBUG
-	std::string pidFilePath = std::string(argv0) + ".pid";
+	std::string pidFilePath(std::string(argv0) + ".pid");
 	pid_t pid = getpid();
 	std::ofstream pidFile;
 
-	pidFile.open(pidFilePath, std::ios_base::out | std::ios_base::trunc);
+	pidFile.open(pidFilePath.c_str(), std::ios_base::out | std::ios_base::trunc);
 	pidFile << pid;
 	pidFile.close();
 
@@ -143,7 +143,8 @@ int main(int argc, const char *argv[])
 	__size_check();
 
 	std::ofstream logFile;
-	logFile.open("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log", std::ios_base::app);
+	std::string logFilePath("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log");
+	logFile.open(logFilePath.c_str(), std::ios_base::app);
 	webserv::Logger logger(logFile);
 	webserv::utils::ErrorPageProvider errorPageProvider;
 
