@@ -5,6 +5,7 @@
 #include <Logger.hpp>
 #include <config/ServerRunningConfig.hpp>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <poll/Poll.hpp>
@@ -196,16 +197,16 @@ static void __size_check()
 
 	if (sizeof(uint8) != 1) {
 		std::cerr << "sizeof(uint8) != 1" << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 
 	if (sizeof(uint16) != 2) {
 		std::cerr << "sizeof(uint16) != 2" << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 
 	if (sizeof(uint32) != 4) {
 		std::cerr << "sizeof(uint32) != 4" << std::endl;
-		exit(1);
+		std::exit(1);
 	}
 }

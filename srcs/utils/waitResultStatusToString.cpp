@@ -1,3 +1,5 @@
+#include <sys/wait.h>
+
 #include <utils/to_string.hpp>
 #include <utils/waitResultStatusToString.hpp>
 
