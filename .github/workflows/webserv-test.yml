@@ -1,13 +1,62 @@
 name: webserv test
 on: [push]
 jobs:
-  webserv-test:
+  make-test:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: "true"
       - run: make test
+
+  test-python-http:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: make
+      - run: ./webserv &
+        id: exec-webserv
+      - run: python3 test-ci/http-test.py
+      - if: steps.exec-webserv.outcome == 'success'
+        name: Find latest log file
+        id: latest-log
+        run: echo "::set-output name=file::$(ls -t logs | head -n 1)"
+      - if: steps.exec-webserv.outcome == 'success'
+        run: kill $(pgrep webserv)
+      - if: steps.exec-webserv.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: webserv-${{ matrix.os }}-log
+          path: logs/${{ steps.latest-log.outputs.file }}
+
+  debug-test-python-http:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: make debug
+      - run: ./debug &
+        id: exec-webserv
+      - run: python3 test-ci/http-test.py
+      - if: steps.exec-webserv.outcome == 'success'
+        name: Find latest log file
+        id: latest-log
+        run: echo "::set-output name=file::$(ls -t logs | head -n 1)"
+      - if: steps.exec-webserv.outcome == 'success'
+        run: kill $(cat debug.pid)
+      - if: steps.exec-webserv.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-${{ matrix.os }}-log
+          path: logs/${{ steps.latest-log.outputs.file }}
