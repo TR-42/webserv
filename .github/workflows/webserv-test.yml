@@ -36,7 +36,7 @@ jobs:
         run: echo "file=$(ls -t logs | head -n 1)" >> $GITHUB_OUTPUT
         continue-on-error: true
       - if: always() &&  steps.exec-webserv.outcome == 'success'
-        run: kill $(pgrep webserv)
+        run: sudo kill $(pgrep webserv)
         continue-on-error: true
       - if: always() &&  steps.exec-webserv.outcome == 'success'
         run: cat logs/${{ steps.latest-log.outputs.file }}
@@ -65,7 +65,7 @@ jobs:
         run: echo "file=$(ls -t logs | head -n 1)" >> $GITHUB_OUTPUT
         continue-on-error: true
       - if: always() && steps.exec-webserv.outcome == 'success'
-        run: kill $(cat debug.pid)
+        run: sudo kill $(cat debug.pid)
         continue-on-error: true
       - if: always() && steps.exec-webserv.outcome == 'success'
         run: cat logs/${{ steps.latest-log.outputs.file }}
