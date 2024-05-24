@@ -18,6 +18,8 @@
 #include "http/HttpResponse.hpp"
 #include "utils/ErrorPageProvider.hpp"
 
+static void __size_check();
+
 static std::string get_argv_str(int argc, const char *argv[])
 {
 	std::string str;
@@ -136,6 +138,8 @@ static void generatePidFile(
 
 int main(int argc, const char *argv[])
 {
+	__size_check();
+
 	std::ofstream logFile("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log", std::ios_base::app);
 	webserv::Logger logger(logFile);
 	webserv::utils::ErrorPageProvider errorPageProvider;
@@ -178,4 +182,26 @@ int main(int argc, const char *argv[])
 	}
 
 	return 0;
+}
+
+static void __size_check()
+{
+	webserv::uint8_t uint8;
+	webserv::uint16_t uint16;
+	webserv::uint32_t uint32;
+
+	if (sizeof(uint8) != 1) {
+		std::cerr << "sizeof(uint8) != 1" << std::endl;
+		exit(1);
+	}
+
+	if (sizeof(uint16) != 2) {
+		std::cerr << "sizeof(uint16) != 2" << std::endl;
+		exit(1);
+	}
+
+	if (sizeof(uint32) != 4) {
+		std::cerr << "sizeof(uint32) != 4" << std::endl;
+		exit(1);
+	}
 }
