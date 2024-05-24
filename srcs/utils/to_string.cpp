@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 
-#include <cstdio>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <utils/to_string.hpp>
 
@@ -12,59 +13,52 @@ namespace utils
 
 std::string to_string(int i)
 {
-	char buf[16];
-	std::sprintf(buf, "%d", i);
-	return std::string(buf);
+	std::stringstream ss;
+	ss << std::dec << i;
+	return ss.str();
 }
 
 std::string to_string(size_t i)
 {
-	char buf[32];
-	std::sprintf(buf, "%zu", i);
-	return std::string(buf);
+	std::stringstream ss;
+	ss << std::dec << i;
+	return ss.str();
 }
 
 static std::string _ipv4_to_string(
 	const struct in_addr &addr
 )
 {
-	char buf[16];
+	std::stringstream ss;
 
 	uint32_t addr32 = ntohl(addr.s_addr);
-	std::sprintf(
-		buf,
-		"%d.%d.%d.%d",
-		(addr32 >> (3 * 8)) & 0xff,
-		(addr32 >> (2 * 8)) & 0xff,
-		(addr32 >> (1 * 8)) & 0xff,
-		(addr32 >> (0 * 8)) & 0xff
-	);
+	ss << std::dec
+		 << (addr32 >> (3 * 8))
+		 << '.'
+		 << ((addr32 >> (2 * 8)) & 0xff)
+		 << '.'
+		 << ((addr32 >> (1 * 8)) & 0xff)
+		 << '.'
+		 << ((addr32 >> (0 * 8)) & 0xff);
 
-	return std::string(buf);
+	return ss.str();
 }
 
 static std::string _ipv6_to_string(
 	const struct in6_addr &addr
 )
 {
-	char buf[41];
-	char *bufPtr = buf;
+	std::stringstream ss;
 
 	for (size_t i = 0; i < 8; i++) {
 		uint16_t part = ntohs(*((uint16_t *)(&addr.s6_addr[i * 2])));
-		int len = std::sprintf(
-			bufPtr,
-			"%x:",
-			part
-		);
-		if (len <= 0) {
-			return "(error)";
+		ss << std::hex << part;
+		if (i < 7) {
+			ss << ':';
 		}
-		bufPtr += len;
 	}
-	(bufPtr - 1)[0] = '\0';
 
-	return std::string(buf);
+	return ss.str();
 }
 
 std::string to_string(
