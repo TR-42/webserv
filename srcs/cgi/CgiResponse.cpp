@@ -18,7 +18,8 @@ namespace webserv
 {
 
 CgiResponse::CgiResponse(
-	const Logger &logger
+	const Logger &logger,
+	const utils::ErrorPageProvider &errorPageProvider
 ) : logger(logger),
 		_mode(CgiResponseMode::DOCUMENT),
 		_ContentType(""),
@@ -32,7 +33,8 @@ CgiResponse::CgiResponse(
 		isSetProtocolFieldMap(false),
 		isSetExtensionFieldMap(false),
 		isSetResponseBody(false),
-		isAbsolutePath(false)
+		isAbsolutePath(false),
+		_errorPageProvider(errorPageProvider)
 {
 }
 
@@ -42,13 +44,24 @@ CgiResponse::~CgiResponse()
 
 CgiResponse::CgiResponse(
 	const CgiResponse &other
-) : _mode(other._mode),
+) : logger(other.logger),
+		_mode(other._mode),
 		_ContentType(other._ContentType),
 		_Location(other._Location),
 		_StatusCode(other._StatusCode),
 		_ReasonPhrase(other._ReasonPhrase),
 		_ProtocolFieldMap(other._ProtocolFieldMap),
-		_ExtensionFieldMap(other._ExtensionFieldMap)
+		_ExtensionFieldMap(other._ExtensionFieldMap),
+		_IsResponseHeaderParsed(other._IsResponseHeaderParsed),
+		isSetContentType(other.isSetContentType),
+		isSetLocation(other.isSetLocation),
+		isSetStatus(other.isSetStatus),
+		isSetProtocolFieldMap(other.isSetProtocolFieldMap),
+		isSetExtensionFieldMap(other.isSetExtensionFieldMap),
+		isSetResponseBody(other.isSetResponseBody),
+		isAbsolutePath(other.isAbsolutePath),
+		_UnparsedResponseRaw(other._UnparsedResponseRaw),
+		_errorPageProvider(other._errorPageProvider)
 {
 }
 
@@ -78,6 +91,14 @@ std::vector<uint8_t> CgiResponse::generateResponsePacket(
 
 HttpResponse CgiResponse::getHttpResponse() const
 {
+	if (this->_mode == CgiResponseMode::LOCAL_REDIRECT) {
+		return this->_errorPageProvider.internalServerError();
+	}
+
+	if (this->_mode == CgiResponseMode::CLIENT_REDIRECT && !this->_UnparsedResponseRaw.empty()) {
+		return this->_errorPageProvider.internalServerError();
+	}
+
 	HttpResponse httpResponse;
 	httpResponse.setVersion("HTTP/1.1");
 	httpResponse.setStatusCode(this->_StatusCode);
@@ -150,7 +171,6 @@ bool CgiResponse::pushResponseRaw(
 				this->_mode = CgiResponseMode::LOCAL_REDIRECT;
 			}
 
-			// protocol, status, contenttype入れられない
 			else if (
 				!this->isSetProtocolFieldMap &&
 				!this->isSetStatus &&

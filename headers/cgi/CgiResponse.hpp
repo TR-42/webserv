@@ -15,10 +15,9 @@ namespace webserv
 class CgiResponse
 {
  public:
-	CgiResponse(const Logger &logger);
+	CgiResponse(const Logger &logger, const utils::ErrorPageProvider &errorPageProvider);
 	~CgiResponse();
 	CgiResponse(const CgiResponse &other);
-	CgiResponse &operator=(const CgiResponse &other);
 	std::vector<uint8_t> generateResponsePacket(bool withBody) const;
 	HttpResponse getHttpResponse() const;
 
@@ -56,7 +55,11 @@ class CgiResponse
 
 	std::vector<uint8_t> _UnparsedResponseRaw;
 
+	utils::ErrorPageProvider _errorPageProvider;
+
 	bool parseResponseHeader(const std::vector<uint8_t> &responseRawLine);
+
+	CgiResponse &operator=(const CgiResponse &other);
 };
 
 }	 // namespace webserv
