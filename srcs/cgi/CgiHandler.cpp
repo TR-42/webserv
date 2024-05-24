@@ -19,7 +19,7 @@ CgiHandler::CgiHandler(
 		logger(logger),
 		_errorPageProvider(errorPageProvider),
 		_isAnyResponseReceived(false),
-		_cgiResponse(logger),
+		_cgiResponse(logger, errorPageProvider),
 		_cgiServiceCgiHandlerField(_cgiServiceCgiHandlerField),
 		_cgiServiceHttpResponseField(_cgiServiceHttpResponseField)
 {

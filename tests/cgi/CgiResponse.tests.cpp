@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "http/HttpResponse.hpp"
+#include "utils/getTimeStr.hpp"
 
 namespace webserv
 {
@@ -18,7 +19,8 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 	httpResponse.setHeaders(HttpFieldMap());
 	httpResponse.setBody(std::vector<uint8_t>());
 
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
 	std::vector<uint8_t>
 		expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
@@ -31,7 +33,8 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 // getterのテスト
 TEST(CgiResponseTest, Getters)
 {
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
 	EXPECT_EQ(response.getMode(), CgiResponseMode::DOCUMENT);
 	EXPECT_EQ(response.getContentType(), "");
 	EXPECT_EQ(response.getLocation(), "");
@@ -44,7 +47,7 @@ TEST(CgiResponseTest, Getters)
 
 TEST(CgiResponseTest, Parse)
 {
-	CgiResponse cgiResponse(logger);
+	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
 	std::string cgiResponseStr =
 		"X-Powered-By: PHP/8.3.4\n"
 		"X-CGI-SampleField: SampleValue\n"
@@ -131,7 +134,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
 
-	CgiResponse cgiResponse(logger);
+	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
 	std::string cgiResponseStr =
 		"X-Powered-By: PHP/8.3.4\n"
 		"X-CGI: SampleValue\n"
@@ -163,7 +166,8 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 // getterのテスト2
 TEST(CgiResponseTest, Getters2)
 {
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
 	std::string cgiResponseStr =
 		"Status: 500 Internal Server Error\n"
 		"X-Powered-By: PHP/8.3.4\n"
@@ -213,7 +217,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
 
-	CgiResponse cgiResponse(logger);
+	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
 	std::string cgiResponseStr =
 		"Status: 404 Not Found\n"
 		"X-Powered-By: PHP/8.3.4\n"
@@ -232,7 +236,8 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 // getterのテスト3
 TEST(CgiResponseTest, Getters3)
 {
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
 	std::string cgiResponseStr =
 		"Status: 501 Not Implemented\n"
 		"x-powered-by: PHP/8.3.4 abc\n"
@@ -287,7 +292,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
 	std::string expectedStr(expected.begin(), expected.end());
 
-	CgiResponse cgiResponse(logger);
+	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
 	std::string cgiResponseStr =
 		"status: 501 Not Implemented\n"
 		"x-powered-by: PHP/8.3.4 abc\n"
@@ -304,7 +309,8 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 
 TEST(CgiResponseTest, ResponseModeDocument)
 {
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
 	std::string cgiResponseStr =
 		"Status: 200 OK\n"
 		"Content-type: text/html; charset=UTF-8\n"
@@ -319,7 +325,8 @@ TEST(CgiResponseTest, ResponseModeDocument)
 
 TEST(CgiResponseTest, ResponseModeLocalRedirect)
 {
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
 	std::string cgiResponseStr =
 		"Location: /index.html\n"
 		"\n";
@@ -331,7 +338,8 @@ TEST(CgiResponseTest, ResponseModeLocalRedirect)
 
 TEST(CgiResponseTest, ResponseModeClientRedirect)
 {
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
 	std::string cgiResponseStr =
 		"Location: http://localhost/index.html\n"
 		"\n";
@@ -339,23 +347,100 @@ TEST(CgiResponseTest, ResponseModeClientRedirect)
 	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector3));
 	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT);
 	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
+	EXPECT_EQ(response.getResponseBody().size(), 0);
+
+	std::vector<uint8_t> actual = response.generateResponsePacket(true);
+	std::string timeStr = webserv::utils::getHttpTimeStr();
+	std::string httpStr =
+		"HTTP/1.1 301 Moved Permanently\r\n"
+		"Location: http://localhost/index.html\r\n"
+		"Date: " +
+		timeStr +
+		"\r\n"
+		"\r\n";
+	std::string actualStr(actual.begin(), actual.end());
+	EXPECT_EQ(actualStr, httpStr);
+}
+
+TEST(CgiResponseTest, ResponseModeClientRedirectWithBody)
+{
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
+	std::string cgiResponseStr =
+		"Location: http://localhost/index.html\n"
+		"\n"
+		"abc";
+	std::vector<uint8_t> cgiResponseVector4(cgiResponseStr.begin(), cgiResponseStr.end());
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector4));
+	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT);
+	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
+	EXPECT_EQ(response.getStatusCode(), "301");
+	EXPECT_EQ(response.getReasonPhrase(), "Moved Permanently");
+
+	std::vector<uint8_t> actual = response.generateResponsePacket(true);
+	std::string timeStr = webserv::utils::getHttpTimeStr();
+	std::string httpStr =
+		"HTTP/1.1 500 Internal Server Error\r\n"
+		"Content-Length: 26\r\n"
+		"Date: " +
+		timeStr +
+		"\r\n\r\n"
+		"500 Internal Server Error\n";
+	std::string actualStr(actual.begin(), actual.end());
+	EXPECT_EQ(actualStr, httpStr);
 }
 
 TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
 {
-	CgiResponse response(logger);
+	CgiResponse response(logger, utils::ErrorPageProvider());
 	std::string cgiResponseStr =
 		"Status: 301 Moved Permanently\n"
-		"Location: http://example.com/index.html\n"
+		"Location: http://localhost/index.html\n"
 		"Content-type: text/html; charset=UTF-8\n"
 		"\n";
 	std::vector<uint8_t> cgiResponseVector4(cgiResponseStr.begin(), cgiResponseStr.end());
 	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector4));
 	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT);
-	EXPECT_EQ(response.getLocation(), "http://example.com/index.html");
+	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
 	EXPECT_EQ(response.getStatusCode(), "301");
 	EXPECT_EQ(response.getContentType(), "text/html; charset=UTF-8");
 	EXPECT_EQ(response.getReasonPhrase(), "Moved Permanently");
+
+	std::vector<uint8_t> actual = response.generateResponsePacket(true);
+	std::string timeStr = webserv::utils::getHttpTimeStr();
+	std::string httpStr =
+		"HTTP/1.1 301 Moved Permanently\r\n"
+		"Location: http://localhost/index.html\r\n"
+		"Content-Type: text/html; charset=UTF-8\r\n"
+		"Date: " +
+		timeStr +
+		"\r\n"
+		"\r\n";
+
+	std::string actualStr(actual.begin(), actual.end());
+	EXPECT_EQ(actualStr, httpStr);
+}
+
+// 同じ名前のフィールドが複数ある場合の処理
+TEST(CgiResponseTest, MultipleFields)
+{
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
+	std::string cgiResponseStr =
+		"X-Powered-By: PHP/8.3.4\n"
+		"X-Powered-By: PHP/8.3.5\n"
+		"X-Powered-By: PHP/8.3.6\n"
+		"Content-type: text/html; charset=UTF-8\n"
+		"Date: Wed, 15 May 2024 12:34:56 GMT\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
+	response.pushResponseRaw(cgiResponseVector);
+	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
+	if (response.getProtocolFieldMap().isNameExists("X-Powered-By")) {
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[0], "PHP/8.3.4");
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[1], "PHP/8.3.5");
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[2], "PHP/8.3.6");
+	}
 }
 
 }	 // namespace webserv

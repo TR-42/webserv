@@ -68,11 +68,19 @@ void HttpFieldMap::appendToVector(
 	std::vector<uint8_t> body
 ) const
 {
+	if (this->isNameExists("Location")) {
+		_appendToVector("Location", fieldMap.find("Location")->second[0], dst);
+	}
+
 	for (
 		FieldMapType::const_iterator it = fieldMap.begin();
 		it != fieldMap.end();
 		++it
 	) {
+		if (it->first == "Location") {
+			continue;
+		}
+
 		// TODO: 同じ名前のフィールドが複数ある場合の処理
 		for (
 			std::vector<std::string>::const_iterator it2 = it->second.begin();
