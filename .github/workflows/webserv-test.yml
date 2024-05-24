@@ -35,6 +35,8 @@ jobs:
       - if: steps.exec-webserv.outcome == 'success'
         run: kill $(pgrep webserv)
       - if: steps.exec-webserv.outcome == 'success'
+        run: cat logs/${{ steps.latest-log.outputs.file }}
+      - if: steps.exec-webserv.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: webserv-${{ matrix.os }}-log
@@ -58,6 +60,8 @@ jobs:
         run: echo "::set-output name=file::$(ls -t logs | head -n 1)"
       - if: steps.exec-webserv.outcome == 'success'
         run: kill $(cat debug.pid)
+      - if: steps.exec-webserv.outcome == 'success'
+        run: cat logs/${{ steps.latest-log.outputs.file }}
       - if: steps.exec-webserv.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
