@@ -112,11 +112,35 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	return serverConfigList;
 }
 
+static void generatePidFile(
+	const char *argv0,
+	const webserv::Logger &logger
+)
+{
+#ifdef DEBUG
+	std::string pidFilePath = std::string(argv0) + ".pid";
+	pid_t pid = getpid();
+	std::ofstream pidFile(pidFilePath, std::ios_base::out | std::ios_base::trunc);
+	pidFile << pid;
+	pidFile.close();
+
+	LS_INFO()
+		<< "pid: " << std::dec << pid
+		<< " pidFilePath: " << pidFilePath
+		<< std::endl;
+#else
+	(void)argv0;
+	(void)logger;
+#endif
+}
+
 int main(int argc, const char *argv[])
 {
 	std::ofstream logFile("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log", std::ios_base::app);
 	webserv::Logger logger(logFile);
 	webserv::utils::ErrorPageProvider errorPageProvider;
+
+	generatePidFile(argv[0], logger);
 
 	std::cout << "Hello, World!" << std::endl;
 	L_LOG("argv: " + get_argv_str(argc, argv));
