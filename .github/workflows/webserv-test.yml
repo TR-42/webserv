@@ -1,5 +1,8 @@
 name: webserv test
 on: [push]
+env:
+  BUILD_PARALLEL: 16
+
 jobs:
   make-test:
     strategy:
@@ -21,7 +24,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: make
+      - run: make -j${{ env.BUILD_PARALLEL }}
       - run: ./webserv &
         id: exec-webserv
       - run: python3 test-ci/http-test.py
@@ -45,7 +48,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: make debug
+      - run: make debug -j${{ env.BUILD_PARALLEL }}
       - run: ./debug &
         id: exec-webserv
       - run: python3 test-ci/http-test.py
