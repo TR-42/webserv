@@ -34,9 +34,11 @@ jobs:
       - if: steps.exec-webserv.outcome == 'success'
         name: Find latest log file
         id: latest-log
-        run: echo "::set-output name=file::$(ls -t logs | head -n 1)"
+        run: echo "file=$(ls -t logs | head -n 1)" >> $GITHUB_OUTPUT
+        continue-on-error: true
       - if: steps.exec-webserv.outcome == 'success'
         run: kill $(pgrep webserv)
+        continue-on-error: true
       - if: steps.exec-webserv.outcome == 'success'
         run: cat logs/${{ steps.latest-log.outputs.file }}
       - if: steps.exec-webserv.outcome == 'success'
@@ -62,9 +64,11 @@ jobs:
       - if: steps.exec-webserv.outcome == 'success'
         name: Find latest log file
         id: latest-log
-        run: echo "::set-output name=file::$(ls -t logs | head -n 1)"
+        run: echo "file=$(ls -t logs | head -n 1)" >> $GITHUB_OUTPUT
+        continue-on-error: true
       - if: steps.exec-webserv.outcome == 'success'
         run: kill $(cat debug.pid)
+        continue-on-error: true
       - if: steps.exec-webserv.outcome == 'success'
         run: cat logs/${{ steps.latest-log.outputs.file }}
       - if: steps.exec-webserv.outcome == 'success'
