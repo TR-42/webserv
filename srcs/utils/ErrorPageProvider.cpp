@@ -20,6 +20,7 @@ const int ErrorPageProvider::NO_CONTENT;
 const int ErrorPageProvider::BAD_REQUEST;
 const int ErrorPageProvider::PERMISSION_DENIED;
 const int ErrorPageProvider::NOT_FOUND;
+const int ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE;
 const int ErrorPageProvider::MOVED_PERMANENTLY;
 const int ErrorPageProvider::FOUND;
 const int ErrorPageProvider::INTERNAL_SERVER_ERROR;
@@ -64,6 +65,12 @@ static const HttpResponse defaultNotFound = createResponse(
 	ErrorPageProvider::NOT_FOUND,
 	"Not Found",
 	"404 Not Found\n"
+);
+
+static const HttpResponse defaultRequestEntityTooLarge = createResponse(
+	ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE,
+	"Request Entity Too Large",
+	"413 Request Entity Too Large\n"
 );
 
 static const HttpResponse defaultMovedPermanently = createResponse(
@@ -114,6 +121,7 @@ ErrorPageProvider::ErrorPageProvider()
 	this->_errorPages[ErrorPageProvider::BAD_REQUEST] = defaultBadRequest;
 	this->_errorPages[ErrorPageProvider::PERMISSION_DENIED] = defaultPermissionDenied;
 	this->_errorPages[ErrorPageProvider::NOT_FOUND] = defaultNotFound;
+	this->_errorPages[ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE] = defaultRequestEntityTooLarge;
 	this->_errorPages[ErrorPageProvider::MOVED_PERMANENTLY] = defaultMovedPermanently;
 	this->_errorPages[ErrorPageProvider::FOUND] = defaultFound;
 	this->_errorPages[ErrorPageProvider::INTERNAL_SERVER_ERROR] = defaultInternalServerError;
@@ -212,6 +220,11 @@ HttpResponse ErrorPageProvider::permissionDenied() const
 HttpResponse ErrorPageProvider::notFound() const
 {
 	return this->_errorPages.at(ErrorPageProvider::NOT_FOUND);
+}
+
+HttpResponse ErrorPageProvider::requestEntityTooLarge() const
+{
+	return this->_errorPages.at(ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE);
 }
 
 HttpResponse ErrorPageProvider::movedPermanently() const
