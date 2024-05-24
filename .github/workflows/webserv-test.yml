@@ -26,22 +26,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: make -j${{ env.BUILD_PARALLEL }}
-      - run: ./webserv &
+      - run: sudo ./webserv &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
-        continue-on-error: true
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
         name: Find latest log file
         id: latest-log
         run: echo "file=$(ls -t logs | head -n 1)" >> $GITHUB_OUTPUT
         continue-on-error: true
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
         run: kill $(pgrep webserv)
         continue-on-error: true
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
         run: cat logs/${{ steps.latest-log.outputs.file }}
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: webserv-${{ matrix.os }}-log
@@ -56,22 +55,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: make debug -j${{ env.BUILD_PARALLEL }}
-      - run: ./debug &
+      - run: sudo ./debug &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
-        continue-on-error: true
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() && steps.exec-webserv.outcome == 'success'
         name: Find latest log file
         id: latest-log
         run: echo "file=$(ls -t logs | head -n 1)" >> $GITHUB_OUTPUT
         continue-on-error: true
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() && steps.exec-webserv.outcome == 'success'
         run: kill $(cat debug.pid)
         continue-on-error: true
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() && steps.exec-webserv.outcome == 'success'
         run: cat logs/${{ steps.latest-log.outputs.file }}
-      - if: steps.exec-webserv.outcome == 'success'
+      - if: always() && steps.exec-webserv.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: debug-${{ matrix.os }}-log
