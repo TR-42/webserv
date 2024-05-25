@@ -12,39 +12,9 @@
 namespace webserv
 {
 
-static const ServerRunningConfig pickServerConfig(
-	const ServerRunningConfigListType &listenConfigList,
-	const HttpRequest &request,
-	const Logger &logger
-)
-{
-	if (listenConfigList.empty()) {
-		L_FATAL("No ServerConfig found");
-		throw std::runtime_error("No ServerConfig found");
-	}
-
-	if (request.getHost().empty()) {
-		return listenConfigList[0];
-	}
-
-	for (
-		ServerRunningConfigListType::const_iterator itConfig = listenConfigList.begin();
-		itConfig != listenConfigList.end();
-		++itConfig
-	) {
-		if (itConfig->isServerNameMatch(request)) {
-			return *itConfig;
-		}
-	}
-
-	// Hostが一致するServerConfigが見つからなかった場合、一番最初に記述されていた設定に従う
-	return listenConfigList[0];
-};
-
 static ServiceBase *pickService(
 	const HttpRouteConfig &routeConfig,
 	const HttpRequest &request,
-	const utils::ErrorPageProvider &errorPageProvider,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger
 )
@@ -59,7 +29,7 @@ static ServiceBase *pickService(
 		return new SimpleService(
 			request,
 			routeConfig,
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else if (routeConfig.getRequestPath() == "/resources/php-cgi") {
@@ -69,7 +39,7 @@ static ServiceBase *pickService(
 		return new CgiService(
 			request,
 			cgiConfig.getCgiExecutableFullPath(),
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			cgiConfig.getEnvPreset(),
 			logger,
 			pollableList
@@ -81,7 +51,7 @@ static ServiceBase *pickService(
 		return new CgiService(
 			request,
 			cgiConfig.getCgiExecutableFullPath(),
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			cgiConfig.getEnvPreset(),
 			logger,
 			pollableList
@@ -94,7 +64,7 @@ static ServiceBase *pickService(
 		return new GetFileService(
 			request,
 			routeConfig,
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else if (request.getMethod() == "DELETE") {
@@ -102,13 +72,13 @@ static ServiceBase *pickService(
 		return new DeleteFileService(
 			request,
 			routeConfig,
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else if (request.getMethod() == "POST") {
 		return new PostFileService(
 			request,
-			utils::ErrorPageProvider(),
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else {
@@ -117,23 +87,17 @@ static ServiceBase *pickService(
 }
 
 ServiceBase *pickService(
-	const ServerRunningConfigListType &listenConfigList,
 	const HttpRequest &request,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger
 )
 {
-	ServerRunningConfig serverConfig = pickServerConfig(
-		listenConfigList,
-		request,
-		logger
+	HttpRouteConfig routeConfig = request.getServerRunningConfig().pickRouteConfig(
+		request.getPath()
 	);
-
-	HttpRouteConfig routeConfig = serverConfig.pickRouteConfig(request);
 	return pickService(
 		routeConfig,
 		request,
-		serverConfig.getErrorPageProvider(),
 		pollableList,
 		logger
 	);

@@ -27,7 +27,8 @@ HttpRequest::HttpRequest(
 		_IsRequestHeaderParsed(false),
 		_IsParseCompleted(false),
 		_ContentLength(0),
-		_IsChunkedRequest(false)
+		_IsChunkedRequest(false),
+		serverRunningConfig(NULL)
 {
 }
 
@@ -46,12 +47,16 @@ HttpRequest::HttpRequest(
 		_ContentLength(src._ContentLength),
 		_Host(src._Host),
 		_IsChunkedRequest(src._IsChunkedRequest),
-		_NormalizedPath(src._NormalizedPath)
+		_NormalizedPath(src._NormalizedPath),
+		serverRunningConfig(new ServerRunningConfig(*src.serverRunningConfig))
 {
 }
 
 HttpRequest::~HttpRequest()
 {
+	if (this->serverRunningConfig != NULL) {
+		delete this->serverRunningConfig;
+	}
 }
 
 bool HttpRequest::pushRequestRaw(
@@ -299,6 +304,19 @@ bool HttpRequest::isChunkedRequest() const
 std::string HttpRequest::getNormalizedPath() const
 {
 	return this->_NormalizedPath;
+}
+
+const ServerRunningConfig &HttpRequest::getServerRunningConfig() const
+{
+	return *this->serverRunningConfig;
+}
+
+void HttpRequest::setServerRunningConfig(const ServerRunningConfig &serverRunningConfig)
+{
+	if (this->serverRunningConfig != NULL) {
+		delete this->serverRunningConfig;
+	}
+	this->serverRunningConfig = new ServerRunningConfig(serverRunningConfig);
 }
 
 }	 // namespace webserv

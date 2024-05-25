@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Logger.hpp>
-#include <http/HttpRequest.hpp>
 #include <set>
 #include <string>
 #include <utils/ErrorPageProvider.hpp>
@@ -34,9 +33,8 @@ class ServerRunningConfig
 	virtual ~ServerRunningConfig();
 
 	bool isServerNameMatch(const std::string &serverName) const;
-	bool isServerNameMatch(const HttpRequest &request) const;
-	bool isSizeLimitExceeded(const HttpRequest &request) const;
-	HttpRouteConfig pickRouteConfig(const HttpRequest &request) const;
+	bool isSizeLimitExceeded(const size_t contentLength) const;
+	HttpRouteConfig pickRouteConfig(const std::string &path) const;
 
 	inline utils::ErrorPageProvider getErrorPageProvider() const
 	{
