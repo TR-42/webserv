@@ -32,7 +32,7 @@ static const ServerRunningConfig pickServerConfig(
 		itConfig != listenConfigList.end();
 		++itConfig
 	) {
-		if (itConfig->isServerNameMatch(request)) {
+		if (itConfig->isServerNameMatch(request.getHost())) {
 			return *itConfig;
 		}
 	}
@@ -129,7 +129,7 @@ ServiceBase *pickService(
 		logger
 	);
 
-	HttpRouteConfig routeConfig = serverConfig.pickRouteConfig(request);
+	HttpRouteConfig routeConfig = serverConfig.pickRouteConfig(request.getNormalizedPath());
 	return pickService(
 		routeConfig,
 		request,

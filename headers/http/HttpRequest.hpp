@@ -7,6 +7,7 @@
 #include <types.hpp>
 #include <vector>
 
+#include "config/ServerRunningConfig.hpp"
 #include "http/HttpFieldMap.hpp"
 
 namespace webserv
@@ -36,6 +37,8 @@ class HttpRequest
 	std::string _Host;
 	bool _IsChunkedRequest;
 	std::string _NormalizedPath;
+
+	ServerRunningConfig *serverRunningConfig;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;
 	// chunkは後で実装
@@ -71,6 +74,8 @@ class HttpRequest
 	std::string getHost() const;
 	bool isChunkedRequest() const;
 	std::string getNormalizedPath() const;
+	const ServerRunningConfig &getServerRunningConfig() const;
+	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
 
  private:
 	bool parseRequestLine(

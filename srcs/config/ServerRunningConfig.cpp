@@ -1,7 +1,6 @@
 #include <Logger.hpp>
 #include <config/ServerConfig.hpp>
 #include <config/ServerRunningConfig.hpp>
-#include <http/HttpRequest.hpp>
 #include <iostream>
 #include <set>
 #include <stdexcept>
@@ -124,18 +123,11 @@ bool webserv::ServerRunningConfig::isServerNameMatch(
 	return this->_serverNameList.find(serverNameLower) != this->_serverNameList.end();
 }
 
-bool webserv::ServerRunningConfig::isServerNameMatch(
-	const HttpRequest &request
-) const
-{
-	return this->isServerNameMatch(request.getHost());
-}
-
 bool webserv::ServerRunningConfig::isSizeLimitExceeded(
-	const HttpRequest &request
+	const size_t contentLength
 ) const
 {
-	if (this->_requestBodyLimit < request.getBody().size()) {
+	if (this->_requestBodyLimit < contentLength) {
 		return true;
 	}
 
@@ -163,7 +155,7 @@ static size_t getMatchedLength(
 }
 
 HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
-	const HttpRequest &request
+	const std::string &path
 ) const
 {
 	const HttpRouteConfig *matchedRouteConfig = &(this->_routeList[0]);
@@ -173,7 +165,6 @@ HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
 	}
 
 	size_t matchedPathRuleLength = 0;
-	std::string path = request.getNormalizedPath();
 	CS_DEBUG()
 		<< "Picking route config for path: "
 		<< "path=" << path
