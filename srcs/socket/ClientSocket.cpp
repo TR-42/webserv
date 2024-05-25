@@ -17,6 +17,12 @@
 namespace webserv
 {
 
+static const ServerRunningConfig &pickServerConfig(
+	const ServerRunningConfigListType &listenConfigList,
+	const HttpRequest &request,
+	const Logger &logger
+);
+
 PollEventResultType ClientSocket::onEventGot(
 	int fd,
 	short revents,
@@ -93,12 +99,32 @@ PollEventResultType ClientSocket::_processPollIn(
 		return PollEventResult::OK;
 	}
 
-	if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getContentLength()) {
-		CS_WARN()
-			<< "Request body size is too large"
-			<< std::endl;
-		this->_setResponse(utils::ErrorPageProvider().requestEntityTooLarge());
-		return PollEventResult::OK;
+	if (!this->_IsHeaderValidationCompleted && this->httpRequest.isRequestHeaderParsed()) {
+		this->_IsHeaderValidationCompleted = true;
+
+		const ServerRunningConfig &serverRunningConfig = pickServerConfig(
+			this->_listenConfigList,
+			this->httpRequest,
+			this->logger
+		);
+
+		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getContentLength())) {
+			CS_WARN()
+				<< "Request size limit exceeded"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
+			return PollEventResult::OK;
+		}
+
+		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getContentLength()) {
+			CS_WARN()
+				<< "Request body size is too large"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
+			return PollEventResult::OK;
+		}
+
+		httpRequest.setServerRunningConfig(serverRunningConfig);
 	}
 
 	if (!this->httpRequest.isParseCompleted()) {
@@ -112,7 +138,6 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< "Request parse completed"
 		<< std::endl;
 	this->_service = pickService(
-		this->_listenConfigList,
 		this->httpRequest,
 		pollableList,
 		this->logger
@@ -125,9 +150,39 @@ PollEventResultType ClientSocket::_processPollIn(
 		this->_setResponse(utils::ErrorPageProvider().notImplemented());
 		return PollEventResult::OK;
 	}
+
 	this->_processPollService(0);
 	return PollEventResult::OK;
 }
+
+static const ServerRunningConfig &pickServerConfig(
+	const ServerRunningConfigListType &listenConfigList,
+	const HttpRequest &request,
+	const Logger &logger
+)
+{
+	if (listenConfigList.empty()) {
+		L_FATAL("No ServerConfig found");
+		throw std::runtime_error("No ServerConfig found");
+	}
+
+	if (request.getHost().empty()) {
+		return listenConfigList[0];
+	}
+
+	for (
+		ServerRunningConfigListType::const_iterator itConfig = listenConfigList.begin();
+		itConfig != listenConfigList.end();
+		++itConfig
+	) {
+		if (itConfig->isServerNameMatch(request.getHost())) {
+			return *itConfig;
+		}
+	}
+
+	// Hostが一致するServerConfigが見つからなかった場合、一番最初に記述されていた設定に従う
+	return listenConfigList[0];
+};
 
 PollEventResultType ClientSocket::_processPollOut()
 {
@@ -305,7 +360,8 @@ ClientSocket::ClientSocket(
 		logger(logger, serverLoggerCustomId + ", Connection=" + Pollable::getUUID().toString()),
 		httpRequest(this->logger),
 		_IsResponseSet(false),
-		_service(NULL)
+		_service(NULL),
+		_IsHeaderValidationCompleted(false)
 {
 	CS_DEBUG()
 		<< "ClientSocket(fd:" << utils::to_string(fd) << ")"

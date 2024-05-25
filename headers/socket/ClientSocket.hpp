@@ -22,6 +22,7 @@ class ClientSocket : public Pollable
 	std::vector<uint8_t> httpResponseBuffer;
 	bool _IsResponseSet;
 	ServiceBase *_service;
+	bool _IsHeaderValidationCompleted;
 
 	PollEventResultType _processPollIn(
 		std::vector<Pollable *> &pollableList
