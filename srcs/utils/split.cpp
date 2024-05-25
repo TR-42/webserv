@@ -56,7 +56,10 @@ std::vector<std::string> split(
 	while (true) {
 		size_t end = str.find(delim, start);
 		if (end == std::string::npos) {
-			result.push_back(str.substr(start));
+			std::string remaining = str.substr(start);
+			if (!remaining.empty()) {
+				result.push_back(remaining);
+			}
 			break;
 		}
 		if (start != end) {
