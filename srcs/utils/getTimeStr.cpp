@@ -1,5 +1,12 @@
 #include <utils/getTimeStr.hpp>
 
+#ifdef GTEST
+time_t __webserv_timeMockValue = 0;
+#define GET_CURRENT_TIME() (__webserv_timeMockValue)
+#else
+#define GET_CURRENT_TIME() (std::time(NULL))
+#endif
+
 namespace webserv
 {
 
@@ -8,7 +15,7 @@ namespace utils
 
 std::string getHttpTimeStr()
 {
-	return getHttpTimeStr(std::time(NULL));
+	return getHttpTimeStr(GET_CURRENT_TIME());
 }
 
 std::string getHttpTimeStr(
@@ -25,7 +32,7 @@ std::string getHttpTimeStr(
 
 std::string getIso8601ShortTimeStr()
 {
-	return getIso8601ShortTimeStr(std::time(NULL));
+	return getIso8601ShortTimeStr(GET_CURRENT_TIME());
 }
 std::string getIso8601ShortTimeStr(
 	time_t time
