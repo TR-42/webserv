@@ -3,6 +3,8 @@ on: [push]
 env:
   BUILD_PARALLEL: 16
   SLEEP_BEFORE_TEST: 5
+  TEST_DIR: tests_build
+  TEST_BIN: webserv-test
 
 jobs:
   make-test:
@@ -15,7 +17,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: "true"
-      - run: make test
+      - run: mkdir -p ./${{ env.TEST_DIR }}
+      - run: cd ./${{ env.TEST_DIR }} && cmake ..
+      - run: make -C ./${{ env.TEST_DIR }} -j${{ env.BUILD_PARALLEL }}
+      - run: ./${{ env.TEST_DIR }}/${{ env.TEST_BIN }}
 
   test-python-http:
     strategy:
