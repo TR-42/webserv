@@ -2,6 +2,7 @@
 
 #include <poll.h>
 
+#include <stdexcept>
 #include <utils/UUID.hpp>
 #include <vector>
 
@@ -26,12 +27,21 @@ class Poll
 		utils::UUID pollableUuid
 	);
 
+	Poll(const Poll &)
+	{
+		throw std::runtime_error("Poll copy constructor is not allowed");
+	}
+	Poll &operator=(const Poll &)
+	{
+		throw std::runtime_error("Poll copy assignment operator is not allowed");
+	}
+
  public:
 	Poll(
 		const std::vector<Pollable *> &initialPollableList,
 		const Logger &logger
 	);
-	~Poll();
+	virtual ~Poll();
 
 	/**
 	 * @brief イベントループ処理

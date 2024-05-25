@@ -13,12 +13,6 @@ class HttpRedirectConfig
 	DECL_VAR_REF_GETTER_SETTER(std::string, To)
 	DECL_VAR_GETTER_SETTER(uint16_t, Code)
 
- private:
-	void setProps(
-		const std::string &to,
-		uint16_t code
-	);
-
  public:
 	HttpRedirectConfig();
 	HttpRedirectConfig(

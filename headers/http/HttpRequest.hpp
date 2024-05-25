@@ -2,6 +2,7 @@
 
 #include <Logger.hpp>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <types.hpp>
 #include <vector>
@@ -14,6 +15,12 @@ namespace webserv
 class HttpRequest
 {
  private:
+	HttpRequest &operator=(const HttpRequest &src)
+	{
+		(void)src;
+		throw std::runtime_error("HttpRequest copy assignment operator is not allowed");
+	}
+
 	const Logger &logger;
 	std::string _Method;
 	std::string _Path;
@@ -35,6 +42,9 @@ class HttpRequest
 
  public:
 	HttpRequest(const Logger &logger);
+	HttpRequest(const HttpRequest &src);
+	virtual ~HttpRequest();
+
 	/**
 	 * @brief 今までに受け取ったパケットとともに、HTTPリクエストを解析する
 	 *

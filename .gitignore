@@ -1,4 +1,5 @@
 *.log
+*.pid
 
 webserv
 webserv.dSYM

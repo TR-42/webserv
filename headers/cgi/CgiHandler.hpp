@@ -2,6 +2,7 @@
 
 #include <Logger.hpp>
 #include <poll/Pollable.hpp>
+#include <types.hpp>
 #include <utils/ErrorPageProvider.hpp>
 
 #include "./CgiResponse.hpp"
@@ -18,6 +19,9 @@ class CgiHandler : public Pollable
 	CgiResponse _cgiResponse;
 	CgiHandler **_cgiServiceCgiHandlerField;
 	HttpResponse *_cgiServiceHttpResponseField;
+
+	CgiHandler(const CgiHandler &src);
+	CgiHandler &operator=(const CgiHandler &src);
 
  public:
 	CgiHandler(

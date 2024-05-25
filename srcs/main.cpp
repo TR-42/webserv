@@ -5,6 +5,7 @@
 #include <Logger.hpp>
 #include <config/ServerRunningConfig.hpp>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <poll/Poll.hpp>
@@ -17,6 +18,8 @@
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
 #include "utils/ErrorPageProvider.hpp"
+
+static void __size_check();
 
 static std::string get_argv_str(int argc, const char *argv[])
 {
@@ -66,11 +69,25 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	cgiConfigListPhp.push_back(cgiConfigPhp);
 	httpRouteConfigPhpCgi.setCgiConfigList(cgiConfigListPhp);
 
+	// /resources/sh-cgi
+	webserv::HttpRouteConfig httpRouteConfigShCgi;
+	httpRouteConfigShCgi.setDocumentRoot("./");
+	httpRouteConfigShCgi.setIsDocumentListingEnabled(false);
+	httpRouteConfigShCgi.setRequestPath("/resources/sh-cgi");
+
+	webserv::CgiConfig cgiConfigSh;
+	cgiConfigSh.setExtensionWithoutDot("sh");
+	cgiConfigSh.setCgiExecutableFullPath("/bin/sh");
+	webserv::CgiConfigListType cgiConfigListSh;
+	cgiConfigListSh.push_back(cgiConfigSh);
+	httpRouteConfigShCgi.setCgiConfigList(cgiConfigListSh);
+
 	webserv::RouteListType routeList;
 	routeList.push_back(httpRouteConfig1);
 	routeList.push_back(httpRouteConfig2);
 	routeList.push_back(httpRouteConfig3);
 	routeList.push_back(httpRouteConfigPhpCgi);
+	routeList.push_back(httpRouteConfigShCgi);
 
 	std::vector<std::string> hostNameList;
 	hostNameList.push_back("localhost");
@@ -98,11 +115,41 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	return serverConfigList;
 }
 
+static void generatePidFile(
+	const char *argv0,
+	const webserv::Logger &logger
+)
+{
+#ifdef DEBUG
+	std::string pidFilePath(std::string(argv0) + ".pid");
+	pid_t pid = getpid();
+	std::ofstream pidFile;
+
+	pidFile.open(pidFilePath.c_str(), std::ios_base::out | std::ios_base::trunc);
+	pidFile << pid;
+	pidFile.close();
+
+	LS_INFO()
+		<< "pid: " << std::dec << pid
+		<< " pidFilePath: " << pidFilePath
+		<< std::endl;
+#else
+	(void)argv0;
+	(void)logger;
+#endif
+}
+
 int main(int argc, const char *argv[])
 {
-	std::ofstream logFile("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log", std::ios_base::app);
+	__size_check();
+
+	std::ofstream logFile;
+	std::string logFilePath("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log");
+	logFile.open(logFilePath.c_str(), std::ios_base::app);
 	webserv::Logger logger(logFile);
 	webserv::utils::ErrorPageProvider errorPageProvider;
+
+	generatePidFile(argv[0], logger);
 
 	std::cout << "Hello, World!" << std::endl;
 	L_LOG("argv: " + get_argv_str(argc, argv));
@@ -140,4 +187,26 @@ int main(int argc, const char *argv[])
 	}
 
 	return 0;
+}
+
+static void __size_check()
+{
+	webserv::uint8_t uint8;
+	webserv::uint16_t uint16;
+	webserv::uint32_t uint32;
+
+	if (sizeof(uint8) != 1) {
+		std::cerr << "sizeof(uint8) != 1" << std::endl;
+		std::exit(1);
+	}
+
+	if (sizeof(uint16) != 2) {
+		std::cerr << "sizeof(uint16) != 2" << std::endl;
+		std::exit(1);
+	}
+
+	if (sizeof(uint32) != 4) {
+		std::cerr << "sizeof(uint32) != 4" << std::endl;
+		std::exit(1);
+	}
 }

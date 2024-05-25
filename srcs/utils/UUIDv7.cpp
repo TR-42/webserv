@@ -10,7 +10,7 @@ namespace utils
 {
 
 #if RAND_MAX < 0xFFFF
-#error `RAND_MAX` must be at least 0xFFFF
+#define() error `RAND_MAX` must be at least 0xFFFF
 #endif
 
 UUIDv7::UUIDv7()

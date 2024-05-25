@@ -15,6 +15,8 @@ class EnvManager
 
  public:
 	EnvManager();
+	EnvManager(const EnvManager &src);
+	EnvManager &operator=(const EnvManager &src);
 	EnvManager(const char *envp[]);
 	~EnvManager();
 

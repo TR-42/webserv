@@ -61,21 +61,4 @@ void Pollable::setIsDisposingFromChildProcess(
 	this->_isDisposingFromChildProcess = value;
 }
 
-#pragma region invalid operation
-Pollable::Pollable(
-	const Pollable &src
-) : _fd(src._fd),
-		_uuid(src._uuid)
-{
-	*this = src;
-}
-
-Pollable *Pollable::operator=(const Pollable &src)
-{
-	(void)src;
-	throw std::logic_error("Not Allowed Operation");
-	return NULL;
-}
-#pragma endregion
-
 }	 // namespace webserv

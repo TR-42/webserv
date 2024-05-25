@@ -21,15 +21,6 @@ class ServerConfig
 	DECL_VAR_REF_GETTER_SETTER(ErrorPageMapType, ErrorPageMap)
 	DECL_VAR_REF_GETTER_SETTER(RouteListType, RouteList)
 
- private:
-	void setProps(
-		const std::vector<std::string> &serverNameList,
-		uint16_t port,
-		std::size_t requestBodyLimit,
-		const ErrorPageMapType &errorPages,
-		const RouteListType &routeList
-	);
-
  public:
 	ServerConfig();
 	ServerConfig(const ServerConfig &from);

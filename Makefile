@@ -71,6 +71,7 @@ SRCS_UTILS	=\
 	url_decode.cpp\
 	UUID.cpp\
 	UUIDv7.cpp\
+	waitResultStatusToString.cpp\
 
 SRCS_MAIN	=\
 	main.cpp\
@@ -198,4 +199,8 @@ test:
 	mkdir -p ./tests_build
 	cd ./tests_build && cmake ..
 	make -C ./tests_build
+ifdef TC
+	./tests_build/webserv-test --output-on-failure --gtest_filter=$(TC)
+else
 	./tests_build/webserv-test --output-on-failure
+endif

@@ -2,6 +2,7 @@
 
 #include <poll.h>
 
+#include <types.hpp>
 #include <vector>
 
 #include "Logger.hpp"

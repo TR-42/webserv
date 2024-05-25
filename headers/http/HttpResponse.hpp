@@ -22,6 +22,9 @@ class HttpResponse
 	std::vector<uint8_t> generateResponsePacket(bool withBody) const;
 	void setBody(const std::string &body);
 	HttpResponse();
+	HttpResponse(const HttpResponse &src);
+	HttpResponse &operator=(const HttpResponse &src);
+	virtual ~HttpResponse();
 };
 
 }	 // namespace webserv

@@ -1,6 +1,7 @@
 #include <cstring>
 #include <http/HttpRequest.hpp>
 #include <iostream>
+#include <stdexcept>
 #include <utils/normalizePath.hpp>
 #include <utils/pickLine.hpp>
 #include <utils/splitNameValue.hpp>
@@ -27,6 +28,29 @@ HttpRequest::HttpRequest(
 		_IsParseCompleted(false),
 		_ContentLength(0),
 		_IsChunkedRequest(false)
+{
+}
+
+HttpRequest::HttpRequest(
+	const HttpRequest &src
+) : logger(src.logger),
+		_Method(src._Method),
+		_Path(src._Path),
+		_Query(src._Query),
+		_Version(src._Version),
+		_Headers(src._Headers),
+		_Body(src._Body),
+		_IsRequestLineParsed(src._IsRequestLineParsed),
+		_IsRequestHeaderParsed(src._IsRequestHeaderParsed),
+		_IsParseCompleted(src._IsParseCompleted),
+		_ContentLength(src._ContentLength),
+		_Host(src._Host),
+		_IsChunkedRequest(src._IsChunkedRequest),
+		_NormalizedPath(src._NormalizedPath)
+{
+}
+
+HttpRequest::~HttpRequest()
 {
 }
 

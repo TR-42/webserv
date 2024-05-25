@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <types.hpp>
 #include <vector>
 
 namespace webserv
@@ -14,6 +15,11 @@ class HttpFieldMap
 	FieldMapType fieldMap;
 
  public:
+	HttpFieldMap();
+	HttpFieldMap(const HttpFieldMap &src);
+	HttpFieldMap &operator=(const HttpFieldMap &src);
+	virtual ~HttpFieldMap();
+
 	std::vector<std::string> getValueList(const std::string &name) const;
 	void addValue(const std::string &name, const std::string &value);
 

@@ -22,13 +22,16 @@ class ServerRunningConfig
 	utils::UUID _uuid;
 	Logger logger;
 
+	ServerRunningConfig &operator=(const ServerRunningConfig &from);
+
  public:
 	ServerRunningConfig(
 		const ServerConfig &serverConfig,
 		utils::ErrorPageProvider &errorPageProvider,
 		Logger &logger
 	);
-	~ServerRunningConfig();
+	ServerRunningConfig(const ServerRunningConfig &from);
+	virtual ~ServerRunningConfig();
 
 	bool isServerNameMatch(const std::string &serverName) const;
 	bool isServerNameMatch(const HttpRequest &request) const;

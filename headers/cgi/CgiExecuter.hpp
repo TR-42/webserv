@@ -1,6 +1,7 @@
 #pragma once
 
 #include <service/ServiceBase.hpp>
+#include <types.hpp>
 
 #include "./CgiHandler.hpp"
 
@@ -23,6 +24,9 @@ class CgiExecuter
 		char **argv,
 		char **envp
 	);
+
+	CgiExecuter(const CgiExecuter &src);
+	CgiExecuter &operator=(const CgiExecuter &src);
 
  public:
 	CgiExecuter(

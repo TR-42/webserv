@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include <cerrno>
 #include <cgi/CgiHandler.hpp>
 #include <cstdio>
 #include <cstring>
@@ -23,6 +24,24 @@ CgiHandler::CgiHandler(
 		_cgiServiceCgiHandlerField(_cgiServiceCgiHandlerField),
 		_cgiServiceHttpResponseField(_cgiServiceHttpResponseField)
 {
+}
+
+CgiHandler::CgiHandler(
+	const CgiHandler &src
+) : Pollable(src.getFD()),
+		logger(src.logger),
+		_errorPageProvider(src._errorPageProvider),
+		_cgiResponse(src._cgiResponse)
+{
+	throw std::runtime_error("CgiHandler copy constructor is not allowed");
+}
+
+CgiHandler &CgiHandler::operator=(
+	const CgiHandler &src
+)
+{
+	(void)src;
+	throw std::runtime_error("CgiHandler copy assignment operator is not allowed");
 }
 
 CgiHandler::~CgiHandler()

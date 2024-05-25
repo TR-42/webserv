@@ -1,7 +1,8 @@
-#include <errno.h>
 #include <sys/stat.h>
 
 #include <Logger.hpp>
+#include <cerrno>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <service/DeleteFileService.hpp>

@@ -40,13 +40,26 @@
 #define DEFAULT_TIMESTAMP_VALUE_BODY "1970-01-01T00:00:00"
 #define DEFAULT_TIMESTAMP_VALUE_Z "Z"
 #define TIMESTAMP_US_FORMAT ".%06ld" DEFAULT_TIMESTAMP_VALUE_Z
-#define DEFAULT_TIMESTAMP_VALUE_US ".000000000"
+#define DEFAULT_TIMESTAMP_VALUE_US ".000000"
 #define DEFAULT_TIMESTAMP_VALUE_DEF ( \
 	DEFAULT_TIMESTAMP_VALUE_BODY \
 		DEFAULT_TIMESTAMP_VALUE_US \
 			DEFAULT_TIMESTAMP_VALUE_Z \
 )
 #define NS_TO_US(ns) ((ns) / 1000)
+
+static void _set_us_str(
+	char *buf,
+	long ns
+)
+{
+	long us = NS_TO_US(ns);
+	buf[0] = '.';
+	for (int i = 0; i < 6; i++) {
+		buf[6 - i] = '0' + (us % 10);
+		us /= 10;
+	}
+}
 
 static const std::string
 _get_timestamp()
@@ -68,7 +81,9 @@ _get_timestamp()
 	const std::tm tm = *std::gmtime(&t);
 	char buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF)];
 	size_t tm_body_len = std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm);
-	std::snprintf(buf + tm_body_len, sizeof(buf) - tm_body_len, TIMESTAMP_US_FORMAT, NS_TO_US(ts.tv_nsec));
+	_set_us_str(buf + tm_body_len, ts.tv_nsec);
+	buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF) - 2] = 'Z';
+	buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF) - 1] = '\0';
 
 	return std::string(buf);
 }
@@ -158,14 +173,6 @@ webserv::Logger::Logger(
 		_CustomIdWithSpace(_getCustomIdWithSpace(CustomId)),
 		_os(src._os)
 {
-}
-
-webserv::Logger &webserv::Logger::operator=(
-	const Logger &src
-)
-{
-	(void)src;
-	throw std::logic_error("Logger::operator= is not implemented");
 }
 
 std::string webserv::Logger::getCustomId() const

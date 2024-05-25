@@ -63,7 +63,19 @@ static ServiceBase *pickService(
 			logger
 		);
 	} else if (routeConfig.getRequestPath() == "/resources/php-cgi") {
-		L_INFO("CgiService selected");
+		L_INFO("PhpCgiService selected");
+		// TODO: CGI設定も適切に選択する
+		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
+		return new CgiService(
+			request,
+			cgiConfig.getCgiExecutableFullPath(),
+			errorPageProvider,
+			cgiConfig.getEnvPreset(),
+			logger,
+			pollableList
+		);
+	} else if (routeConfig.getRequestPath() == "/resources/sh-cgi") {
+		L_INFO("ShCgiService selected");
 		// TODO: CGI設定も適切に選択する
 		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
 		return new CgiService(

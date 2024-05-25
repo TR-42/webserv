@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <types.hpp>
 
 namespace webserv
 {

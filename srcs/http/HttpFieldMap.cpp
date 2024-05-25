@@ -8,6 +8,33 @@
 namespace webserv
 {
 
+HttpFieldMap::HttpFieldMap()
+{
+}
+
+HttpFieldMap::HttpFieldMap(
+	const HttpFieldMap &src
+) : fieldMap(src.fieldMap)
+{
+}
+
+HttpFieldMap &HttpFieldMap::operator=(
+	const HttpFieldMap &src
+)
+{
+	if (this == &src) {
+		return *this;
+	}
+
+	this->fieldMap = src.fieldMap;
+
+	return *this;
+}
+
+HttpFieldMap::~HttpFieldMap()
+{
+}
+
 static std::string capitalize(const std::string &str)
 {
 	if (str.empty()) {
