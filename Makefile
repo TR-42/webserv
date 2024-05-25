@@ -199,4 +199,8 @@ test:
 	mkdir -p ./tests_build
 	cd ./tests_build && cmake ..
 	make -C ./tests_build
+ifdef TC
+	./tests_build/webserv-test --output-on-failure --gtest_filter=$(TC)
+else
 	./tests_build/webserv-test --output-on-failure
+endif
