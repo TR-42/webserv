@@ -23,11 +23,15 @@ class HttpRouteConfig
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, IndexFileList)
 	DECL_VAR_REF_GETTER_SETTER(CgiConfigListType, CgiConfigList)
 
+	std::vector<std::string> _RequestPathSegmentList;
+
  public:
 	HttpRouteConfig();
 	HttpRouteConfig(const HttpRouteConfig &from);
 	virtual ~HttpRouteConfig();
 	HttpRouteConfig &operator=(const HttpRouteConfig &from);
+
+	const std::vector<std::string> &getRequestPathSegmentList() const;
 };
 
 }	 // namespace webserv
