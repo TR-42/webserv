@@ -55,7 +55,7 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 
 	// /resources/php-cgi
 	webserv::HttpRouteConfig httpRouteConfigPhpCgi;
-	httpRouteConfigPhpCgi.setDocumentRoot("./");
+	httpRouteConfigPhpCgi.setDocumentRoot("./resources/php-cgi");
 	httpRouteConfigPhpCgi.setIsDocumentListingEnabled(false);
 	httpRouteConfigPhpCgi.setRequestPath("/resources/php-cgi");
 
@@ -71,7 +71,7 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 
 	// /resources/sh-cgi
 	webserv::HttpRouteConfig httpRouteConfigShCgi;
-	httpRouteConfigShCgi.setDocumentRoot("./");
+	httpRouteConfigShCgi.setDocumentRoot("./resources/sh-cgi");
 	httpRouteConfigShCgi.setIsDocumentListingEnabled(false);
 	httpRouteConfigShCgi.setRequestPath("/resources/sh-cgi");
 

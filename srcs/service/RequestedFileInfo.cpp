@@ -19,7 +19,7 @@ RequestedFileInfo::RequestedFileInfo(
 	const Logger &logger
 ) : _CgiScriptName(joinPath(requestedPathSegList)),
 		_CgiPathInfo(),
-		_TargetFilePathWithoutDocumentRoot(joinPath(routeConfig, requestedPathSegList)),
+		_TargetFilePathWithoutDocumentRoot(pickTargetFilePathWithoutDocumentRoot(routeConfig, requestedPathSegList)),
 		_DocumentRoot(routeConfig.getDocumentRoot()),
 		_IsDirectory(isRequestEndWithSlash),
 		_IsNotFound(false),
@@ -31,7 +31,7 @@ RequestedFileInfo::RequestedFileInfo(
 {
 	L_LOG("Process Start");
 
-	if (this->_checkTargetFilePathStat(isRequestEndWithSlash, logger)) {
+	if (!this->_checkTargetFilePathStat(isRequestEndWithSlash, logger)) {
 		return;
 	}
 
@@ -57,7 +57,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 		errno_t err = errno;
 		_IsNotFound = true;
 		LS_INFO()
-			<< "File (or directory) not found: " << _TargetFilePathWithoutDocumentRoot
+			<< "File (or directory) not found: " << targetFilePathWithDocRoot
 			<< " (err: " << std::strerror(err) << ")"
 			<< std::endl;
 		return false;
@@ -67,7 +67,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 	if (isRequestEndWithSlash && S_ISREG(statBuf.st_mode)) {
 		_IsNotFound = true;
 		LS_INFO()
-			<< "Not a directory (but regular file): " << _TargetFilePathWithoutDocumentRoot
+			<< "Not a directory (but regular file): " << targetFilePathWithDocRoot
 			<< std::endl;
 		return false;
 	}
@@ -76,7 +76,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 	if (!this->_IsDirectory && !S_ISREG(statBuf.st_mode)) {
 		_IsNotFound = true;
 		LS_INFO()
-			<< "Not a regular file or directory: " << _TargetFilePathWithoutDocumentRoot
+			<< "Not a regular file or directory: " << targetFilePathWithDocRoot
 			<< std::endl;
 		return false;
 	}

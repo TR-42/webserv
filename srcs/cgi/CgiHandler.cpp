@@ -46,6 +46,7 @@ CgiHandler &CgiHandler::operator=(
 
 CgiHandler::~CgiHandler()
 {
+	C_DEBUG("CgiHandler destructor");
 	if (this->_cgiServiceCgiHandlerField != NULL) {
 		*(this->_cgiServiceCgiHandlerField) = NULL;
 	}
@@ -95,8 +96,8 @@ PollEventResultType CgiHandler::onEventGot(
 	if (readResult == 0) {
 		C_ERROR("CGI read complete");
 		*(this->_cgiServiceHttpResponseField) = this->_cgiResponse.getHttpResponse();
-		this->_cgiServiceCgiHandlerField = NULL;
 		*(this->_cgiServiceCgiHandlerField) = NULL;
+		this->_cgiServiceCgiHandlerField = NULL;
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 
@@ -108,6 +109,7 @@ PollEventResultType CgiHandler::onEventGot(
 
 void CgiHandler::setDisposeRequested()
 {
+	C_DEBUG("CgiHandler::setDisposeRequested()");
 	this->_cgiServiceCgiHandlerField = NULL;
 	this->_cgiServiceHttpResponseField = NULL;
 }

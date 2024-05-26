@@ -337,6 +337,7 @@ ServiceEventResultType CgiService::onEventGot(
 	}
 
 	// ここに来るはずはない
+	C_ERROR("Unexpected result from CgiExecuter");
 	this->_cgiHandler->setDisposeRequested();
 	this->_cgiHandler = NULL;
 	return ServiceEventResult::ERROR;

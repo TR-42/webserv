@@ -89,12 +89,12 @@ class RequestedFileInfo
 		return path;
 	}
 
-	static inline std::string joinPath(
+	static inline std::string pickTargetFilePathWithoutDocumentRoot(
 		const HttpRouteConfig &routeConfig,
 		const std::vector<std::string> &pathSegList
 	)
 	{
-		std::string path = routeConfig.getDocumentRoot();
+		std::string path;
 
 		for (
 			std::vector<std::string>::const_iterator it = pathSegList.begin() + routeConfig.getRequestPathSegmentList().size();

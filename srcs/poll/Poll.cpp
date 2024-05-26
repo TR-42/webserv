@@ -68,7 +68,9 @@ bool Poll::loop()
 		bool isPollErr = IS_POLLERR(revents) != 0;
 		bool isPollHup = IS_POLLHUP(revents) != 0;
 		bool isPollNval = IS_POLLNVAL(revents) != 0;
-		if (isFdSame && (isPollErr || isPollHup || isPollNval)) {
+		bool isPollIn = IS_POLLIN(revents) != 0;
+		// エラーでも、PollInが立っている限り入力を読む必要がある
+		if (isFdSame && !isPollIn && (isPollErr || isPollHup || isPollNval)) {
 			CS_WARN()
 				<< "Error event got from pollable " << pollableUuid
 				<< " ("
