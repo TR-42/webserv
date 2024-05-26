@@ -28,7 +28,7 @@ HttpRouteConfig::HttpRouteConfig(
 {
 }
 
-HttpRouteConfig &webserv::HttpRouteConfig::operator=(
+HttpRouteConfig &HttpRouteConfig::operator=(
 	const HttpRouteConfig &from
 )
 {
@@ -47,24 +47,15 @@ HttpRouteConfig &webserv::HttpRouteConfig::operator=(
 	return *this;
 }
 
-webserv::HttpRouteConfig::~HttpRouteConfig()
+HttpRouteConfig::~HttpRouteConfig()
 {
 }
 
-const std::string &HttpRouteConfig::getRequestPath() const
-{
-	return this->_RequestPath;
-}
 void HttpRouteConfig::setRequestPath(const std::string &RequestPath)
 {
 	this->_RequestPath = RequestPath;
 
 	this->_RequestPathSegmentList = utils::split(this->_RequestPath, '/');
-}
-
-const std::vector<std::string> &HttpRouteConfig::getRequestPathSegmentList() const
-{
-	return this->_RequestPathSegmentList;
 }
 
 }	 // namespace webserv

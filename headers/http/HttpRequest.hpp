@@ -36,6 +36,8 @@ class HttpRequest
 	std::string _Host;
 	bool _IsChunkedRequest;
 	std::string _NormalizedPath;
+
+	// 正規化されて分割されたパスが入る
 	std::vector<std::string> _PathSegmentList;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;

@@ -19,7 +19,7 @@ class SimpleService : public ServiceBase
  public:
 	SimpleService(
 		const HttpRequest &request,
-		const HttpRouteConfig &routeConfig,
+		const HttpResponse &response,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);

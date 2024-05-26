@@ -4,6 +4,7 @@
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
 #include <service/PostFileService.hpp>
+#include <service/RequestedFileInfo.hpp>
 #include <service/ServiceBase.hpp>
 #include <service/SimpleService.hpp>
 #include <service/pickService.hpp>
@@ -53,31 +54,26 @@ static ServiceBase *pickService(
 		<< "Picking service for route: " << routeConfig.getRequestPath()
 		<< std::endl;
 
-	// TODO: お遊び設定を消す
-	if (routeConfig.getRequestPath() == "/simple") {
-		L_INFO("SimpleService selected");
+	RequestedFileInfo requestedFileInfo(
+		request.getPathSegmentList(),
+		request.getPath().back() == '/',
+		routeConfig,
+		logger
+	);
+
+	if (requestedFileInfo.getIsNotFound()) {
+		L_INFO("NotFound -> SimpleService selected");
 		return new SimpleService(
 			request,
-			routeConfig,
+			errorPageProvider.notFound(),
 			errorPageProvider,
 			logger
 		);
-	} else if (routeConfig.getRequestPath() == "/resources/php-cgi") {
-		L_INFO("PhpCgiService selected");
-		// TODO: CGI設定も適切に選択する
-		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
-		return new CgiService(
-			request,
-			cgiConfig.getCgiExecutableFullPath(),
-			errorPageProvider,
-			cgiConfig.getEnvPreset(),
-			logger,
-			pollableList
-		);
-	} else if (routeConfig.getRequestPath() == "/resources/sh-cgi") {
-		L_INFO("ShCgiService selected");
-		// TODO: CGI設定も適切に選択する
-		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
+	}
+
+	if (requestedFileInfo.getIsCgi()) {
+		L_INFO("CgiService selected");
+		const CgiConfig &cgiConfig = requestedFileInfo.getCgiConfig();
 		return new CgiService(
 			request,
 			cgiConfig.getCgiExecutableFullPath(),
@@ -97,7 +93,20 @@ static ServiceBase *pickService(
 			errorPageProvider,
 			logger
 		);
-	} else if (request.getMethod() == "DELETE") {
+	}
+
+	// ディレクトリ宛のリクエストはGET(HEAD)のみ対応
+	if (requestedFileInfo.getIsDirectory()) {
+		L_INFO("Directory but not GET/HEAD -> SimpleService selected");
+		return new SimpleService(
+			request,
+			errorPageProvider.methodNotAllowed(),
+			errorPageProvider,
+			logger
+		);
+	}
+
+	if (request.getMethod() == "DELETE") {
 		L_INFO("DeleteFileService selected");
 		return new DeleteFileService(
 			request,
@@ -106,12 +115,14 @@ static ServiceBase *pickService(
 			logger
 		);
 	} else if (request.getMethod() == "POST") {
+		L_INFO("PostFileService selected");
 		return new PostFileService(
 			request,
 			utils::ErrorPageProvider(),
 			logger
 		);
 	} else {
+		L_INFO("Method not implemented -> NULL selected");
 		return NULL;
 	}
 }

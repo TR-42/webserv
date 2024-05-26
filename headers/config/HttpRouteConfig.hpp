@@ -22,8 +22,7 @@ class HttpRouteConfig
 	DECL_VAR_GETTER_SETTER(bool, IsDocumentListingEnabled)
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, IndexFileList)
 	DECL_VAR_REF_GETTER_SETTER(CgiConfigListType, CgiConfigList)
-
-	std::vector<std::string> _RequestPathSegmentList;
+	DECL_VAR_REF_GETTER(std::vector<std::string>, RequestPathSegmentList)
 
  public:
 	HttpRouteConfig();
@@ -32,7 +31,6 @@ class HttpRouteConfig
 	HttpRouteConfig &operator=(const HttpRouteConfig &from);
 
 	void setRequestPath(const std::string &RequestPath);
-	const std::vector<std::string> &getRequestPathSegmentList() const;
 };
 
 }	 // namespace webserv

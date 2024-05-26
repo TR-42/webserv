@@ -29,7 +29,10 @@
 	type _##name; \
 \
  public: \
-	const type &get##name() const;
+	const type &get##name() const \
+	{ \
+		return this->_##name; \
+	}
 
 #define DECL_VAR_REF_GETTER_SETTER(type, name) \
  private: \

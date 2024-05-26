@@ -7,22 +7,12 @@ namespace webserv
 
 SimpleService::SimpleService(
 	const HttpRequest &request,
-	const HttpRouteConfig &routeConfig,
+	const HttpResponse &response,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger)
 {
-	std::string path = getRequestedFilePath(routeConfig, request.getNormalizedPath());
-	if (path.empty() || path[0] != '/') {
-		this->_response = this->_errorPageProvider.getErrorPage(
-			400
-		);
-	} else {
-		std::string errCode = path.substr(1);
-		this->_response = this->_errorPageProvider.getErrorPage(
-			errCode
-		);
-	}
+	this->_response = response;
 }
 
 SimpleService::~SimpleService()
@@ -34,11 +24,9 @@ void SimpleService::setToPollFd(
 ) const
 {
 	// Simpleの場合は、fdを使わないため、無視設定を行う。
-	std::memset(
-		&pollFd,
-		0,
-		sizeof(pollFd)
-	);
+	pollFd.fd = -1;
+	pollFd.events = 0;
+	pollFd.revents = 0;
 }
 
 ServiceEventResultType SimpleService::onEventGot(
