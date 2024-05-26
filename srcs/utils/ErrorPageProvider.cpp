@@ -20,6 +20,7 @@ const int ErrorPageProvider::NO_CONTENT;
 const int ErrorPageProvider::BAD_REQUEST;
 const int ErrorPageProvider::PERMISSION_DENIED;
 const int ErrorPageProvider::NOT_FOUND;
+const int ErrorPageProvider::METHOD_NOT_ALLOWED;
 const int ErrorPageProvider::MOVED_PERMANENTLY;
 const int ErrorPageProvider::FOUND;
 const int ErrorPageProvider::INTERNAL_SERVER_ERROR;
@@ -64,6 +65,12 @@ static const HttpResponse defaultNotFound = createResponse(
 	ErrorPageProvider::NOT_FOUND,
 	"Not Found",
 	"404 Not Found\n"
+);
+
+static const HttpResponse defaultMethodNotAllowed = createResponse(
+	ErrorPageProvider::METHOD_NOT_ALLOWED,
+	"Method Not Allowed",
+	"405 Method Not Allowed\n"
 );
 
 static const HttpResponse defaultMovedPermanently = createResponse(
@@ -212,6 +219,11 @@ HttpResponse ErrorPageProvider::permissionDenied() const
 HttpResponse ErrorPageProvider::notFound() const
 {
 	return this->_errorPages.at(ErrorPageProvider::NOT_FOUND);
+}
+
+HttpResponse ErrorPageProvider::methodNotAllowed() const
+{
+	return this->_errorPages.at(ErrorPageProvider::METHOD_NOT_ALLOWED);
 }
 
 HttpResponse ErrorPageProvider::movedPermanently() const
