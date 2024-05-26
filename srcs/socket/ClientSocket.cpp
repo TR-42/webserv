@@ -35,6 +35,14 @@ PollEventResultType ClientSocket::onEventGot(
 		}
 	}
 
+	if (IS_POLL_ANY_ERROR(revents)) {
+		// エラーの場合はレスポンスを返すことができないため、サービスを終了する
+		CS_ERROR()
+			<< "Error event"
+			<< std::endl;
+		return PollEventResult::DISPOSE_REQUEST;
+	}
+
 	if (IS_POLLIN(revents)) {
 		CS_DEBUG()
 			<< "POLLIN event"

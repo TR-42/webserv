@@ -23,6 +23,14 @@ PollEventResultType ServerSocket::onEventGot(
 )
 {
 	(void)fd;
+	if (IS_POLL_ANY_ERROR(revents)) {
+		// ServerSocketがエラーになるはずは無いが、一応エラー処理を入れておく
+		CS_ERROR()
+			<< "Error event"
+			<< std::endl;
+		return PollEventResult::DISPOSE_REQUEST;
+	}
+
 	if (!IS_POLLIN(revents)) {
 		CS_DEBUG()
 			<< "No POLLIN event"
