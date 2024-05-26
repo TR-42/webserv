@@ -2,6 +2,7 @@
 
 #include <cerrno>
 #include <config/ServerRunningConfig.hpp>
+#include <cstring>
 #include <macros.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
@@ -62,7 +63,7 @@ PollEventResultType ClientSocket::_processPollIn(
 	);
 
 	if (recvSize < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "recv() failed: " << errorStr
 			<< std::endl;
@@ -138,7 +139,7 @@ PollEventResultType ClientSocket::_processPollOut()
 	);
 
 	if (sendSize < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "send() failed: " << errorStr
 			<< std::endl;

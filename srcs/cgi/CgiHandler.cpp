@@ -2,7 +2,6 @@
 
 #include <cerrno>
 #include <cgi/CgiHandler.hpp>
-#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>

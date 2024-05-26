@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <cerrno>
 #include <config/HttpRouteConfig.hpp>
-#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
@@ -108,7 +107,7 @@ ServiceEventResultType GetFileService::onEventGot(
 	LS_DEBUG() << "Read " << readSize << " bytes" << std::endl;
 	if (readSize < 0) {
 		const errno_t errorNum = errno;
-		CS_ERROR() << "Failed to read file: " << strerror(errorNum) << std::endl;
+		CS_ERROR() << "Failed to read file: " << std::strerror(errorNum) << std::endl;
 		this->_response = this->_errorPageProvider.internalServerError();
 
 		return ServiceEventResult::COMPLETE;

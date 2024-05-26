@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cerrno>
+#include <cstring>
 #include <macros.hpp>
 #include <socket/ClientSocket.hpp>
 #include <socket/ServerSocket.hpp>
@@ -37,7 +38,7 @@ PollEventResultType ServerSocket::onEventGot(
 		&clientAddrLen
 	);
 	if (clientFd < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "accept() failed: " << errorStr
 			<< std::endl;

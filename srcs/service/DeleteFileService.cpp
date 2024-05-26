@@ -28,7 +28,7 @@ DeleteFileService::DeleteFileService(
 	int deleteResult = std::remove(filePath.c_str());
 	if (deleteResult != 0) {
 		const errno_t errorNum = errno;
-		CS_ERROR() << "Failed to read file (" << filePath << "): " << strerror(errorNum) << std::endl;
+		CS_ERROR() << "Failed to read file (" << filePath << "): " << std::strerror(errorNum) << std::endl;
 		this->_response = this->_errorPageProvider.internalServerError();
 		return;
 	}

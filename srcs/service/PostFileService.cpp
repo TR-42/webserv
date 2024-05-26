@@ -4,7 +4,6 @@
 
 #include <cerrno>
 #include <climits>
-#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
@@ -98,7 +97,7 @@ ServiceEventResultType PostFileService::onEventGot(
 	LS_DEBUG() << "Write " << writtenLength << " bytes" << std::endl;
 	if (writtenLength < 0) {
 		const errno_t errorNum = errno;
-		CS_ERROR() << "Failed to write: " << strerror(errorNum) << std::endl;
+		CS_ERROR() << "Failed to write: " << std::strerror(errorNum) << std::endl;
 		this->_response = this->_errorPageProvider.internalServerError();
 
 		return ServiceEventResult::COMPLETE;

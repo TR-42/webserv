@@ -3,7 +3,7 @@
 #include <Logger.hpp>
 #include <cerrno>
 #include <config/HttpRouteConfig.hpp>
-#include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <service/RequestedFileInfo.hpp>
 #include <utils/getTimeStr.hpp>

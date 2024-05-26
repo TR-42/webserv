@@ -4,7 +4,6 @@
 
 #include <Logger.hpp>
 #include <config/ServerRunningConfig.hpp>
-#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>

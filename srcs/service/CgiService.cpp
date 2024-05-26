@@ -4,6 +4,7 @@
 
 #include <EnvManager.hpp>
 #include <cerrno>
+#include <cstring>
 #include <macros.hpp>
 #include <service/CgiService.hpp>
 #include <utils/waitResultStatusToString.hpp>

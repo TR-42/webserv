@@ -1,4 +1,5 @@
 #include <cerrno>
+#include <cstring>
 #include <iostream>
 #include <macros.hpp>
 #include <poll/Poll.hpp>
@@ -51,7 +52,7 @@ bool Poll::loop()
 		POLL_TIMEOUT
 	);
 	if (pollResult < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "poll() failed: " << errorStr
 			<< std::endl;
