@@ -1,8 +1,11 @@
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/param.h>
 #include <unistd.h>
 
 #include <Logger.hpp>
+#include <cerrno>
 #include <config/ServerRunningConfig.hpp>
 #include <cstdlib>
 #include <fstream>
@@ -37,13 +40,30 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	webserv::Logger &logger
 )
 {
+	char pathBuf[MAXPATHLEN];
+
 	webserv::HttpRouteConfig httpRouteConfig1;
-	httpRouteConfig1.setDocumentRoot("./");
+	// Document Rootは絶対パスで指定する (YAML Parserで変換する)
+	if (realpath("./", pathBuf) == NULL) {
+		errno_t err = errno;
+		LS_FATAL()
+			<< "realpath() failed: " << std::strerror(err)
+			<< std::endl;
+		std::exit(1);
+	}
+	httpRouteConfig1.setDocumentRoot(pathBuf);
 	httpRouteConfig1.setIsDocumentListingEnabled(true);
 	httpRouteConfig1.setRequestPath("/");
 
 	webserv::HttpRouteConfig httpRouteConfig2;
-	httpRouteConfig2.setDocumentRoot("./srcs");
+	if (realpath("./srcs", pathBuf) == NULL) {
+		errno_t err = errno;
+		LS_FATAL()
+			<< "realpath() failed: " << std::strerror(err)
+			<< std::endl;
+		std::exit(1);
+	}
+	httpRouteConfig2.setDocumentRoot(pathBuf);
 	httpRouteConfig2.setIsDocumentListingEnabled(false);
 	httpRouteConfig2.setRequestPath("/route2");
 
@@ -52,11 +72,18 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	httpRouteConfig3.setIsDocumentListingEnabled(false);
 	httpRouteConfig3.setRequestPath("/simple");
 
-	// /resources/php-cgi
-	webserv::HttpRouteConfig httpRouteConfigPhpCgi;
-	httpRouteConfigPhpCgi.setDocumentRoot("./resources/php-cgi");
-	httpRouteConfigPhpCgi.setIsDocumentListingEnabled(false);
-	httpRouteConfigPhpCgi.setRequestPath("/resources/php-cgi");
+	// /resources
+	webserv::HttpRouteConfig httpRouteConfigResources;
+	if (realpath("./resources", pathBuf) == NULL) {
+		errno_t err = errno;
+		LS_FATAL()
+			<< "realpath() failed: " << std::strerror(err)
+			<< std::endl;
+		std::exit(1);
+	}
+	httpRouteConfigResources.setDocumentRoot(pathBuf);
+	httpRouteConfigResources.setIsDocumentListingEnabled(false);
+	httpRouteConfigResources.setRequestPath("/resources");
 
 	webserv::CgiConfig cgiConfigPhp;
 	cgiConfigPhp.setExtensionWithoutDot("php");
@@ -64,29 +91,21 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	webserv::env::EnvManager envManagerPhp;
 	envManagerPhp.set("REDIRECT_STATUS", "200");
 	cgiConfigPhp.setEnvPreset(envManagerPhp);
-	webserv::CgiConfigListType cgiConfigListPhp;
-	cgiConfigListPhp.push_back(cgiConfigPhp);
-	httpRouteConfigPhpCgi.setCgiConfigList(cgiConfigListPhp);
-
-	// /resources/sh-cgi
-	webserv::HttpRouteConfig httpRouteConfigShCgi;
-	httpRouteConfigShCgi.setDocumentRoot("./resources/sh-cgi");
-	httpRouteConfigShCgi.setIsDocumentListingEnabled(false);
-	httpRouteConfigShCgi.setRequestPath("/resources/sh-cgi");
 
 	webserv::CgiConfig cgiConfigSh;
 	cgiConfigSh.setExtensionWithoutDot("sh");
 	cgiConfigSh.setCgiExecutableFullPath("/bin/sh");
-	webserv::CgiConfigListType cgiConfigListSh;
-	cgiConfigListSh.push_back(cgiConfigSh);
-	httpRouteConfigShCgi.setCgiConfigList(cgiConfigListSh);
+
+	webserv::CgiConfigListType cgiConfigListPhpSh;
+	cgiConfigListPhpSh.push_back(cgiConfigPhp);
+	cgiConfigListPhpSh.push_back(cgiConfigSh);
+	httpRouteConfigResources.setCgiConfigList(cgiConfigListPhpSh);
 
 	webserv::RouteListType routeList;
 	routeList.push_back(httpRouteConfig1);
 	routeList.push_back(httpRouteConfig2);
 	routeList.push_back(httpRouteConfig3);
-	routeList.push_back(httpRouteConfigPhpCgi);
-	routeList.push_back(httpRouteConfigShCgi);
+	routeList.push_back(httpRouteConfigResources);
 
 	std::vector<std::string> hostNameList;
 	hostNameList.push_back("localhost");

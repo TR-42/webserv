@@ -49,6 +49,17 @@ static bool _preparePipe(
 	return true;
 }
 
+static inline std::string _dirname(
+	const std::string &path
+)
+{
+	size_t pos = path.rfind('/');
+	if (pos == std::string::npos) {
+		return ".";
+	}
+	return path.substr(0, pos);
+}
+
 CgiService::CgiService(
 	const HttpRequest &request,
 	const RequestedFileInfo &requestedFileInfo,
@@ -126,10 +137,12 @@ CgiService::CgiService(
 		<< ", fdWriteToParent: " << fdWriteToParent
 		<< std::endl;
 
+	std::string workingDir = _dirname(requestedFileInfo.getTargetFilePath());
 	this->_cgiExecuter = new CgiExecuter(
 		request.getBody(),
 		argv,
 		envp,
+		workingDir,
 		logger,
 		fdWriteToCgi,
 		fdReadFromParent,
