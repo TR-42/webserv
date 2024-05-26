@@ -254,21 +254,10 @@ void ClientSocket::setToPollFd(
 {
 	Pollable::setToPollFd(pollFd);
 	if (this->_service == NULL) {
-		CS_DEBUG()
-			<< "ClientSocket::setToPollFd() called - this->_service == NULL"
-			<< std::endl;
 		pollFd.events = this->_IsResponseSet ? POLLOUT : POLLIN;
 	} else {
-		CS_DEBUG()
-			<< "ClientSocket::setToPollFd() called - this->_service is set"
-			<< std::endl;
 		this->_service->setToPollFd(pollFd);
 	}
-
-	CS_DEBUG()
-		<< "POLLIN: " << IS_POLLIN(pollFd.events)
-		<< ", POLLOUT: " << IS_POLLOUT(pollFd.events)
-		<< std::endl;
 }
 
 ClientSocket::~ClientSocket()

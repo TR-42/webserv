@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <utils/to_string.hpp>
 
-#define POLL_TIMEOUT 1000
+#define POLL_TIMEOUT 1
 
 namespace webserv
 {

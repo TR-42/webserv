@@ -32,9 +32,6 @@ PollEventResultType ServerSocket::onEventGot(
 	}
 
 	if (!IS_POLLIN(revents)) {
-		CS_DEBUG()
-			<< "No POLLIN event"
-			<< std::endl;
 		return PollEventResult::OK;
 	}
 
