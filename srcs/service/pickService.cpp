@@ -56,7 +56,7 @@ static ServiceBase *pickService(
 
 	RequestedFileInfo requestedFileInfo(
 		request.getPathSegmentList(),
-		request.getPath().back() == '/',
+		request.getPath()[request.getPath().length() - 1] == '/',
 		routeConfig,
 		logger
 	);
