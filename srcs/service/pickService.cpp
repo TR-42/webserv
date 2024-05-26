@@ -62,23 +62,31 @@ static ServiceBase *pickService(
 	);
 
 	if (requestedFileInfo.getIsNotFound()) {
-		L_INFO("NotFound -> SimpleService selected");
-		return new SimpleService(
-			request,
-			errorPageProvider.notFound(),
-			errorPageProvider,
-			logger
-		);
+		if (request.getMethod() == "POST") {
+			L_INFO("NotFound && POST -> PostFileService selected");
+			return new PostFileService(
+				request,
+				requestedFileInfo,
+				errorPageProvider,
+				logger
+			);
+		} else {
+			L_INFO("NotFound -> SimpleService selected");
+			return new SimpleService(
+				request,
+				errorPageProvider.notFound(),
+				errorPageProvider,
+				logger
+			);
+		}
 	}
 
 	if (requestedFileInfo.getIsCgi()) {
 		L_INFO("CgiService selected");
-		const CgiConfig &cgiConfig = requestedFileInfo.getCgiConfig();
 		return new CgiService(
 			request,
-			cgiConfig.getCgiExecutableFullPath(),
+			requestedFileInfo,
 			errorPageProvider,
-			cgiConfig.getEnvPreset(),
 			logger,
 			pollableList
 		);
@@ -89,7 +97,7 @@ static ServiceBase *pickService(
 		L_INFO("GetFileService selected");
 		return new GetFileService(
 			request,
-			routeConfig,
+			requestedFileInfo,
 			errorPageProvider,
 			logger
 		);
@@ -110,7 +118,7 @@ static ServiceBase *pickService(
 		L_INFO("DeleteFileService selected");
 		return new DeleteFileService(
 			request,
-			routeConfig,
+			requestedFileInfo,
 			errorPageProvider,
 			logger
 		);
@@ -118,7 +126,8 @@ static ServiceBase *pickService(
 		L_INFO("PostFileService selected");
 		return new PostFileService(
 			request,
-			utils::ErrorPageProvider(),
+			requestedFileInfo,
+			errorPageProvider,
 			logger
 		);
 	} else {

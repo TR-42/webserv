@@ -50,9 +50,8 @@ static bool _preparePipe(
 
 CgiService::CgiService(
 	const HttpRequest &request,
-	const std::string &cgiPath,
+	const RequestedFileInfo &requestedFileInfo,
 	const utils::ErrorPageProvider &errorPageProvider,
-	const env::EnvManager &envPreset,
 	const Logger &logger,
 	std::vector<Pollable *> &pollableList
 ) : ServiceBase(request, errorPageProvider, logger),
@@ -62,32 +61,33 @@ CgiService::CgiService(
 {
 	C_DEBUG("initializing...");
 
+	const CgiConfig &cgiConfig = requestedFileInfo.getCgiConfig();
+	const std::string &cgiPath = cgiConfig.getCgiExecutableFullPath();
+
 	// argvを準備
 	char **argv = new char *[3];
 	argv[0] = new char[cgiPath.size() + 1];
 	std::strcpy(argv[0], cgiPath.c_str());
-	// TODO: PATH_TRANSLATEDの実装
-	std::string pathTranslated = "." + request.getNormalizedPath();
+	std::string pathTranslated = requestedFileInfo.getTargetFilePath();
 	argv[1] = new char[pathTranslated.size() + 1];
 	std::strcpy(argv[1], pathTranslated.c_str());
 	argv[2] = NULL;
 	CS_DEBUG()
 		<< "argv[0]: " << argv[0]
+		<< ", argv[1]: " << argv[1]
 		<< std::endl;
 
 	// 環境変数を準備
-	env::EnvManager envManager(envPreset);
+	env::EnvManager envManager(cgiConfig.getEnvPreset());
 	envManager.set("GATEWAY_INTERFACE", "CGI/1.1");
 	// /abc/index.php/extra/def の場合、PATH_INFOは /extra/def
-	// TODO: PATH_INFOの実装
-	envManager.set("PATH_INFO", "");
-	// TODO: PATH_TRANSLATEDの実装
+	envManager.set("PATH_INFO", requestedFileInfo.getCgiPathInfo());
 	envManager.set("PATH_TRANSLATED", pathTranslated);
 	envManager.set("QUERY_STRING", request.getQuery());
 	envManager.set("REQUEST_METHOD", request.getMethod());
-	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /extra/index.php
-	// TODO: SCRIPT_NAMEの実装
-	envManager.set("SCRIPT_NAME", request.getPath());
+	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /abc/index.php
+	// /abc の場合、SCRIPT_NAMEは /abc/index.php
+	envManager.set("SCRIPT_NAME", requestedFileInfo.getCgiScriptName());
 	// TODO: アドレス系実装
 	envManager.set("REMOTE_ADDR", "127.0.0.1");
 	envManager.set("REMOTE_HOST", "localhost");

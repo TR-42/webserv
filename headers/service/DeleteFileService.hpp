@@ -1,6 +1,7 @@
 #pragma once
 
 #include <config/HttpRouteConfig.hpp>
+#include <service/RequestedFileInfo.hpp>
 
 #include "ServiceBase.hpp"
 
@@ -12,7 +13,7 @@ class DeleteFileService : public ServiceBase
  public:
 	DeleteFileService(
 		const HttpRequest &request,
-		const HttpRouteConfig &routeConfig,
+		const RequestedFileInfo &requestedFileInfo,
 		const webserv::utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);

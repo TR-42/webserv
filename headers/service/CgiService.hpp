@@ -5,6 +5,7 @@
 #include <EnvManager.hpp>
 #include <cgi/CgiExecuter.hpp>
 #include <cgi/CgiHandler.hpp>
+#include <service/RequestedFileInfo.hpp>
 #include <service/ServiceBase.hpp>
 
 namespace webserv
@@ -20,9 +21,8 @@ class CgiService : public ServiceBase
  public:
 	CgiService(
 		const HttpRequest &request,
-		const std::string &cgiPath,
+		const RequestedFileInfo &requestedFileInfo,
 		const utils::ErrorPageProvider &errorPageProvider,
-		const env::EnvManager &envPreset,
 		const Logger &logger,
 		std::vector<Pollable *> &pollableList
 	);

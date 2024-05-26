@@ -4,6 +4,7 @@
 
 #include <cerrno>
 #include <climits>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
@@ -20,59 +21,17 @@ namespace webserv
 
 PostFileService::PostFileService(
 	const HttpRequest &request,
+	const RequestedFileInfo &requestedFileInfo,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger),
 		_fd(-1)
 {
-	struct stat statBuf;
-	std::string filePath = request.getPath();
+	std::string filePath(requestedFileInfo.getTargetFilePath());
 
-	if (filePath.empty() || filePath[0] != '/') {
-		this->_response = this->_errorPageProvider.badRequest();
-		LS_INFO() << "Invalid path: " << filePath << std::endl;
-		return;
-	}
-
-	filePath = "." + filePath;
-
-	if (stat(filePath.c_str(), &statBuf) != 0) {
-		// TODO: errno見て適切に処理する
-		const errno_t errorNum = errno;
-		if (errorNum != ENOENT) {
-			this->_response = this->_errorPageProvider.internalServerError();
-			LS_ERROR() << "Failed to get file info: " << strerror(errorNum) << std::endl;
-			return;
-		}
-		LS_INFO() << "File not found - creating file: " << filePath << std::endl;
-		this->_fd = open(filePath.c_str(), O_CREAT | O_WRONLY, 0644);
-		if (this->_fd < 0) {
-			this->_response = this->_errorPageProvider.internalServerError();
-			LS_ERROR() << "Failed to create file: " << filePath << std::endl;
-			return;
-		}
-		this->_response.setStatusCode("201");
-		this->_response.setReasonPhrase("Created");
-
-		return;
-	}
-
-	std::string lastModified = utils::getHttpTimeStr(statBuf.st_mtime);
-
-	CS_LOG()
-		<< "File info: "
-		<< "User ID: " << statBuf.st_uid << ", "
-		<< "Group ID: " << statBuf.st_gid << ", "
-		<< "File size: " << statBuf.st_size << ", "
-		<< "Block size: " << statBuf.st_blksize << ", "
-		<< "Block count: " << statBuf.st_blocks << ", "
-		<< "Permissions: " << utils::modeToString(statBuf.st_mode) << ", "
-		<< "Last modified: " << lastModified << std::endl;
-
-	if (!S_ISREG(statBuf.st_mode)) {
-		this->_response = this->_errorPageProvider.permissionDenied();
-		LS_INFO() << "Not a regular file: " << filePath << std::endl;
-		return;
+	// ファイルが存在しない場合も実行されるので注意
+	if (requestedFileInfo.getIsNotFound()) {
+		// TODO: 親ディレクトリが存在するか確認し、存在しなかったらNotFoundを返す
 	}
 
 	if (access(filePath.c_str(), W_OK) != 0) {
@@ -83,9 +42,12 @@ PostFileService::PostFileService(
 
 	this->_fd = open(filePath.c_str(), O_WRONLY | O_TRUNC);
 	if (this->_fd < 0) {
-		// TODO: errno見て適切に処理する
+		errno_t err = errno;
 		this->_response = this->_errorPageProvider.internalServerError();
-		LS_ERROR() << "Failed to open file: " << filePath << std::endl;
+		LS_ERROR()
+			<< "Failed to open file: " << filePath
+			<< " (err: " << std::strerror(err) << ")"
+			<< std::endl;
 		return;
 	}
 

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <config/HttpRouteConfig.hpp>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
@@ -27,85 +28,28 @@ namespace webserv
 
 GetFileService::GetFileService(
 	const HttpRequest &request,
-	const HttpRouteConfig &routeConfig,
+	const RequestedFileInfo &requestedFileInfo,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger),
-		_isDirectory(false),
+		_isDirectory(requestedFileInfo.getIsDirectory()),
 		_fd(-1)
 {
-	struct stat statBuf;
-	std::string filePath = request.getPath();
+	std::string filePath(requestedFileInfo.getTargetFilePath());
 
-	if (filePath.empty() || filePath[0] != '/') {
-		this->_response = this->_errorPageProvider.badRequest();
-		LS_INFO() << "Invalid path: " << filePath << std::endl;
-		return;
-	}
+	// ファイルが存在すること等はRequestedFileInfoで確認済みのため、ここでは確認しない。
 
-	filePath = getRequestedFilePath(routeConfig, request.getNormalizedPath());
-
-	if (stat(filePath.c_str(), &statBuf) != 0) {
-		// TODO: errno見て適切に処理する
-		this->_response = this->_errorPageProvider.notFound();
-		LS_INFO() << "File not found: " << filePath << std::endl;
-		return;
-	}
-
-	std::string lastModified = utils::getHttpTimeStr(statBuf.st_mtime);
-
-	CS_LOG()
-		<< "File info: "
-		<< "User ID: " << statBuf.st_uid << ", "
-		<< "Group ID: " << statBuf.st_gid << ", "
-		<< "File size: " << statBuf.st_size << ", "
-		<< "Block size: " << statBuf.st_blksize << ", "
-		<< "Block count: " << statBuf.st_blocks << ", "
-		<< "Permissions: " << utils::modeToString(statBuf.st_mode) << ", "
-		<< "Last modified: " << lastModified << std::endl;
-
-	if (!S_ISREG(statBuf.st_mode) && !S_ISDIR(statBuf.st_mode)) {
-		this->_response = this->_errorPageProvider.permissionDenied();
-		LS_INFO() << "Not a regular file or directory: " << filePath << std::endl;
-		return;
-	}
-
-	this->_isDirectory = S_ISDIR(statBuf.st_mode);
 	if (this->_isDirectory) {
-		std::string indexFileName = "/index.html";
-		std::string indexFilePath = filePath + indexFileName;
-		if (stat(indexFilePath.c_str(), &statBuf) != 0 || !S_ISREG(statBuf.st_mode)) {
-			if (!routeConfig.getIsDocumentListingEnabled()) {
-				this->_response = this->_errorPageProvider.notFound();
-				LS_INFO()
-					<< "Index file not found: " << filePath
-					<< " Document listing is disabled."
-					<< std::endl;
-				return;
-			}
-
+		if (requestedFileInfo.getIsAutoIndexAllowed()) {
 			this->generateFileList(filePath, request.getNormalizedPath());
-			LS_INFO()
-				<< "Index file not found: " << filePath
-				<< "\tS_ISREG: " << std::boolalpha << S_ISREG(statBuf.st_mode)
-				<< std::endl;
-			return;
+		} else {
+			this->_response = this->_errorPageProvider.notFound();
+			LS_INFO() << "Document listing is disabled: " << filePath << std::endl;
 		}
+		return;
+	}
 
-		if (!S_ISREG(statBuf.st_mode)) {
-			this->_response = this->_errorPageProvider.permissionDenied();
-			LS_INFO() << "Not a regular file: " << filePath << std::endl;
-			return;
-		}
-
-		if (access(indexFilePath.c_str(), R_OK) != 0) {
-			this->_response = this->_errorPageProvider.permissionDenied();
-			LS_INFO() << "Permission denied: " << filePath << std::endl;
-			return;
-		}
-
-		filePath = indexFilePath;
-	} else if (access(filePath.c_str(), R_OK) != 0) {
+	if (access(filePath.c_str(), R_OK) != 0) {
 		this->_response = this->_errorPageProvider.permissionDenied();
 		LS_INFO() << "Permission denied: " << filePath << std::endl;
 		return;
@@ -113,14 +57,17 @@ GetFileService::GetFileService(
 
 	this->_fd = open(filePath.c_str(), O_RDONLY);
 	if (this->_fd < 0) {
-		// TODO: errno見て適切に処理する
+		errno_t err = errno;
 		this->_response = this->_errorPageProvider.internalServerError();
-		LS_ERROR() << "Failed to open file: " << filePath << std::endl;
+		LS_ERROR()
+			<< "Failed to open file: " << filePath
+			<< " (err: " << std::strerror(err) << ")"
+			<< std::endl;
 		return;
 	}
 
 	LS_DEBUG() << "Opened file: " << filePath << std::endl;
-	this->_response.getHeaders().addValue("Last-Modified", lastModified);
+	this->_response.getHeaders().addValue("Last-Modified", utils::getHttpTimeStr(requestedFileInfo.getStatBuf().st_mtime));
 }
 
 GetFileService::~GetFileService()
@@ -209,8 +156,12 @@ void GetFileService::generateFileList(const std::string &filePath, const std::st
 		}
 		closedir(dir);
 	} else {
+		errno_t err = errno;
 		this->_response = this->_errorPageProvider.internalServerError();
-		LS_LOG() << "Failed to open directory: " << filePath << std::endl;
+		LS_ERROR()
+			<< "Failed to open directory: " << filePath
+			<< " (err: " << std::strerror(err) << ")"
+			<< std::endl;
 		return;
 	}
 

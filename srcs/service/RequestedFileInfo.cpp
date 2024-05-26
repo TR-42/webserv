@@ -12,43 +12,19 @@
 namespace webserv
 {
 
-static inline std::string joinPath(
-	const HttpRouteConfig &routeConfig,
-	const std::vector<std::string> &pathSegList
-)
-{
-	std::string path = routeConfig.getDocumentRoot();
-
-	for (
-		std::vector<std::string>::const_iterator it = pathSegList.begin() + routeConfig.getRequestPathSegmentList().size();
-		it != pathSegList.end();
-		++it
-	) {
-		path += PATH_SEPARATOR;
-		path += *it;
-	}
-
-	return path;
-}
-
-static inline std::string joinPath(
-	const std::string &documentRoot,
-	const std::string &pathSegList
-)
-{
-	return documentRoot + PATH_SEPARATOR + pathSegList;
-}
-
 RequestedFileInfo::RequestedFileInfo(
 	const std::vector<std::string> &requestedPathSegList,
 	const bool isRequestEndWithSlash,
 	const HttpRouteConfig &routeConfig,
 	const Logger &logger
-) : _TargetFilePath(joinPath(routeConfig, requestedPathSegList)),
+) : _CgiScriptName(joinPath(requestedPathSegList)),
+		_CgiPathInfo(),
+		_TargetFilePathWithoutDocumentRoot(joinPath(routeConfig, requestedPathSegList)),
 		_DocumentRoot(routeConfig.getDocumentRoot()),
 		_IsDirectory(isRequestEndWithSlash),
 		_IsNotFound(false),
 		_IsCgi(false),
+		_IsAutoIndexAllowed(routeConfig.getIsDocumentListingEnabled()),
 		_CgiConfig(),
 		_StatBuf(),
 		_FileExtensionWithoutDot()
@@ -76,11 +52,12 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 {
 	struct stat statBuf;
 
-	if (stat(this->_TargetFilePath.c_str(), &statBuf) != 0) {
+	std::string targetFilePathWithDocRoot = joinPath(this->_DocumentRoot, this->_TargetFilePathWithoutDocumentRoot);
+	if (stat(targetFilePathWithDocRoot.c_str(), &statBuf) != 0) {
 		errno_t err = errno;
 		_IsNotFound = true;
 		LS_INFO()
-			<< "File (or directory) not found: " << _TargetFilePath
+			<< "File (or directory) not found: " << _TargetFilePathWithoutDocumentRoot
 			<< " (err: " << std::strerror(err) << ")"
 			<< std::endl;
 		return false;
@@ -90,7 +67,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 	if (isRequestEndWithSlash && S_ISREG(statBuf.st_mode)) {
 		_IsNotFound = true;
 		LS_INFO()
-			<< "Not a directory (but regular file): " << _TargetFilePath
+			<< "Not a directory (but regular file): " << _TargetFilePathWithoutDocumentRoot
 			<< std::endl;
 		return false;
 	}
@@ -99,7 +76,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 	if (!this->_IsDirectory && !S_ISREG(statBuf.st_mode)) {
 		_IsNotFound = true;
 		LS_INFO()
-			<< "Not a regular file or directory: " << _TargetFilePath
+			<< "Not a regular file or directory: " << _TargetFilePathWithoutDocumentRoot
 			<< std::endl;
 		return false;
 	}
@@ -132,13 +109,15 @@ void RequestedFileInfo::_findIndexFile(
 		<< "Finding index file (index file list length: " << routeConfig.getIndexFileList().size() << ")"
 		<< std::endl;
 
+	std::string targetFilePathWithDocRoot = joinPath(this->_DocumentRoot, this->_TargetFilePathWithoutDocumentRoot);
+
 	std::vector<std::string>::const_iterator itEnd = routeConfig.getIndexFileList().end();
 	for (
 		std::vector<std::string>::const_iterator it = routeConfig.getIndexFileList().begin();
 		it != itEnd;
 		++it
 	) {
-		std::string indexFilePath = joinPath(this->_TargetFilePath, *it);
+		std::string indexFilePath = joinPath(targetFilePathWithDocRoot, *it);
 		struct stat statBuf;
 
 		if (stat(indexFilePath.c_str(), &statBuf) != 0) {
@@ -157,7 +136,8 @@ void RequestedFileInfo::_findIndexFile(
 			continue;
 		}
 
-		this->_TargetFilePath = indexFilePath;
+		this->_TargetFilePathWithoutDocumentRoot = joinPath(this->_TargetFilePathWithoutDocumentRoot, *it);
+		this->_CgiScriptName = joinPath(this->_CgiScriptName, *it);
 		this->_IsDirectory = false;
 		this->_StatBuf = statBuf;
 		LS_INFO()
@@ -189,15 +169,16 @@ void RequestedFileInfo::_pickFileExtensionWithoutDot(
 		return;
 	}
 
-	std::string::size_type dotPos = this->_TargetFilePath.rfind('.');
+	// 正規化されているため、ドットが存在しない場合は拡張子が存在しないということになる
+	std::string::size_type dotPos = this->_TargetFilePathWithoutDocumentRoot.rfind('.');
 	if (dotPos == std::string::npos) {
 		LS_DEBUG()
-			<< "No file extension: " << this->_TargetFilePath << ""
+			<< "No file extension: " << this->_TargetFilePathWithoutDocumentRoot << ""
 			<< std::endl;
 		return;
 	}
 
-	this->_FileExtensionWithoutDot = this->_TargetFilePath.substr(dotPos + 1);
+	this->_FileExtensionWithoutDot = this->_TargetFilePathWithoutDocumentRoot.substr(dotPos + 1);
 
 	LS_DEBUG()
 		<< "File extension without dot: `" << this->_FileExtensionWithoutDot << "`"
@@ -226,7 +207,7 @@ void RequestedFileInfo::_pickCgiConfig(
 		this->_IsCgi = true;
 		this->_CgiConfig = *it;
 		LS_INFO()
-			<< "CGI file found: " << this->_TargetFilePath
+			<< "CGI file found: " << this->_TargetFilePathWithoutDocumentRoot
 			<< " (CGI executable: " << this->_CgiConfig.getCgiExecutableFullPath() << ")"
 			<< std::endl;
 		break;
@@ -235,11 +216,12 @@ void RequestedFileInfo::_pickCgiConfig(
 
 RequestedFileInfo::RequestedFileInfo(
 	const RequestedFileInfo &other
-) : _TargetFilePath(other._TargetFilePath),
+) : _TargetFilePathWithoutDocumentRoot(other._TargetFilePathWithoutDocumentRoot),
 		_DocumentRoot(other._DocumentRoot),
 		_IsDirectory(other._IsDirectory),
 		_IsNotFound(other._IsNotFound),
 		_IsCgi(other._IsCgi),
+		_IsAutoIndexAllowed(other._IsAutoIndexAllowed),
 		_CgiConfig(other._CgiConfig),
 		_StatBuf(other._StatBuf),
 		_FileExtensionWithoutDot(other._FileExtensionWithoutDot)
@@ -252,11 +234,12 @@ RequestedFileInfo &webserv::RequestedFileInfo::operator=(const RequestedFileInfo
 		return *this;
 	}
 
-	this->_TargetFilePath = other._TargetFilePath;
+	this->_TargetFilePathWithoutDocumentRoot = other._TargetFilePathWithoutDocumentRoot;
 	this->_DocumentRoot = other._DocumentRoot;
 	this->_IsDirectory = other._IsDirectory;
 	this->_IsNotFound = other._IsNotFound;
 	this->_IsCgi = other._IsCgi;
+	this->_IsAutoIndexAllowed = other._IsAutoIndexAllowed;
 	this->_CgiConfig = other._CgiConfig;
 	this->_StatBuf = other._StatBuf;
 	this->_FileExtensionWithoutDot = other._FileExtensionWithoutDot;
