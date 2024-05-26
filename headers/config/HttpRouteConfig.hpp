@@ -15,7 +15,7 @@ typedef std::vector<CgiConfig> CgiConfigListType;
 
 class HttpRouteConfig
 {
-	DECL_VAR_REF_GETTER_SETTER(std::string, RequestPath)
+	DECL_VAR_REF_GETTER(std::string, RequestPath)
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, Methods)
 	DECL_VAR_REF_GETTER_SETTER(HttpRedirectConfig, Redirect)
 	DECL_VAR_REF_GETTER_SETTER(std::string, DocumentRoot)
@@ -31,6 +31,7 @@ class HttpRouteConfig
 	virtual ~HttpRouteConfig();
 	HttpRouteConfig &operator=(const HttpRouteConfig &from);
 
+	void setRequestPath(const std::string &RequestPath);
 	const std::vector<std::string> &getRequestPathSegmentList() const;
 };
 

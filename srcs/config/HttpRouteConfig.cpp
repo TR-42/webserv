@@ -62,13 +62,6 @@ void HttpRouteConfig::setRequestPath(const std::string &RequestPath)
 	this->_RequestPathSegmentList = utils::split(this->_RequestPath, '/');
 }
 
-IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, Methods, HttpRouteConfig::)
-IMPL_REF_GETTER_SETTER_NS(HttpRedirectConfig, Redirect, HttpRouteConfig::)
-IMPL_REF_GETTER_SETTER_NS(std::string, DocumentRoot, HttpRouteConfig::)
-IMPL_GETTER_SETTER_NS(bool, IsDocumentListingEnabled, HttpRouteConfig::)
-IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, IndexFileList, HttpRouteConfig::)
-IMPL_REF_GETTER_SETTER_NS(CgiConfigListType, CgiConfigList, HttpRouteConfig::)
-
 const std::vector<std::string> &HttpRouteConfig::getRequestPathSegmentList() const
 {
 	return this->_RequestPathSegmentList;

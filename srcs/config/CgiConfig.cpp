@@ -43,8 +43,4 @@ CgiConfig::~CgiConfig()
 {
 }
 
-IMPL_REF_GETTER_SETTER_NS(std::string, ExtensionWithoutDot, CgiConfig::)
-IMPL_REF_GETTER_SETTER_NS(std::string, CgiExecutableFullPath, CgiConfig::)
-IMPL_REF_GETTER_SETTER_NS(env::EnvManager, EnvPreset, CgiConfig::)
-
 }	 // namespace webserv
