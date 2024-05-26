@@ -68,7 +68,15 @@ class RequestedFileInfo
 		const std::string &pathSeg
 	)
 	{
-		return documentRoot + PATH_SEPARATOR + pathSeg;
+		bool isDocumentRootEndWithSlash = documentRoot[documentRoot.length() - 1] == PATH_SEPARATOR;
+		bool isPathSegStartWithSlash = pathSeg[0] == PATH_SEPARATOR;
+		if (isDocumentRootEndWithSlash && isPathSegStartWithSlash) {
+			return documentRoot + pathSeg.substr(1);
+		} else if (isDocumentRootEndWithSlash || isPathSegStartWithSlash) {
+			return documentRoot + pathSeg;
+		} else {
+			return documentRoot + PATH_SEPARATOR + pathSeg;
+		}
 	}
 
 	static inline std::string joinPath(
