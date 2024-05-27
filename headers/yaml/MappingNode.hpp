@@ -9,7 +9,7 @@ namespace webserv
 namespace yaml
 {
 
-typedef std::vector<const NodeBase *> NodeVector;
+typedef std::vector<NodePtr> NodeVector;
 
 class MappingNode : public NodeBase
 {
@@ -28,7 +28,10 @@ class MappingNode : public NodeBase
 		for (NodeVector::iterator it = this->_nodes.begin(); it != this->_nodes.end(); ++it)
 			delete *it;
 	}
-	void addNode(const NodeBase &node) { this->_nodes.push_back(node.clone()); }
+	void addNode(const NodeBase &node)
+	{
+		this->_nodes.push_back(node.clone());
+	}
 	const NodeVector &getNodes() const { return this->_nodes; }
 	MappingNode &operator=(const MappingNode &other)
 	{
@@ -44,7 +47,7 @@ class MappingNode : public NodeBase
 		return *this;
 	}
 
-	NodeBase *clone() const { return new MappingNode(*this); }
+	NodePtr clone() const { return new MappingNode(*this); }
 };
 
 }	 // namespace yaml

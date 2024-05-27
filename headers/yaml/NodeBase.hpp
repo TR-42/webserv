@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 
 namespace webserv
@@ -5,6 +6,9 @@ namespace webserv
 
 namespace yaml
 {
+
+class NodeBase;
+typedef const NodeBase *NodePtr;
 
 class NodeBase
 {
@@ -25,7 +29,7 @@ class NodeBase
 		return *this;
 	}
 
-	virtual NodeBase *clone() const = 0;
+	virtual NodePtr clone() const = 0;
 };
 
 }	 // namespace yaml

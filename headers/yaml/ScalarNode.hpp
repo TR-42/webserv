@@ -28,7 +28,7 @@ class ScalarNode : public NodeBase
 		return *this;
 	}
 
-	NodeBase *clone() const { return new ScalarNode(*this); }
+	const NodeBase *clone() const { return new ScalarNode(*this); }
 };
 
 }	 // namespace yaml
