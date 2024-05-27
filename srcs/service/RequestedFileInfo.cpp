@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <service/RequestedFileInfo.hpp>
+#include <stdexcept>
 #include <utils/getTimeStr.hpp>
 #include <utils/modeToString.hpp>
 
@@ -31,66 +32,120 @@ RequestedFileInfo::RequestedFileInfo(
 {
 	L_LOG("Process Start");
 
-	if (!this->_checkTargetFilePathStat(isRequestEndWithSlash, logger)) {
+	size_t reqPathSegListSize = requestedPathSegList.size();
+	size_t configReqPathSegListSize = routeConfig.getRequestPathSegmentList().size();
+	if (reqPathSegListSize < configReqPathSegListSize || (reqPathSegListSize == configReqPathSegListSize && !isRequestEndWithSlash)) {
+		L_ERROR("Invalid Argument (path length error)");
+		this->_IsNotFound = true;
+		return;
+	}
+
+	if (!this->_checkTargetFilePathStat(isRequestEndWithSlash, requestedPathSegList, configReqPathSegListSize, logger)) {
 		return;
 	}
 
 	// (通常ファイルへのリクエストの場合は処理されない)
 	this->_findIndexFile(routeConfig, logger);
 
+	if (this->_IsNotFound) {
+		L_LOG("Process End");
+		return;
+	}
+
 	// (ディレクトリへのリクエストの場合は処理されない)
 	this->_pickFileExtensionWithoutDot(logger);
 	this->_pickCgiConfig(routeConfig, logger);
+
+	// ファイルに対するリクエストの場合にのみCgiPathInfoが設定されている
+	bool isCgiPathInfoAvailable = !this->_CgiPathInfo.empty();
+	this->_IsNotFound = !this->_IsCgi && isCgiPathInfoAvailable;
 
 	L_LOG("Process End");
 }
 
 bool RequestedFileInfo::_checkTargetFilePathStat(
 	const bool isRequestEndWithSlash,
+	const std::vector<std::string> requestedPathSegList,
+	size_t configReqPathSegListSize,
 	const Logger &logger
 )
 {
+	if (requestedPathSegList.size() == configReqPathSegListSize) {
+		LS_DEBUG() << "No path segments" << std::endl;
+
+		struct stat statBuf;
+		if (stat(this->_DocumentRoot.c_str(), &statBuf) != 0) {
+			errno_t err = errno;
+			this->_IsNotFound = true;
+			LS_INFO()
+				<< "Document root not found: " << this->_DocumentRoot
+				<< " (err: " << std::strerror(err) << ")"
+				<< std::endl;
+			return false;
+		}
+
+		if (!S_ISDIR(statBuf.st_mode)) {
+			this->_IsNotFound = true;
+			LS_INFO()
+				<< "Document root is not a directory: " << this->_DocumentRoot
+				<< std::endl;
+			return false;
+		}
+
+		this->_IsDirectory = true;
+		this->_StatBuf = statBuf;
+
+		std::string lastModified = utils::getHttpTimeStr(statBuf.st_mtime);
+
+		LS_LOG()
+			<< "IndexFile info: "
+			<< "User ID: " << statBuf.st_uid << ", "
+			<< "Group ID: " << statBuf.st_gid << ", "
+			<< "File size: " << statBuf.st_size << ", "
+			<< "Block size: " << statBuf.st_blksize << ", "
+			<< "Block count: " << statBuf.st_blocks << ", "
+			<< "Permissions: " << utils::modeToString(statBuf.st_mode) << ", "
+			<< "Last modified: " << lastModified << std::endl;
+
+		return true;
+	}
+
+	std::string path(this->_DocumentRoot);
 	struct stat statBuf;
+	for (size_t i = configReqPathSegListSize; i < requestedPathSegList.size(); ++i) {
+		path = joinPath(path, requestedPathSegList[i]);
+		if (stat(path.c_str(), &statBuf) != 0) {
+			errno_t err = errno;
+			this->_IsNotFound = true;
+			LS_INFO()
+				<< "File (or directory) not found: " << path
+				<< " (err: " << std::strerror(err) << ")"
+				<< std::endl;
+			return false;
+		}
 
-	std::string targetFilePathWithDocRoot = joinPath(this->_DocumentRoot, this->_TargetFilePathWithoutDocumentRoot);
-	if (stat(targetFilePathWithDocRoot.c_str(), &statBuf) != 0) {
-		errno_t err = errno;
-		_IsNotFound = true;
-		LS_INFO()
-			<< "File (or directory) not found: " << targetFilePathWithDocRoot
-			<< " (err: " << std::strerror(err) << ")"
-			<< std::endl;
-		return false;
+		if (!S_ISDIR(statBuf.st_mode) && !S_ISREG(statBuf.st_mode)) {
+			this->_IsNotFound = true;
+			LS_INFO()
+				<< "not a regular file or directory: " << path
+				<< std::endl;
+			return false;
+		}
+
+		if (S_ISDIR(statBuf.st_mode)) {
+			this->_IsDirectory = true;
+		} else {
+			this->_IsDirectory = false;
+			this->_StatBuf = statBuf;
+			this->_TargetFilePathWithoutDocumentRoot = joinPath(requestedPathSegList, configReqPathSegListSize, i);
+			this->_CgiScriptName = joinPath(requestedPathSegList, 0, i);
+			this->_CgiPathInfo = joinPath(requestedPathSegList, i + 1);
+			if (isRequestEndWithSlash) {
+				this->_CgiPathInfo += PATH_SEPARATOR;
+			}
+			return true;
+		}
 	}
-
-	this->_StatBuf = statBuf;
-	if (isRequestEndWithSlash && S_ISREG(statBuf.st_mode)) {
-		_IsNotFound = true;
-		LS_INFO()
-			<< "Not a directory (but regular file): " << targetFilePathWithDocRoot
-			<< std::endl;
-		return false;
-	}
-
-	this->_IsDirectory = S_ISDIR(statBuf.st_mode);
-	if (!this->_IsDirectory && !S_ISREG(statBuf.st_mode)) {
-		_IsNotFound = true;
-		LS_INFO()
-			<< "Not a regular file or directory: " << targetFilePathWithDocRoot
-			<< std::endl;
-		return false;
-	}
-
-	LS_LOG()
-		<< "File/Directory info: "
-		<< "IsDirectory: " << std::boolalpha << this->_IsDirectory << ", "
-		<< "User ID: " << statBuf.st_uid << ", "
-		<< "Group ID: " << statBuf.st_gid << ", "
-		<< "File size: " << statBuf.st_size << ", "
-		<< "Block size: " << statBuf.st_blksize << ", "
-		<< "Block count: " << statBuf.st_blocks << ", "
-		<< "Permissions: " << utils::modeToString(statBuf.st_mode) << ", "
-		<< "Last modified: " << utils::getHttpTimeStr(statBuf.st_mtime) << std::endl;
 
 	return true;
 }
@@ -159,6 +214,7 @@ void RequestedFileInfo::_findIndexFile(
 	}
 
 	L_DEBUG("Index file not found");
+	this->_IsNotFound = !this->_IsAutoIndexAllowed;
 }
 
 void RequestedFileInfo::_pickFileExtensionWithoutDot(

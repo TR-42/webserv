@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits.h>
 #include <sys/stat.h>
 
 #include <Logger.hpp>
@@ -15,7 +16,7 @@ class RequestedFileInfo
 {
  private:
 	DECL_VAR_REF_GETTER(std::string, CgiScriptName);
-	DECL_VAR_REF_GETTER(std::string, CgiPathInfo);	// TODO: 実装
+	DECL_VAR_REF_GETTER(std::string, CgiPathInfo);
 	DECL_VAR_REF_GETTER(std::string, TargetFilePathWithoutDocumentRoot);
 	DECL_VAR_REF_GETTER(std::string, DocumentRoot);
 	DECL_VAR_GETTER(bool, IsDirectory);
@@ -26,10 +27,10 @@ class RequestedFileInfo
 	DECL_VAR_REF_GETTER(struct stat, StatBuf);
 	DECL_VAR_REF_GETTER(std::string, FileExtensionWithoutDot);
 
-	// TODO: Path Infoの実装
-
 	bool _checkTargetFilePathStat(
 		const bool isRequestEndWithSlash,
+		const std::vector<std::string> requestedPathSegList,
+		size_t configReqPathSegListSize,
 		const Logger &logger
 	);
 	void _findIndexFile(
@@ -63,11 +64,26 @@ class RequestedFileInfo
 		);
 	}
 
+	inline std::string getCgiPathTranslated() const
+	{
+		if (this->_CgiPathInfo.empty()) {
+			return "";
+		}
+
+		return this->getDocumentRoot() + this->getCgiPathInfo();
+	}
+
 	static inline std::string joinPath(
 		const std::string &documentRoot,
 		const std::string &pathSeg
 	)
 	{
+		if (documentRoot.empty()) {
+			return pathSeg;
+		} else if (pathSeg.empty()) {
+			return documentRoot;
+		}
+
 		bool isDocumentRootEndWithSlash = documentRoot[documentRoot.length() - 1] == PATH_SEPARATOR;
 		bool isPathSegStartWithSlash = pathSeg[0] == PATH_SEPARATOR;
 		if (isDocumentRootEndWithSlash && isPathSegStartWithSlash) {
@@ -80,18 +96,24 @@ class RequestedFileInfo
 	}
 
 	static inline std::string joinPath(
-		const std::vector<std::string> &pathSegList
+		const std::vector<std::string> &pathSegList,
+		size_t start = 0,
+		size_t maxLength = SIZE_MAX
 	)
 	{
 		std::string path;
 
+		if (pathSegList.size() <= start) {
+			return path;
+		}
+
 		for (
-			std::vector<std::string>::const_iterator it = pathSegList.begin();
-			it != pathSegList.end();
-			++it
+			size_t i = start;
+			i < pathSegList.size() && i < start + maxLength;
+			++i
 		) {
 			path += PATH_SEPARATOR;
-			path += *it;
+			path += pathSegList[i];
 		}
 
 		return path;
@@ -103,6 +125,12 @@ class RequestedFileInfo
 	)
 	{
 		std::string path;
+
+		size_t configPathSegListSize = routeConfig.getRequestPathSegmentList().size();
+		size_t pathSegListSize = pathSegList.size();
+		if (pathSegListSize <= configPathSegListSize) {
+			return path;
+		}
 
 		for (
 			std::vector<std::string>::const_iterator it = pathSegList.begin() + routeConfig.getRequestPathSegmentList().size();
