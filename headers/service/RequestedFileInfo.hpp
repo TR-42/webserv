@@ -5,14 +5,19 @@
 #include <Logger.hpp>
 #include <classDefUtils.hpp>
 #include <config/HttpRouteConfig.hpp>
-#include <cstdint>
+#include <limits>
 #include <math/math.hpp>
 
 #define PATH_SEPARATOR '/'
 
+#ifdef SIZE_MAX
+#undef SIZE_MAX
+#endif
+
 namespace webserv
 {
 
+const size_t SIZE_MAX = std::numeric_limits<size_t>::max();
 class RequestedFileInfo
 {
  private:

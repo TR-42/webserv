@@ -76,6 +76,11 @@ RequestedFileInfoTests::RequestedFileInfoTests(
 	this->_routeConfigCgi.setCgiConfigList({cgiConfig});
 }
 
+TEST_F(RequestedFileInfoTests, SIZE_MAX)
+{
+	EXPECT_EQ(SIZE_MAX, 18446744073709551615UL);
+}
+
 TEST_F(RequestedFileInfoTests, tooFewPathSeg)
 {
 	RequestedFileInfo requestedFileInfo({"test", "path"}, false, this->getRouteConfig(), this->logger);
