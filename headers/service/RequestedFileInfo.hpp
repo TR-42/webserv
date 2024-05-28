@@ -1,11 +1,11 @@
 #pragma once
 
-#include <limits.h>
 #include <sys/stat.h>
 
 #include <Logger.hpp>
 #include <classDefUtils.hpp>
 #include <config/HttpRouteConfig.hpp>
+#include <cstdint>
 #include <math/math.hpp>
 
 #define PATH_SEPARATOR '/'
