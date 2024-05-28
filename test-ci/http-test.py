@@ -1,6 +1,9 @@
 import http.client
+import os
 
 success = True
+
+PROJ_ROOT_DIR = os.path.abspath(os.path.dirname(__file__) + "/../")
 
 GREEN = "\033[92m"
 RED = "\033[91m"
@@ -22,7 +25,7 @@ response = conn.getresponse()
 expectedBody = f"""\
 Gateway Interface: CGI/1.1
 Path Info:{' '}
-Path Translated: ./resources/sh-cgi/document.sh
+Path Translated: {PROJ_ROOT_DIR}/resources/sh-cgi/document.sh
 Query String:{' '}
 Request Method: GET
 Script Name: /resources/sh-cgi/document.sh
