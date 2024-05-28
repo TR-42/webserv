@@ -107,9 +107,13 @@ class RequestedFileInfo
 			return path;
 		}
 
+		if (math::can_add(start, maxLength)) {
+			maxLength += start;
+		}
+
 		for (
 			size_t i = start;
-			i < pathSegList.size() && i < start + maxLength;
+			i < pathSegList.size() && i < maxLength;
 			++i
 		) {
 			path += PATH_SEPARATOR;
