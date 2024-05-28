@@ -53,11 +53,52 @@ Hello, World!
 
 	conn.close()
 
+def TestPathInfo():
+	conn = http.client.HTTPConnection(host)
+	conn.request("GET", "/resources/sh-cgi/document.sh/abc/def?query=value&key=value2", headers={"Host": host})
+	response = conn.getresponse()
+
+	expectedBody = f"""\
+Gateway Interface: CGI/1.1
+Path Info: /abc/def
+Path Translated: {PROJ_ROOT_DIR}/resources/sh-cgi/document.sh
+Query String: query=value&key=value2
+Request Method: GET
+Script Name: /resources/sh-cgi/document.sh
+Remote Address: 127.0.0.1
+Server Name: localhost
+Server Port: 80
+Server Protocol: HTTP/1.1
+Server Software: webserv/1.0
+Hello, World!
+"""
+
+	cmp("status", response.status, 200)
+	cmp("reason", response.reason, "OK")
+	headers = dict(response.getheaders())
+	cmp("header count", len(headers), 3)
+	cmp("content-type", headers["Content-Type"], "text/plain")
+	cmp("content-length", headers["Content-Length"], str(len(expectedBody)))
+	cmp("server", headers["Date"] != "", True)
+
+	actualBody = response.read().decode()
+	cmp("body-len", len(actualBody), len(expectedBody))
+	cmp("body", actualBody, expectedBody)
+
+	conn.close()
+
 
 print("Running tests...")
+print()
 
 print("Test1")
 Test1()
+
+print()
+print("TestPathInfo")
+TestPathInfo()
+
+print()
 
 if success:
 		print(f"{GREEN}All tests passed{ENDC}")
