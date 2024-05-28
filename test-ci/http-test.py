@@ -18,11 +18,13 @@ def cmp(testName, actual, expected):
 				success = False
 
 host = "127.0.0.1"
-conn = http.client.HTTPConnection(host)
-conn.request("GET", "/resources/sh-cgi/document.sh", headers={"Host": host})
-response = conn.getresponse()
 
-expectedBody = f"""\
+def Test1():
+	conn = http.client.HTTPConnection(host)
+	conn.request("GET", "/resources/sh-cgi/document.sh", headers={"Host": host})
+	response = conn.getresponse()
+
+	expectedBody = f"""\
 Gateway Interface: CGI/1.1
 Path Info:{' '}
 Path Translated: {PROJ_ROOT_DIR}/resources/sh-cgi/document.sh
@@ -37,19 +39,25 @@ Server Software: webserv/1.0
 Hello, World!
 """
 
-cmp("status", response.status, 200)
-cmp("reason", response.reason, "OK")
-headers = dict(response.getheaders())
-cmp("header count", len(headers), 3)
-cmp("content-type", headers["Content-Type"], "text/plain")
-cmp("content-length", headers["Content-Length"], str(len(expectedBody)))
-cmp("server", headers["Date"] != "", True)
+	cmp("status", response.status, 200)
+	cmp("reason", response.reason, "OK")
+	headers = dict(response.getheaders())
+	cmp("header count", len(headers), 3)
+	cmp("content-type", headers["Content-Type"], "text/plain")
+	cmp("content-length", headers["Content-Length"], str(len(expectedBody)))
+	cmp("server", headers["Date"] != "", True)
 
-actualBody = response.read().decode()
-cmp("body-len", len(actualBody), len(expectedBody))
-cmp("body", actualBody, expectedBody)
+	actualBody = response.read().decode()
+	cmp("body-len", len(actualBody), len(expectedBody))
+	cmp("body", actualBody, expectedBody)
 
-conn.close()
+	conn.close()
+
+
+print("Running tests...")
+
+print("Test1")
+Test1()
 
 if success:
 		print(f"{GREEN}All tests passed{ENDC}")
