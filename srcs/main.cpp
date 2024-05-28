@@ -45,7 +45,7 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	webserv::HttpRouteConfig httpRouteConfig1;
 	// Document Rootは絶対パスで指定する (YAML Parserで変換する)
 	if (realpath("./", pathBuf) == NULL) {
-		errno_t err = errno;
+		webserv::errno_t err = errno;
 		LS_FATAL()
 			<< "realpath() failed: " << std::strerror(err)
 			<< std::endl;
@@ -57,7 +57,7 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 
 	webserv::HttpRouteConfig httpRouteConfig2;
 	if (realpath("./srcs", pathBuf) == NULL) {
-		errno_t err = errno;
+		webserv::errno_t err = errno;
 		LS_FATAL()
 			<< "realpath() failed: " << std::strerror(err)
 			<< std::endl;
@@ -75,7 +75,7 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	// /resources
 	webserv::HttpRouteConfig httpRouteConfigResources;
 	if (realpath("./resources", pathBuf) == NULL) {
-		errno_t err = errno;
+		webserv::errno_t err = errno;
 		LS_FATAL()
 			<< "realpath() failed: " << std::strerror(err)
 			<< std::endl;
