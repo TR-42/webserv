@@ -129,6 +129,7 @@ TEST_F(RequestedFileInfoTests, detectIndexHtml)
 {
 	RequestedFileInfo requestedFileInfo({"test", "path", "www"}, false, this->getRouteConfig(), this->logger);
 
+	EXPECT_EQ("index.html", requestedFileInfo.getFileName());
 	EXPECT_EQ("/test/path/www/index.html", requestedFileInfo.getCgiScriptName());
 	EXPECT_EQ("", requestedFileInfo.getCgiPathInfo());
 	EXPECT_EQ("", requestedFileInfo.getCgiPathTranslated());
@@ -148,6 +149,7 @@ TEST_F(RequestedFileInfoTests, detectIndexHtml_AutoIndex)
 {
 	RequestedFileInfo requestedFileInfo({"test", "path", "www"}, false, this->getRouteConfigIndexEnabled(), this->logger);
 
+	EXPECT_EQ("index.html", requestedFileInfo.getFileName());
 	EXPECT_EQ("/test/path/www/index.html", requestedFileInfo.getCgiScriptName());
 	EXPECT_EQ("", requestedFileInfo.getCgiPathInfo());
 	EXPECT_EQ("", requestedFileInfo.getCgiPathTranslated());
@@ -167,6 +169,7 @@ TEST_F(RequestedFileInfoTests, detectIndexPhp_NoPhpRoute)
 {
 	RequestedFileInfo requestedFileInfo({"test", "path", "php-cgi"}, false, this->getRouteConfig(), this->logger);
 
+	EXPECT_EQ("index.php", requestedFileInfo.getFileName());
 	EXPECT_EQ("/test/path/php-cgi/index.php", requestedFileInfo.getCgiScriptName());
 	EXPECT_EQ("", requestedFileInfo.getCgiPathInfo());
 	EXPECT_EQ("", requestedFileInfo.getCgiPathTranslated());
@@ -182,10 +185,31 @@ TEST_F(RequestedFileInfoTests, detectIndexPhp_NoPhpRoute)
 	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
 }
 
+TEST_F(RequestedFileInfoTests, detectIndexPhp_PhpRoute)
+{
+	RequestedFileInfo requestedFileInfo({"test", "path", "php-cgi"}, false, this->getRouteConfigCgi(), this->logger);
+
+	EXPECT_EQ("index.php", requestedFileInfo.getFileName());
+	EXPECT_EQ("/test/path/php-cgi/index.php", requestedFileInfo.getCgiScriptName());
+	EXPECT_EQ("", requestedFileInfo.getCgiPathInfo());
+	EXPECT_EQ("", requestedFileInfo.getCgiPathTranslated());
+	EXPECT_EQ("/php-cgi/index.php", requestedFileInfo.getTargetFilePathWithoutDocumentRoot());
+	EXPECT_EQ(this->getTestFileDir() + "/php-cgi/index.php", requestedFileInfo.getTargetFilePath());
+	EXPECT_EQ(this->getTestFileDir(), requestedFileInfo.getDocumentRoot());
+
+	EXPECT_FALSE(requestedFileInfo.getIsDirectory());
+	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
+	EXPECT_TRUE(requestedFileInfo.getIsCgi());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+
+	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
+	EXPECT_EQ(this->getRouteConfigCgi().getCgiConfigList()[0].getCgiExecutableFullPath(), requestedFileInfo.getCgiConfig().getCgiExecutableFullPath());
+}
 TEST_F(RequestedFileInfoTests, indexPhp_NoPhpRoute_PathInfo)
 {
 	RequestedFileInfo requestedFileInfo({"test", "path", "php-cgi", "index.php", "abc", "info"}, false, this->getRouteConfig(), this->logger);
 
+	EXPECT_EQ("index.php", requestedFileInfo.getFileName());
 	EXPECT_EQ("/test/path/php-cgi/index.php", requestedFileInfo.getCgiScriptName());
 	EXPECT_EQ("/abc/info", requestedFileInfo.getCgiPathInfo());
 	EXPECT_EQ(this->getTestFileDir() + "/abc/info", requestedFileInfo.getCgiPathTranslated());
@@ -199,6 +223,27 @@ TEST_F(RequestedFileInfoTests, indexPhp_NoPhpRoute_PathInfo)
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
 
 	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
+}
+
+TEST_F(RequestedFileInfoTests, indexPhp_PhpRoute_PathInfo)
+{
+	RequestedFileInfo requestedFileInfo({"test", "path", "php-cgi", "index.php", "abc", "info"}, false, this->getRouteConfigCgi(), this->logger);
+
+	EXPECT_EQ("index.php", requestedFileInfo.getFileName());
+	EXPECT_EQ("/test/path/php-cgi/index.php", requestedFileInfo.getCgiScriptName());
+	EXPECT_EQ("/abc/info", requestedFileInfo.getCgiPathInfo());
+	EXPECT_EQ(this->getTestFileDir() + "/abc/info", requestedFileInfo.getCgiPathTranslated());
+	EXPECT_EQ("/php-cgi/index.php", requestedFileInfo.getTargetFilePathWithoutDocumentRoot());
+	EXPECT_EQ(this->getTestFileDir() + "/php-cgi/index.php", requestedFileInfo.getTargetFilePath());
+	EXPECT_EQ(this->getTestFileDir(), requestedFileInfo.getDocumentRoot());
+
+	EXPECT_FALSE(requestedFileInfo.getIsDirectory());
+	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
+	EXPECT_TRUE(requestedFileInfo.getIsCgi());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+
+	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
+	EXPECT_EQ(this->getRouteConfigCgi().getCgiConfigList()[0].getCgiExecutableFullPath(), requestedFileInfo.getCgiConfig().getCgiExecutableFullPath());
 }
 
 };	// namespace webserv

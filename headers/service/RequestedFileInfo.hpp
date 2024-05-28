@@ -6,6 +6,7 @@
 #include <Logger.hpp>
 #include <classDefUtils.hpp>
 #include <config/HttpRouteConfig.hpp>
+#include <math/math.hpp>
 
 #define PATH_SEPARATOR '/'
 
@@ -15,6 +16,7 @@ namespace webserv
 class RequestedFileInfo
 {
  private:
+	DECL_VAR_REF_GETTER(std::string, FileName);
 	DECL_VAR_REF_GETTER(std::string, CgiScriptName);
 	DECL_VAR_REF_GETTER(std::string, CgiPathInfo);
 	DECL_VAR_REF_GETTER(std::string, TargetFilePathWithoutDocumentRoot);

@@ -71,7 +71,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 )
 {
 	if (requestedPathSegList.size() == configReqPathSegListSize) {
-		LS_DEBUG() << "No path segments" << std::endl;
+		L_DEBUG("No path segments");
 
 		struct stat statBuf;
 		if (stat(this->_DocumentRoot.c_str(), &statBuf) != 0) {
@@ -134,18 +134,42 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 
 		if (S_ISDIR(statBuf.st_mode)) {
 			this->_IsDirectory = true;
+			LS_LOG()
+				<< "Directory found: " << path
+				<< std::endl;
 		} else {
 			this->_IsDirectory = false;
 			this->_StatBuf = statBuf;
-			this->_TargetFilePathWithoutDocumentRoot = joinPath(requestedPathSegList, configReqPathSegListSize, i);
-			this->_CgiScriptName = joinPath(requestedPathSegList, 0, i);
+			this->_FileName = requestedPathSegList[i];
+			this->_TargetFilePathWithoutDocumentRoot = joinPath(requestedPathSegList, configReqPathSegListSize, i - configReqPathSegListSize + 1);
+			this->_CgiScriptName = joinPath(requestedPathSegList, 0, i + 1);
 			this->_CgiPathInfo = joinPath(requestedPathSegList, i + 1);
 			if (isRequestEndWithSlash) {
 				this->_CgiPathInfo += PATH_SEPARATOR;
 			}
+			LS_LOG()
+				<< "File found: " << path
+				<< ", FileName: " << this->_FileName
+				<< ", TargetFilePathWithoutDocumentRoot: " << this->_TargetFilePathWithoutDocumentRoot
+				<< ", CgiScriptName: " << this->_CgiScriptName
+				<< ", CgiPathInfo: " << this->_CgiPathInfo
+				<< std::endl;
+			LS_LOG()
+				<< "File info: "
+				<< "User ID: " << statBuf.st_uid << ", "
+				<< "Group ID: " << statBuf.st_gid << ", "
+				<< "File size: " << statBuf.st_size << ", "
+				<< "Block size: " << statBuf.st_blksize << ", "
+				<< "Block count: " << statBuf.st_blocks << ", "
+				<< "Permissions: " << utils::modeToString(statBuf.st_mode) << ", "
+				<< "Last modified: " << utils::getHttpTimeStr(statBuf.st_mtime) << std::endl;
 			return true;
 		}
 	}
+
+	LS_LOG()
+		<< "It was directory: " << path
+		<< std::endl;
 
 	return true;
 }
@@ -191,6 +215,7 @@ void RequestedFileInfo::_findIndexFile(
 			continue;
 		}
 
+		this->_FileName = *it;
 		this->_TargetFilePathWithoutDocumentRoot = joinPath(this->_TargetFilePathWithoutDocumentRoot, *it);
 		this->_CgiScriptName = joinPath(this->_CgiScriptName, *it);
 		this->_IsDirectory = false;
@@ -222,19 +247,20 @@ void RequestedFileInfo::_pickFileExtensionWithoutDot(
 )
 {
 	if (this->_IsDirectory) {
+		L_LOG("Directory -> Skip");
 		return;
 	}
 
 	// 正規化されているため、ドットが存在しない場合は拡張子が存在しないということになる
-	std::string::size_type dotPos = this->_TargetFilePathWithoutDocumentRoot.rfind('.');
-	if (dotPos == std::string::npos) {
+	std::string::size_type dotPos = this->_FileName.rfind('.');
+	if (dotPos == std::string::npos || dotPos == 0) {
 		LS_DEBUG()
-			<< "No file extension: " << this->_TargetFilePathWithoutDocumentRoot << ""
+			<< "No file extension: " << this->_FileName << ""
 			<< std::endl;
 		return;
 	}
 
-	this->_FileExtensionWithoutDot = this->_TargetFilePathWithoutDocumentRoot.substr(dotPos + 1);
+	this->_FileExtensionWithoutDot = this->_FileName.substr(dotPos + 1);
 
 	LS_DEBUG()
 		<< "File extension without dot: `" << this->_FileExtensionWithoutDot << "`"
@@ -247,6 +273,7 @@ void RequestedFileInfo::_pickCgiConfig(
 )
 {
 	if (this->_IsDirectory) {
+		L_LOG("Directory -> Skip");
 		return;
 	}
 
@@ -266,8 +293,12 @@ void RequestedFileInfo::_pickCgiConfig(
 			<< "CGI file found: " << this->_TargetFilePathWithoutDocumentRoot
 			<< " (CGI executable: " << this->_CgiConfig.getCgiExecutableFullPath() << ")"
 			<< std::endl;
-		break;
+		return;
 	}
+
+	LS_DEBUG()
+		<< "CGI file not found: " << this->_TargetFilePathWithoutDocumentRoot
+		<< std::endl;
 }
 
 RequestedFileInfo::RequestedFileInfo(
