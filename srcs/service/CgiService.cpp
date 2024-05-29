@@ -7,6 +7,7 @@
 #include <cstring>
 #include <macros.hpp>
 #include <service/CgiService.hpp>
+#include <utils/to_string.hpp>
 #include <utils/waitResultStatusToString.hpp>
 
 #define STR(v) #v
@@ -63,6 +64,8 @@ static inline std::string _dirname(
 CgiService::CgiService(
 	const HttpRequest &request,
 	const RequestedFileInfo &requestedFileInfo,
+	uint16_t serverPort,
+	const struct sockaddr &clientAddr,
 	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
 	std::vector<Pollable *> &pollableList
@@ -100,12 +103,12 @@ CgiService::CgiService(
 	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /abc/index.php
 	// /abc の場合、SCRIPT_NAMEは /abc/index.php
 	envManager.set("SCRIPT_NAME", requestedFileInfo.getCgiScriptName());
-	// TODO: アドレス系実装
-	envManager.set("REMOTE_ADDR", "127.0.0.1");
-	envManager.set("REMOTE_HOST", "localhost");
-	envManager.set("REMOTE_PORT", "12345");
-	envManager.set("SERVER_NAME", "localhost");
-	envManager.set("SERVER_PORT", "80");
+	envManager.set("REMOTE_ADDR", utils::to_string(clientAddr));
+	// REMOTE_HOSTは任意のため、設定しない
+	// envManager.set("REMOTE_HOST", "localhost");
+	envManager.set("REMOTE_PORT", utils::to_string(ntohs(((struct sockaddr_in *)&clientAddr)->sin_port)));
+	envManager.set("SERVER_NAME", request.getHost());
+	envManager.set("SERVER_PORT", utils::to_string(serverPort));
 
 	envManager.set("SERVER_PROTOCOL", request.getVersion());
 	envManager.set("SERVER_SOFTWARE", "webserv/1.0");

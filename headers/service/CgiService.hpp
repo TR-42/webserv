@@ -1,5 +1,6 @@
 #pragma once
 
+#include <arpa/inet.h>
 #include <unistd.h>
 
 #include <EnvManager.hpp>
@@ -7,6 +8,7 @@
 #include <cgi/CgiHandler.hpp>
 #include <service/RequestedFileInfo.hpp>
 #include <service/ServiceBase.hpp>
+#include <types.hpp>
 
 namespace webserv
 {
@@ -22,6 +24,8 @@ class CgiService : public ServiceBase
 	CgiService(
 		const HttpRequest &request,
 		const RequestedFileInfo &requestedFileInfo,
+		uint16_t serverPort,
+		const struct sockaddr &clientAddr,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger,
 		std::vector<Pollable *> &pollableList

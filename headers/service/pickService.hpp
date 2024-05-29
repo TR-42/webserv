@@ -1,5 +1,7 @@
 #pragma once
 
+#include <arpa/inet.h>
+
 #include <config/ListenConfig.hpp>
 #include <config/ServerRunningConfig.hpp>
 #include <poll/Pollable.hpp>
@@ -12,6 +14,7 @@ namespace webserv
 
 ServiceBase *pickService(
 	const ServerRunningConfigListType &listenConfigList,
+	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger

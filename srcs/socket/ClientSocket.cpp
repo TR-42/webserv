@@ -113,6 +113,7 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< std::endl;
 	this->_service = pickService(
 		this->_listenConfigList,
+		this->_clientAddr,
 		this->httpRequest,
 		pollableList,
 		this->logger
@@ -286,15 +287,16 @@ ClientSocket::~ClientSocket()
 
 ClientSocket::ClientSocket(
 	int fd,
-	const std::string &serverLoggerCustomId,
+	const struct sockaddr &clientAddr,
 	const ServerRunningConfigListType &listenConfigList,
 	const Logger &logger
 ) : Pollable(fd),
 		_listenConfigList(listenConfigList),
-		logger(logger, serverLoggerCustomId + ", Connection=" + Pollable::getUUID().toString()),
+		logger(logger, logger.getCustomId() + ", Connection=" + Pollable::getUUID().toString()),
 		httpRequest(this->logger),
 		_IsResponseSet(false),
-		_service(NULL)
+		_service(NULL),
+		_clientAddr(clientAddr)
 {
 	CS_DEBUG()
 		<< "ClientSocket(fd:" << utils::to_string(fd) << ")"

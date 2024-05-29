@@ -65,7 +65,8 @@ ServerRunningConfig::ServerRunningConfig(
 	const ServerConfig &serverConfig,
 	utils::ErrorPageProvider &errorPageProvider,
 	Logger &logger
-) : _serverNameList(_ServerNameVecToSet(serverConfig.getServerNameList())),
+) : _port(serverConfig.getPort()),
+		_serverNameList(_ServerNameVecToSet(serverConfig.getServerNameList())),
 		_errorPageProvider(errorPageProvider),
 		_requestBodyLimit(serverConfig.getRequestBodyLimit()),
 		_routeList(serverConfig.getRouteList()),
@@ -93,7 +94,8 @@ ServerRunningConfig::ServerRunningConfig(
 
 ServerRunningConfig::ServerRunningConfig(
 	const ServerRunningConfig &from
-) : _serverNameList(from._serverNameList),
+) : _port(from._port),
+		_serverNameList(from._serverNameList),
 		_errorPageProvider(from._errorPageProvider),
 		_requestBodyLimit(from._requestBodyLimit),
 		_routeList(from._routeList),

@@ -43,7 +43,9 @@ static const ServerRunningConfig pickServerConfig(
 };
 
 static ServiceBase *pickService(
+	uint16_t serverPort,
 	const HttpRouteConfig &routeConfig,
+	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
 	const utils::ErrorPageProvider &errorPageProvider,
 	std::vector<Pollable *> &pollableList,
@@ -86,6 +88,8 @@ static ServiceBase *pickService(
 		return new CgiService(
 			request,
 			requestedFileInfo,
+			serverPort,
+			clientAddr,
 			errorPageProvider,
 			logger,
 			pollableList
@@ -138,6 +142,7 @@ static ServiceBase *pickService(
 
 ServiceBase *pickService(
 	const ServerRunningConfigListType &listenConfigList,
+	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger
@@ -151,7 +156,9 @@ ServiceBase *pickService(
 
 	HttpRouteConfig routeConfig = serverConfig.pickRouteConfig(request);
 	return pickService(
+		serverConfig.getPort(),
 		routeConfig,
+		clientAddr,
 		request,
 		serverConfig.getErrorPageProvider(),
 		pollableList,
