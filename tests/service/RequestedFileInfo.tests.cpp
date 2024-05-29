@@ -251,4 +251,22 @@ TEST_F(RequestedFileInfoTests, indexPhp_PhpRoute_PathInfo)
 	EXPECT_EQ(this->getRouteConfigCgi().getCgiConfigList()[0].getCgiExecutableFullPath(), requestedFileInfo.getCgiConfig().getCgiExecutableFullPath());
 }
 
+TEST_F(RequestedFileInfoTests, directoryRequestButWasFile)
+{
+	RequestedFileInfo requestedFileInfo({"test", "path", "www", "index.html"}, true, this->getRouteConfigCgi(), this->logger);
+
+	EXPECT_EQ("index.html", requestedFileInfo.getFileName());
+	EXPECT_EQ("/test/path/www/index.html", requestedFileInfo.getCgiScriptName());
+	EXPECT_EQ("/", requestedFileInfo.getCgiPathInfo());
+	EXPECT_EQ(this->getTestFileDir() + "/", requestedFileInfo.getCgiPathTranslated());
+	EXPECT_EQ("/www/index.html", requestedFileInfo.getTargetFilePathWithoutDocumentRoot());
+	EXPECT_EQ(this->getTestFileDir() + "/www/index.html", requestedFileInfo.getTargetFilePath());
+	EXPECT_EQ(this->getTestFileDir(), requestedFileInfo.getDocumentRoot());
+
+	EXPECT_FALSE(requestedFileInfo.getIsDirectory());
+	EXPECT_TRUE(requestedFileInfo.getIsNotFound());
+	EXPECT_FALSE(requestedFileInfo.getIsCgi());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+}
+
 };	// namespace webserv
