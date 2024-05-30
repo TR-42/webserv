@@ -1,3 +1,4 @@
+#include <iostream>
 #include <service/ServiceBase.hpp>
 
 namespace webserv
@@ -20,6 +21,10 @@ ServiceBase::~ServiceBase()
 
 const HttpResponse &ServiceBase::getResponse() const
 {
+	CS_INFO()
+		<< "Response: " << this->_response.getStatusCode() << " " << this->_response.getReasonPhrase()
+		<< " (Content-Length: " << this->_response.getBody().size() << ")"
+		<< std::endl;
 	return this->_response;
 }
 

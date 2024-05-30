@@ -57,6 +57,10 @@
 	{ \
 		return this->_##name; \
 	} \
+	inline const type &get##name() const \
+	{ \
+		return this->_##name; \
+	} \
 	inline void set##name(const type &name) \
 	{ \
 		this->_##name = name; \
