@@ -17,6 +17,7 @@ class NodeBase
 
  public:
 	NodeBase(const std::string &key) : _key(key) {}
+	virtual ~NodeBase() {}
 	const std::string &getKey() const { return this->_key; }
 
 	NodeBase(const NodeBase &other) : _key(other.getKey()) {}

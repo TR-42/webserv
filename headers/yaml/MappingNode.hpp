@@ -23,7 +23,7 @@ class MappingNode : public NodeBase
 		for (NodeVector::const_iterator it = other._nodes.begin(); it != other._nodes.end(); ++it)
 			this->_nodes.push_back((*it)->clone());
 	}
-	~MappingNode()
+	virtual ~MappingNode()
 	{
 		for (NodeVector::iterator it = this->_nodes.begin(); it != this->_nodes.end(); ++it)
 			delete *it;

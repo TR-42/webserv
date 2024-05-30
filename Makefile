@@ -73,6 +73,9 @@ SRCS_UTILS	=\
 	UUIDv7.cpp\
 	waitResultStatusToString.cpp\
 
+SRCS_YAML	=\
+	YamlParser.cpp\
+
 SRCS_MAIN	=\
 	main.cpp\
 
