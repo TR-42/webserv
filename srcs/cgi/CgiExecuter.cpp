@@ -33,7 +33,12 @@ CgiExecuter::CgiExecuter(
 		logger(logger),
 		_writtenCount(0)
 {
-	C_DEBUG("initializing...");
+	CS_DEBUG()
+		<< "initializing... "
+		<< "workingDir=" << workingDir
+		<< ", requestBodyLength=" << this->_requestBody.size()
+		<< std::endl;
+
 	this->_pid = fork();
 	if (this->_pid < 0) {
 		errno_t err = errno;
@@ -182,7 +187,17 @@ PollEventResultType CgiExecuter::onEventGot(
 		return PollEventResult::ERROR;
 	}
 
+	this->_writtenCount += writtenCount;
+	CS_DEBUG()
+		<< "written "
+		<< writtenCount
+		<< " / "
+		<< this->_requestBody.size()
+		<< " bytes to CGI"
+		<< std::endl;
+
 	if (this->isWriteToCgiCompleted()) {
+		C_DEBUG("write to CGI completed");
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 
