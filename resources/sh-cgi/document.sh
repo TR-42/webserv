@@ -3,6 +3,8 @@
 echo "Content-type: text/plain"
 echo "Date: Wed, 22 May 2024 12:34:56 GMT"
 echo ""
+echo "Content-Type: $CONTENT_TYPE"
+echo "Content-Length: $CONTENT_LENGTH"
 echo "Gateway Interface: $GATEWAY_INTERFACE"
 echo "Path Info: $PATH_INFO"
 echo "Path Translated: $PATH_TRANSLATED"
@@ -17,3 +19,11 @@ echo "Server Protocol: $SERVER_PROTOCOL"
 echo "Server Software: $SERVER_SOFTWARE"
 
 echo "Hello, World!"
+
+echo
+
+env | grep -i 'HTTP_' | sort
+
+echo
+
+cat

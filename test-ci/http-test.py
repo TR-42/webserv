@@ -45,7 +45,14 @@ host = "127.0.0.1"
 
 def Test1():
 	conn = http.client.HTTPConnection(host)
-	conn.request("GET", "/resources/sh-cgi/document.sh", headers={"Host": host})
+	conn.request(
+		"GET",
+		"/resources/sh-cgi/document.sh",
+		headers={
+			"Host": host,
+			"Accept-Encoding": "identity",
+		}
+	)
 	response = conn.getresponse()
 
 	cmp("status", response.status, 200)
@@ -61,6 +68,8 @@ def Test1():
 		"body",
 		actualBody.split("\n"),
 		[
+			"Content-Type: ",
+			"Content-Length: ",
 			"Gateway Interface: CGI/1.1",
 			"Path Info: ",
 			f"Path Translated: {PROJ_ROOT_DIR}/resources/sh-cgi/document.sh",
@@ -74,7 +83,11 @@ def Test1():
 			"Server Protocol: HTTP/1.1",
 			"Server Software: webserv/1.0",
 			"Hello, World!",
-			""
+			"",
+			"HTTP_ACCEPT_ENCODING=identity",
+			f"HTTP_HOST={host}",
+			"",
+			"",
 		]
 	)
 
@@ -82,7 +95,14 @@ def Test1():
 
 def TestPathInfo():
 	conn = http.client.HTTPConnection(host)
-	conn.request("GET", "/resources/sh-cgi/document.sh/abc/def?query=value&key=value2", headers={"Host": host})
+	conn.request(
+		"GET",
+		"/resources/sh-cgi/document.sh/abc/def?query=value&key=value2",
+		headers={
+			"Host": host,
+			"Accept-Encoding": "identity",
+		}
+	)
 	response = conn.getresponse()
 
 	cmp("status", response.status, 200)
@@ -98,6 +118,8 @@ def TestPathInfo():
 		"body",
 		actualBody.split("\n"),
 		[
+			"Content-Type: ",
+			"Content-Length: ",
 			"Gateway Interface: CGI/1.1",
 			"Path Info: /abc/def",
 			f"Path Translated: {PROJ_ROOT_DIR}/resources/sh-cgi/document.sh",
@@ -111,7 +133,11 @@ def TestPathInfo():
 			"Server Protocol: HTTP/1.1",
 			"Server Software: webserv/1.0",
 			"Hello, World!",
-			""
+			"",
+			"HTTP_ACCEPT_ENCODING=identity",
+			f"HTTP_HOST={host}",
+			"",
+			"",
 		]
 	)
 
