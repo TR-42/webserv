@@ -87,7 +87,7 @@ static bool parse(MappingNode &parent, const std::vector<std::string> &yamlLines
 		std::string lineWithoutSpaces = yamlRowLine.substr(count);
 
 		std::pair<std::string, std::string> nameValue = utils::splitNameValue(lineWithoutSpaces);
-		if (nameValue.second.empty()) {
+		if (!nameValue.second.empty()) {
 			ScalarNode node(nameValue.first, nameValue.second);
 			parent.addNode(node);
 		} else {
