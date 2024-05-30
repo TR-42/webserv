@@ -15,7 +15,13 @@ namespace webserv
 namespace yaml
 {
 
-static bool parse(MappingNode &parent, const std::vector<std::string> &yamlLines, size_t &yamlLinesIndex, size_t indentLevel);
+static bool parse(
+	MappingNode &parent,
+	const std::vector<std::string> &yamlLines,
+	size_t &yamlLinesIndex,
+	size_t indentLevel,
+	const Logger &logger
+);
 
 bool parse(std::istream &yamlStream, MappingNode &root, const Logger &logger)
 {
@@ -36,7 +42,7 @@ bool parse(const std::string &yamlStr, MappingNode &root, const Logger &logger)
 bool parse(const std::vector<std::string> &yamlLines, MappingNode &root, const Logger &logger)
 {
 	size_t yamlLinesIndex = 0;
-	return parse(root, yamlLines, yamlLinesIndex, 0);
+	return parse(root, yamlLines, yamlLinesIndex, 0, logger);
 }
 
 static size_t countSpace(const std::string &yaml)
@@ -48,7 +54,13 @@ static size_t countSpace(const std::string &yaml)
 	return count;
 };
 
-static bool parse(MappingNode &parent, const std::vector<std::string> &yamlLines, size_t &yamlLinesIndex, size_t indentLevel)
+static bool parse(
+	MappingNode &parent,
+	const std::vector<std::string> &yamlLines,
+	size_t &yamlLinesIndex,
+	size_t indentLevel,
+	const Logger &logger
+)
 {
 	MappingNode lastMappingNode("");
 	for (; yamlLinesIndex < yamlLines.size(); ++yamlLinesIndex) {
@@ -66,11 +78,17 @@ static bool parse(MappingNode &parent, const std::vector<std::string> &yamlLines
 			if (lastMappingNode.getKey().empty()) {
 				return false;
 			}
-			if (!parse(lastMappingNode, yamlLines, yamlLinesIndex, count)) {
+			if (!parse(lastMappingNode, yamlLines, yamlLinesIndex, count, logger)) {
 				return false;	 // 直上のノードに追加するのに失敗した時
 			}
 			parent.addNode(lastMappingNode);
 			lastMappingNode = MappingNode("");
+			if (yamlLinesIndex + 1 < yamlLines.size()) {
+				size_t nextCount = countSpace(yamlLines[yamlLinesIndex + 1]);
+				if (indentLevel < nextCount) {
+					return false;
+				}
+			}
 			continue;
 		}
 
