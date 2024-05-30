@@ -12,6 +12,8 @@ option(INSTALL_GTEST "Enables installation of googletest" OFF)
 # Google Testをこのプロジェクトに組み込む
 add_subdirectory(googletest)
 
+add_definitions(-DGTEST)
+
 file(GLOB TEST_SOURCES
 	tests/*/*.cpp)
 

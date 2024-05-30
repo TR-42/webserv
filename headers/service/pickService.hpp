@@ -13,7 +13,6 @@ namespace webserv
 {
 
 ServiceBase *pickService(
-	const ServerRunningConfigListType &listenConfigList,
 	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
 	std::vector<Pollable *> &pollableList,

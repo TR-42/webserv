@@ -13,41 +13,11 @@
 namespace webserv
 {
 
-static const ServerRunningConfig pickServerConfig(
-	const ServerRunningConfigListType &listenConfigList,
-	const HttpRequest &request,
-	const Logger &logger
-)
-{
-	if (listenConfigList.empty()) {
-		L_FATAL("No ServerConfig found");
-		throw std::runtime_error("No ServerConfig found");
-	}
-
-	if (request.getHost().empty()) {
-		return listenConfigList[0];
-	}
-
-	for (
-		ServerRunningConfigListType::const_iterator itConfig = listenConfigList.begin();
-		itConfig != listenConfigList.end();
-		++itConfig
-	) {
-		if (itConfig->isServerNameMatch(request)) {
-			return *itConfig;
-		}
-	}
-
-	// Hostが一致するServerConfigが見つからなかった場合、一番最初に記述されていた設定に従う
-	return listenConfigList[0];
-};
-
 static ServiceBase *pickService(
 	uint16_t serverPort,
 	const HttpRouteConfig &routeConfig,
 	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
-	const utils::ErrorPageProvider &errorPageProvider,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger
 )
@@ -69,15 +39,15 @@ static ServiceBase *pickService(
 			return new PostFileService(
 				request,
 				requestedFileInfo,
-				errorPageProvider,
+				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		} else {
 			L_INFO("NotFound -> SimpleService selected");
 			return new SimpleService(
 				request,
-				errorPageProvider.notFound(),
-				errorPageProvider,
+				request.getServerRunningConfig().getErrorPageProvider().notFound(),
+				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		}
@@ -90,7 +60,7 @@ static ServiceBase *pickService(
 			requestedFileInfo,
 			serverPort,
 			clientAddr,
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger,
 			pollableList
 		);
@@ -102,7 +72,7 @@ static ServiceBase *pickService(
 		return new GetFileService(
 			request,
 			requestedFileInfo,
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	}
@@ -112,8 +82,8 @@ static ServiceBase *pickService(
 		L_INFO("Directory but not GET/HEAD -> SimpleService selected");
 		return new SimpleService(
 			request,
-			errorPageProvider.methodNotAllowed(),
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider().methodNotAllowed(),
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	}
@@ -123,7 +93,7 @@ static ServiceBase *pickService(
 		return new DeleteFileService(
 			request,
 			requestedFileInfo,
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else if (request.getMethod() == "POST") {
@@ -131,7 +101,7 @@ static ServiceBase *pickService(
 		return new PostFileService(
 			request,
 			requestedFileInfo,
-			errorPageProvider,
+			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else {
@@ -141,26 +111,20 @@ static ServiceBase *pickService(
 }
 
 ServiceBase *pickService(
-	const ServerRunningConfigListType &listenConfigList,
 	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger
 )
 {
-	ServerRunningConfig serverConfig = pickServerConfig(
-		listenConfigList,
-		request,
-		logger
+	HttpRouteConfig routeConfig = request.getServerRunningConfig().pickRouteConfig(
+		request.getPathSegmentList()
 	);
-
-	HttpRouteConfig routeConfig = serverConfig.pickRouteConfig(request);
 	return pickService(
-		serverConfig.getPort(),
+		request.getServerRunningConfig().getPort(),
 		routeConfig,
 		clientAddr,
 		request,
-		serverConfig.getErrorPageProvider(),
 		pollableList,
 		logger
 	);

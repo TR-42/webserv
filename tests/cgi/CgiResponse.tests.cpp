@@ -4,6 +4,8 @@
 #include "http/HttpResponse.hpp"
 #include "utils/getTimeStr.hpp"
 
+extern time_t __webserv_timeMockValue;
+
 namespace webserv
 {
 
@@ -338,6 +340,7 @@ TEST(CgiResponseTest, ResponseModeLocalRedirect)
 
 TEST(CgiResponseTest, ResponseModeClientRedirect)
 {
+	__webserv_timeMockValue = std::time(NULL);
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
 	std::string cgiResponseStr =
@@ -364,6 +367,7 @@ TEST(CgiResponseTest, ResponseModeClientRedirect)
 
 TEST(CgiResponseTest, ResponseModeClientRedirectWithBody)
 {
+	__webserv_timeMockValue = std::time(NULL);
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
 	std::string cgiResponseStr =
@@ -392,6 +396,7 @@ TEST(CgiResponseTest, ResponseModeClientRedirectWithBody)
 
 TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
 {
+	__webserv_timeMockValue = std::time(NULL);
 	CgiResponse response(logger, utils::ErrorPageProvider());
 	std::string cgiResponseStr =
 		"Status: 301 Moved Permanently\n"

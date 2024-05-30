@@ -21,6 +21,7 @@ const int ErrorPageProvider::BAD_REQUEST;
 const int ErrorPageProvider::PERMISSION_DENIED;
 const int ErrorPageProvider::NOT_FOUND;
 const int ErrorPageProvider::METHOD_NOT_ALLOWED;
+const int ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE;
 const int ErrorPageProvider::MOVED_PERMANENTLY;
 const int ErrorPageProvider::FOUND;
 const int ErrorPageProvider::INTERNAL_SERVER_ERROR;
@@ -73,6 +74,12 @@ static const HttpResponse defaultMethodNotAllowed = createResponse(
 	"405 Method Not Allowed\n"
 );
 
+static const HttpResponse defaultRequestEntityTooLarge = createResponse(
+	ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE,
+	"Request Entity Too Large",
+	"413 Request Entity Too Large\n"
+);
+
 static const HttpResponse defaultMovedPermanently = createResponse(
 	ErrorPageProvider::MOVED_PERMANENTLY,
 	"Moved Permanently",
@@ -121,6 +128,7 @@ ErrorPageProvider::ErrorPageProvider()
 	this->_errorPages[ErrorPageProvider::BAD_REQUEST] = defaultBadRequest;
 	this->_errorPages[ErrorPageProvider::PERMISSION_DENIED] = defaultPermissionDenied;
 	this->_errorPages[ErrorPageProvider::NOT_FOUND] = defaultNotFound;
+	this->_errorPages[ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE] = defaultRequestEntityTooLarge;
 	this->_errorPages[ErrorPageProvider::MOVED_PERMANENTLY] = defaultMovedPermanently;
 	this->_errorPages[ErrorPageProvider::FOUND] = defaultFound;
 	this->_errorPages[ErrorPageProvider::INTERNAL_SERVER_ERROR] = defaultInternalServerError;
@@ -224,6 +232,11 @@ HttpResponse ErrorPageProvider::notFound() const
 HttpResponse ErrorPageProvider::methodNotAllowed() const
 {
 	return this->_errorPages.at(ErrorPageProvider::METHOD_NOT_ALLOWED);
+}
+
+HttpResponse ErrorPageProvider::requestEntityTooLarge() const
+{
+	return this->_errorPages.at(ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE);
 }
 
 HttpResponse ErrorPageProvider::movedPermanently() const

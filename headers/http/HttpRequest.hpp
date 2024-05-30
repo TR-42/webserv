@@ -7,6 +7,7 @@
 #include <types.hpp>
 #include <vector>
 
+#include "config/ServerRunningConfig.hpp"
 #include "http/HttpFieldMap.hpp"
 
 namespace webserv
@@ -39,6 +40,7 @@ class HttpRequest
 
 	// 正規化されて分割されたパスが入る
 	std::vector<std::string> _PathSegmentList;
+	ServerRunningConfig *serverRunningConfig;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;
 	// chunkは後で実装
@@ -75,6 +77,8 @@ class HttpRequest
 	bool isChunkedRequest() const;
 	std::string getNormalizedPath() const;
 	const std::vector<std::string> &getPathSegmentList() const;
+	const ServerRunningConfig &getServerRunningConfig() const;
+	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
 
  private:
 	bool parseRequestLine(

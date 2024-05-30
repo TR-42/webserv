@@ -25,6 +25,7 @@ class ClientSocket : public Pollable
 	bool _IsResponseSet;
 	ServiceBase *_service;
 	struct sockaddr _clientAddr;
+	bool _IsHeaderValidationCompleted;
 
 	PollEventResultType _processPollIn(
 		std::vector<Pollable *> &pollableList
