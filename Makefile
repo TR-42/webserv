@@ -63,6 +63,7 @@ SRCS_UTILS	=\
 	modeToString.cpp\
 	normalizePath.cpp\
 	pickLine.cpp\
+	setToEnvManager.cpp\
 	split.cpp\
 	splitNameValue.cpp\
 	splitWithSpace.cpp\

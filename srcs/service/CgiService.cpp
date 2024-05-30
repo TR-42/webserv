@@ -7,6 +7,7 @@
 #include <cstring>
 #include <macros.hpp>
 #include <service/CgiService.hpp>
+#include <utils/setToEnvManager.hpp>
 #include <utils/to_string.hpp>
 #include <utils/waitResultStatusToString.hpp>
 
@@ -112,6 +113,14 @@ CgiService::CgiService(
 
 	envManager.set("SERVER_PROTOCOL", request.getVersion());
 	envManager.set("SERVER_SOFTWARE", "webserv/1.0");
+
+	if (0 < request.getBody().size()) {
+		envManager.set("CONTENT_LENGTH", utils::to_string(request.getBody().size()));
+	}
+	if (request.getHeaders().isNameExists("Content-Type")) {
+		envManager.set("CONTENT_TYPE", request.getHeaders().getValueList("Content-Type")[0]);
+	}
+	utils::setToEnvManager(envManager, request.getHeaders());
 
 	char **envp = envManager.toEnvp();
 	if (envp == NULL) {
