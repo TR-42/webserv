@@ -11,8 +11,7 @@ namespace webserv
 
 static webserv::Logger logger;
 
-// generateResponsePacket(true)メソッドのテスト
-TEST(CgiResponseTest, GenerateResponsePacket)
+TEST(CgiResponseTest, GenerateResponsePacket_DefaultValue)
 {
 	HttpResponse httpResponse;
 	httpResponse.setVersion("HTTP/1.1");
@@ -32,8 +31,7 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 	EXPECT_EQ(actualStr, expectedStr);
 }
 
-// getterのテスト
-TEST(CgiResponseTest, Getters)
+TEST(CgiResponseTest, Getters_DefaultValue)
 {
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
@@ -47,7 +45,7 @@ TEST(CgiResponseTest, Getters)
 	EXPECT_EQ(response.getResponseBody(), std::vector<uint8_t>());
 }
 
-TEST(CgiResponseTest, Parse)
+TEST(CgiResponseTest, Parse_Getter_DocumentResponse)
 {
 	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
 	std::string cgiResponseStr =
@@ -103,8 +101,7 @@ TEST(CgiResponseTest, Parse)
 	EXPECT_EQ(responseBodyStr, bodyStr);
 }
 
-// generateResponsePacket(true)メソッドのテスト
-TEST(CgiResponseTest, GenerateExpectedResponsePacket)
+TEST(CgiResponseTest, Parse_GenerateResponsePacket_DocumentResponse)
 {
 	HttpResponse httpResponse;
 	httpResponse.setVersion("HTTP/1.1");
@@ -165,8 +162,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 	EXPECT_EQ(actualStr, expectedStr);
 }
 
-// getterのテスト2
-TEST(CgiResponseTest, Getters2)
+TEST(CgiResponseTest, Parse_Getter_StatusField)
 {
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
@@ -198,8 +194,7 @@ TEST(CgiResponseTest, Getters2)
 	EXPECT_EQ(responseBodyStr, "No input file specified.");
 }
 
-// generateResponsePacket(true)メソッドのテスト2
-TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
+TEST(CgiResponseTest, Parse_GenerateResponsePacket_StatusField)
 {
 	HttpResponse httpResponse;
 	httpResponse.setStatusCode("404");
@@ -235,8 +230,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 	EXPECT_EQ(actualStr, expectedStr);
 }
 
-// getterのテスト3
-TEST(CgiResponseTest, Getters3)
+TEST(CgiResponseTest, Parse_Getter_NoBody)
 {
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
@@ -273,8 +267,7 @@ TEST(CgiResponseTest, Getters3)
 	EXPECT_EQ(responseBodyStr, "");
 }
 
-// generateResponsePacket(true)メソッドのテスト3
-TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
+TEST(CgiResponseTest, Parse_GenerateResponsePacket_NoBody)
 {
 	HttpResponse httpResponse;
 	httpResponse.setVersion("HTTP/1.1");
