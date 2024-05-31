@@ -19,6 +19,7 @@ class CgiExecuter
 
 	void _childProcessFunc(
 		std::vector<Pollable *> &pollableList,
+		std::string workingDir,
 		int fdReadFromParent,
 		int fdWriteToParent,
 		char **argv,
@@ -33,6 +34,7 @@ class CgiExecuter
 		const std::vector<uint8_t> &requestBody,
 		char **argv,
 		char **envp,
+		const std::string &workingDir,
 		const Logger &logger,
 		int fdWriteToCgi,
 		int fdReadFromParent,

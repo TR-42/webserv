@@ -44,6 +44,4 @@ void ListenConfig::addServerConfig(
 	this->_ListenMap.at(serverConfig.getPort()).push_back(serverConfig);
 }
 
-IMPL_REF_GETTER_SETTER_NS(ListenMapType, ListenMap, ListenConfig::)
-
 }	 // namespace webserv

@@ -46,6 +46,7 @@ SRCS_SERVICE	=\
 	getRequestedFilePath.cpp\
 	pickService.cpp\
 	PostFileService.cpp\
+	RequestedFileInfo.cpp\
 	ServiceBase.cpp\
 	SimpleService.cpp\
 
@@ -62,6 +63,8 @@ SRCS_UTILS	=\
 	modeToString.cpp\
 	normalizePath.cpp\
 	pickLine.cpp\
+	setToEnvManager.cpp\
+	split.cpp\
 	splitNameValue.cpp\
 	splitWithSpace.cpp\
 	stoul.cpp\

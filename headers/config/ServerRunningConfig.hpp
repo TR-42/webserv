@@ -3,6 +3,7 @@
 #include <Logger.hpp>
 #include <set>
 #include <string>
+#include <types.hpp>
 #include <utils/ErrorPageProvider.hpp>
 #include <utils/UUID.hpp>
 
@@ -14,6 +15,7 @@ namespace webserv
 class ServerRunningConfig
 {
  private:
+	uint16_t _port;
 	std::set<std::string> _serverNameList;
 	utils::ErrorPageProvider _errorPageProvider;
 	size_t _requestBodyLimit;
@@ -34,7 +36,12 @@ class ServerRunningConfig
 
 	bool isServerNameMatch(const std::string &serverName) const;
 	bool isSizeLimitExceeded(const size_t contentLength) const;
-	HttpRouteConfig pickRouteConfig(const std::string &path) const;
+	HttpRouteConfig pickRouteConfig(const std::vector<std::string> &pathSegmentList) const;
+
+	inline uint16_t getPort() const
+	{
+		return this->_port;
+	}
 
 	inline utils::ErrorPageProvider getErrorPageProvider() const
 	{

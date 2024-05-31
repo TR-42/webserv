@@ -10,8 +10,10 @@ namespace webserv
 
 class HttpFieldMap
 {
- private:
+ public:
 	typedef std::map<std::string, std::vector<std::string> > FieldMapType;
+
+ private:
 	FieldMapType fieldMap;
 
  public:
@@ -31,6 +33,9 @@ class HttpFieldMap
 	) const;
 
 	bool empty() const;
+
+	FieldMapType::const_iterator cbegin() const;
+	FieldMapType::const_iterator cend() const;
 
 	/**
 	 * @brief FieldLineとしてContentLengthがあれば取得し、contentLengthに格納する

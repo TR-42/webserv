@@ -1,5 +1,7 @@
 #pragma once
 
+#include <arpa/inet.h>
+
 #include <config/ListenConfig.hpp>
 #include <config/ServerRunningConfig.hpp>
 #include <poll/Pollable.hpp>
@@ -22,6 +24,7 @@ class ClientSocket : public Pollable
 	std::vector<uint8_t> httpResponseBuffer;
 	bool _IsResponseSet;
 	ServiceBase *_service;
+	struct sockaddr _clientAddr;
 	bool _IsHeaderValidationCompleted;
 
 	PollEventResultType _processPollIn(
@@ -43,7 +46,7 @@ class ClientSocket : public Pollable
  public:
 	ClientSocket(
 		int fd,
-		const std::string &serverLoggerCustomId,
+		const struct sockaddr &clientAddr,
 		const ServerRunningConfigListType &listenConfigList,
 		const Logger &logger
 	);

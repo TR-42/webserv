@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cerrno>
+#include <cstring>
 #include <macros.hpp>
 #include <socket/ClientSocket.hpp>
 #include <socket/ServerSocket.hpp>
@@ -22,10 +23,15 @@ PollEventResultType ServerSocket::onEventGot(
 )
 {
 	(void)fd;
-	if (!IS_POLLIN(revents)) {
-		CS_DEBUG()
-			<< "No POLLIN event"
+	if (IS_POLL_ANY_ERROR(revents)) {
+		// ServerSocketがエラーになるはずは無いが、一応エラー処理を入れておく
+		CS_ERROR()
+			<< "Error event"
 			<< std::endl;
+		return PollEventResult::DISPOSE_REQUEST;
+	}
+
+	if (!IS_POLLIN(revents)) {
 		return PollEventResult::OK;
 	}
 
@@ -37,7 +43,7 @@ PollEventResultType ServerSocket::onEventGot(
 		&clientAddrLen
 	);
 	if (clientFd < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "accept() failed: " << errorStr
 			<< std::endl;
@@ -55,7 +61,7 @@ PollEventResultType ServerSocket::onEventGot(
 	utils::UUID clientUuid = utils::UUIDv7();
 	Pollable *clientSocket = new ClientSocket(
 		clientFd,
-		this->logger.getCustomId(),
+		clientAddr,
 		this->_listenConfigList,
 		this->logger
 	);

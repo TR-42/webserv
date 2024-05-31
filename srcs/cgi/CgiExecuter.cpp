@@ -20,6 +20,7 @@ CgiExecuter::CgiExecuter(
 	const std::vector<uint8_t> &requestBody,
 	char **argv,
 	char **envp,
+	const std::string &workingDir,
 	const Logger &logger,
 	int fdWriteToCgi,
 	int fdReadFromParent,
@@ -32,7 +33,12 @@ CgiExecuter::CgiExecuter(
 		logger(logger),
 		_writtenCount(0)
 {
-	C_DEBUG("initializing...");
+	CS_DEBUG()
+		<< "initializing... "
+		<< "workingDir=" << workingDir
+		<< ", requestBodyLength=" << this->_requestBody.size()
+		<< std::endl;
+
 	this->_pid = fork();
 	if (this->_pid < 0) {
 		errno_t err = errno;
@@ -48,6 +54,7 @@ CgiExecuter::CgiExecuter(
 		// noreturn
 		this->_childProcessFunc(
 			pollableList,
+			workingDir,
 			fdReadFromParent,
 			fdWriteToParent,
 			argv,
@@ -80,6 +87,7 @@ CgiExecuter &CgiExecuter::operator=(
 
 __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	std::vector<Pollable *> &pollableList,
+	std::string workingDir,
 	int fdReadFromParent,
 	int fdWriteToParent,
 	char **argv,
@@ -97,6 +105,17 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 		pollableList[i] = NULL;
 	}
 	pollableList.clear();
+
+	CS_DEBUG()
+		<< "Working directory changing to " << workingDir
+		<< std::endl;
+	if (chdir(workingDir.c_str()) < 0) {
+		errno_t err = errno;
+		CS_ERROR()
+			<< "chdir() failed: " << std::strerror(err)
+			<< std::endl;
+		std::exit(1);
+	}
 
 	// stdin, stdoutをpipeに接続
 	C_DEBUG("Connecting stdin to pipe...");
@@ -168,7 +187,17 @@ PollEventResultType CgiExecuter::onEventGot(
 		return PollEventResult::ERROR;
 	}
 
+	this->_writtenCount += writtenCount;
+	CS_DEBUG()
+		<< "written "
+		<< writtenCount
+		<< " / "
+		<< this->_requestBody.size()
+		<< " bytes to CGI"
+		<< std::endl;
+
 	if (this->isWriteToCgiCompleted()) {
+		C_DEBUG("write to CGI completed");
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 

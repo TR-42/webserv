@@ -4,8 +4,11 @@
 
 #include <EnvManager.hpp>
 #include <cerrno>
+#include <cstring>
 #include <macros.hpp>
 #include <service/CgiService.hpp>
+#include <utils/setToEnvManager.hpp>
+#include <utils/to_string.hpp>
 #include <utils/waitResultStatusToString.hpp>
 
 #define STR(v) #v
@@ -48,11 +51,23 @@ static bool _preparePipe(
 	return true;
 }
 
+static inline std::string _dirname(
+	const std::string &path
+)
+{
+	size_t pos = path.rfind('/');
+	if (pos == std::string::npos) {
+		return ".";
+	}
+	return path.substr(0, pos);
+}
+
 CgiService::CgiService(
 	const HttpRequest &request,
-	const std::string &cgiPath,
+	const RequestedFileInfo &requestedFileInfo,
+	uint16_t serverPort,
+	const struct sockaddr &clientAddr,
 	const utils::ErrorPageProvider &errorPageProvider,
-	const env::EnvManager &envPreset,
 	const Logger &logger,
 	std::vector<Pollable *> &pollableList
 ) : ServiceBase(request, errorPageProvider, logger),
@@ -62,41 +77,50 @@ CgiService::CgiService(
 {
 	C_DEBUG("initializing...");
 
+	const CgiConfig &cgiConfig = requestedFileInfo.getCgiConfig();
+	const std::string &cgiPath = cgiConfig.getCgiExecutableFullPath();
+
 	// argvを準備
 	char **argv = new char *[3];
 	argv[0] = new char[cgiPath.size() + 1];
 	std::strcpy(argv[0], cgiPath.c_str());
-	// TODO: PATH_TRANSLATEDの実装
-	std::string pathTranslated = "." + request.getNormalizedPath();
+	std::string pathTranslated = requestedFileInfo.getTargetFilePath();
 	argv[1] = new char[pathTranslated.size() + 1];
 	std::strcpy(argv[1], pathTranslated.c_str());
 	argv[2] = NULL;
 	CS_DEBUG()
 		<< "argv[0]: " << argv[0]
+		<< ", argv[1]: " << argv[1]
 		<< std::endl;
 
 	// 環境変数を準備
-	env::EnvManager envManager(envPreset);
+	env::EnvManager envManager(cgiConfig.getEnvPreset());
 	envManager.set("GATEWAY_INTERFACE", "CGI/1.1");
 	// /abc/index.php/extra/def の場合、PATH_INFOは /extra/def
-	// TODO: PATH_INFOの実装
-	envManager.set("PATH_INFO", "");
-	// TODO: PATH_TRANSLATEDの実装
+	envManager.set("PATH_INFO", requestedFileInfo.getCgiPathInfo());
 	envManager.set("PATH_TRANSLATED", pathTranslated);
 	envManager.set("QUERY_STRING", request.getQuery());
 	envManager.set("REQUEST_METHOD", request.getMethod());
-	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /extra/index.php
-	// TODO: SCRIPT_NAMEの実装
-	envManager.set("SCRIPT_NAME", request.getPath());
-	// TODO: アドレス系実装
-	envManager.set("REMOTE_ADDR", "127.0.0.1");
-	envManager.set("REMOTE_HOST", "localhost");
-	envManager.set("REMOTE_PORT", "12345");
-	envManager.set("SERVER_NAME", "localhost");
-	envManager.set("SERVER_PORT", "80");
+	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /abc/index.php
+	// /abc の場合、SCRIPT_NAMEは /abc/index.php
+	envManager.set("SCRIPT_NAME", requestedFileInfo.getCgiScriptName());
+	envManager.set("REMOTE_ADDR", utils::to_string(clientAddr));
+	// REMOTE_HOSTは任意のため、設定しない
+	// envManager.set("REMOTE_HOST", "localhost");
+	envManager.set("REMOTE_PORT", utils::to_string(ntohs(((struct sockaddr_in *)&clientAddr)->sin_port)));
+	envManager.set("SERVER_NAME", request.getHost());
+	envManager.set("SERVER_PORT", utils::to_string(serverPort));
 
 	envManager.set("SERVER_PROTOCOL", request.getVersion());
 	envManager.set("SERVER_SOFTWARE", "webserv/1.0");
+
+	if (0 < request.getBody().size()) {
+		envManager.set("CONTENT_LENGTH", utils::to_string(request.getBody().size()));
+	}
+	if (request.getHeaders().isNameExists("Content-Type")) {
+		envManager.set("CONTENT_TYPE", request.getHeaders().getValueList("Content-Type")[0]);
+	}
+	utils::setToEnvManager(envManager, request.getHeaders());
 
 	char **envp = envManager.toEnvp();
 	if (envp == NULL) {
@@ -125,10 +149,12 @@ CgiService::CgiService(
 		<< ", fdWriteToParent: " << fdWriteToParent
 		<< std::endl;
 
+	std::string workingDir = _dirname(requestedFileInfo.getTargetFilePath());
 	this->_cgiExecuter = new CgiExecuter(
 		request.getBody(),
 		argv,
 		envp,
+		workingDir,
 		logger,
 		fdWriteToCgi,
 		fdReadFromParent,
@@ -337,6 +363,7 @@ ServiceEventResultType CgiService::onEventGot(
 	}
 
 	// ここに来るはずはない
+	C_ERROR("Unexpected result from CgiExecuter");
 	this->_cgiHandler->setDisposeRequested();
 	this->_cgiHandler = NULL;
 	return ServiceEventResult::ERROR;

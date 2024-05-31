@@ -2,6 +2,7 @@
 
 #include <cerrno>
 #include <config/ServerRunningConfig.hpp>
+#include <cstring>
 #include <macros.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
@@ -41,6 +42,14 @@ PollEventResultType ClientSocket::onEventGot(
 		}
 	}
 
+	if (IS_POLL_ANY_ERROR(revents)) {
+		// エラーの場合はレスポンスを返すことができないため、サービスを終了する
+		CS_ERROR()
+			<< "Error event"
+			<< std::endl;
+		return PollEventResult::DISPOSE_REQUEST;
+	}
+
 	if (IS_POLLIN(revents)) {
 		CS_DEBUG()
 			<< "POLLIN event"
@@ -69,7 +78,7 @@ PollEventResultType ClientSocket::_processPollIn(
 	);
 
 	if (recvSize < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "recv() failed: " << errorStr
 			<< std::endl;
@@ -138,6 +147,7 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< "Request parse completed"
 		<< std::endl;
 	this->_service = pickService(
+		this->_clientAddr,
 		this->httpRequest,
 		pollableList,
 		this->logger
@@ -202,7 +212,7 @@ PollEventResultType ClientSocket::_processPollOut()
 	);
 
 	if (sendSize < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "send() failed: " << errorStr
 			<< std::endl;
@@ -309,21 +319,10 @@ void ClientSocket::setToPollFd(
 {
 	Pollable::setToPollFd(pollFd);
 	if (this->_service == NULL) {
-		CS_DEBUG()
-			<< "ClientSocket::setToPollFd() called - this->_service == NULL"
-			<< std::endl;
 		pollFd.events = this->_IsResponseSet ? POLLOUT : POLLIN;
 	} else {
-		CS_DEBUG()
-			<< "ClientSocket::setToPollFd() called - this->_service is set"
-			<< std::endl;
 		this->_service->setToPollFd(pollFd);
 	}
-
-	CS_DEBUG()
-		<< "POLLIN: " << IS_POLLIN(pollFd.events)
-		<< ", POLLOUT: " << IS_POLLOUT(pollFd.events)
-		<< std::endl;
 }
 
 ClientSocket::~ClientSocket()
@@ -352,15 +351,16 @@ ClientSocket::~ClientSocket()
 
 ClientSocket::ClientSocket(
 	int fd,
-	const std::string &serverLoggerCustomId,
+	const struct sockaddr &clientAddr,
 	const ServerRunningConfigListType &listenConfigList,
 	const Logger &logger
 ) : Pollable(fd),
 		_listenConfigList(listenConfigList),
-		logger(logger, serverLoggerCustomId + ", Connection=" + Pollable::getUUID().toString()),
+		logger(logger, logger.getCustomId() + ", Connection=" + Pollable::getUUID().toString()),
 		httpRequest(this->logger),
 		_IsResponseSet(false),
 		_service(NULL),
+		_clientAddr(clientAddr),
 		_IsHeaderValidationCompleted(false)
 {
 	CS_DEBUG()

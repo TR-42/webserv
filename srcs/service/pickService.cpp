@@ -4,6 +4,7 @@
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
 #include <service/PostFileService.hpp>
+#include <service/RequestedFileInfo.hpp>
 #include <service/ServiceBase.hpp>
 #include <service/SimpleService.hpp>
 #include <service/pickService.hpp>
@@ -13,7 +14,9 @@ namespace webserv
 {
 
 static ServiceBase *pickService(
+	uint16_t serverPort,
 	const HttpRouteConfig &routeConfig,
+	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger
@@ -23,36 +26,41 @@ static ServiceBase *pickService(
 		<< "Picking service for route: " << routeConfig.getRequestPath()
 		<< std::endl;
 
-	// TODO: お遊び設定を消す
-	if (routeConfig.getRequestPath() == "/simple") {
-		L_INFO("SimpleService selected");
-		return new SimpleService(
-			request,
-			routeConfig,
-			request.getServerRunningConfig().getErrorPageProvider(),
-			logger
-		);
-	} else if (routeConfig.getRequestPath() == "/resources/php-cgi") {
-		L_INFO("PhpCgiService selected");
-		// TODO: CGI設定も適切に選択する
-		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
+	RequestedFileInfo requestedFileInfo(
+		request.getPathSegmentList(),
+		request.getPath()[request.getPath().length() - 1] == '/',
+		routeConfig,
+		logger
+	);
+
+	if (requestedFileInfo.getIsNotFound()) {
+		if (request.getMethod() == "POST") {
+			L_INFO("NotFound && POST -> PostFileService selected");
+			return new PostFileService(
+				request,
+				requestedFileInfo,
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		} else {
+			L_INFO("NotFound -> SimpleService selected");
+			return new SimpleService(
+				request,
+				request.getServerRunningConfig().getErrorPageProvider().notFound(),
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		}
+	}
+
+	if (requestedFileInfo.getIsCgi()) {
+		L_INFO("CgiService selected");
 		return new CgiService(
 			request,
-			cgiConfig.getCgiExecutableFullPath(),
+			requestedFileInfo,
+			serverPort,
+			clientAddr,
 			request.getServerRunningConfig().getErrorPageProvider(),
-			cgiConfig.getEnvPreset(),
-			logger,
-			pollableList
-		);
-	} else if (routeConfig.getRequestPath() == "/resources/sh-cgi") {
-		L_INFO("ShCgiService selected");
-		// TODO: CGI設定も適切に選択する
-		const CgiConfig &cgiConfig = routeConfig.getCgiConfigList()[0];
-		return new CgiService(
-			request,
-			cgiConfig.getCgiExecutableFullPath(),
-			request.getServerRunningConfig().getErrorPageProvider(),
-			cgiConfig.getEnvPreset(),
 			logger,
 			pollableList
 		);
@@ -63,40 +71,59 @@ static ServiceBase *pickService(
 		L_INFO("GetFileService selected");
 		return new GetFileService(
 			request,
-			routeConfig,
+			requestedFileInfo,
 			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
-	} else if (request.getMethod() == "DELETE") {
+	}
+
+	// ディレクトリ宛のリクエストはGET(HEAD)のみ対応
+	if (requestedFileInfo.getIsDirectory()) {
+		L_INFO("Directory but not GET/HEAD -> SimpleService selected");
+		return new SimpleService(
+			request,
+			request.getServerRunningConfig().getErrorPageProvider().methodNotAllowed(),
+			request.getServerRunningConfig().getErrorPageProvider(),
+			logger
+		);
+	}
+
+	if (request.getMethod() == "DELETE") {
 		L_INFO("DeleteFileService selected");
 		return new DeleteFileService(
 			request,
-			routeConfig,
+			requestedFileInfo,
 			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else if (request.getMethod() == "POST") {
+		L_INFO("PostFileService selected");
 		return new PostFileService(
 			request,
+			requestedFileInfo,
 			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	} else {
+		L_INFO("Method not implemented -> NULL selected");
 		return NULL;
 	}
 }
 
 ServiceBase *pickService(
+	const struct sockaddr &clientAddr,
 	const HttpRequest &request,
 	std::vector<Pollable *> &pollableList,
 	const Logger &logger
 )
 {
 	HttpRouteConfig routeConfig = request.getServerRunningConfig().pickRouteConfig(
-		request.getPath()
+		request.getPathSegmentList()
 	);
 	return pickService(
+		request.getServerRunningConfig().getPort(),
 		routeConfig,
+		clientAddr,
 		request,
 		pollableList,
 		logger

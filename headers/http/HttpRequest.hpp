@@ -38,6 +38,8 @@ class HttpRequest
 	bool _IsChunkedRequest;
 	std::string _NormalizedPath;
 
+	// 正規化されて分割されたパスが入る
+	std::vector<std::string> _PathSegmentList;
 	ServerRunningConfig *serverRunningConfig;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;
@@ -74,6 +76,7 @@ class HttpRequest
 	std::string getHost() const;
 	bool isChunkedRequest() const;
 	std::string getNormalizedPath() const;
+	const std::vector<std::string> &getPathSegmentList() const;
 	const ServerRunningConfig &getServerRunningConfig() const;
 	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
 

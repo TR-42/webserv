@@ -64,7 +64,8 @@ ServerRunningConfig::ServerRunningConfig(
 	const ServerConfig &serverConfig,
 	utils::ErrorPageProvider &errorPageProvider,
 	Logger &logger
-) : _serverNameList(_ServerNameVecToSet(serverConfig.getServerNameList())),
+) : _port(serverConfig.getPort()),
+		_serverNameList(_ServerNameVecToSet(serverConfig.getServerNameList())),
 		_errorPageProvider(errorPageProvider),
 		_requestBodyLimit(serverConfig.getRequestBodyLimit()),
 		_routeList(serverConfig.getRouteList()),
@@ -92,7 +93,8 @@ ServerRunningConfig::ServerRunningConfig(
 
 ServerRunningConfig::ServerRunningConfig(
 	const ServerRunningConfig &from
-) : _serverNameList(from._serverNameList),
+) : _port(from._port),
+		_serverNameList(from._serverNameList),
 		_errorPageProvider(from._errorPageProvider),
 		_requestBodyLimit(from._requestBodyLimit),
 		_routeList(from._routeList),
@@ -135,18 +137,18 @@ bool webserv::ServerRunningConfig::isSizeLimitExceeded(
 }
 
 static size_t getMatchedLength(
-	const std::string &requestedPath,
-	const std::string &pathRule
+	const std::vector<std::string> &requestedPathSegList,
+	const std::vector<std::string> &pathRuleSegList
 )
 {
-	size_t requestedPathLength = requestedPath.size();
-	size_t pathRuleLength = pathRule.size();
+	size_t requestedPathLength = requestedPathSegList.size();
+	size_t pathRuleLength = pathRuleSegList.size();
 	if (requestedPathLength < pathRuleLength) {
 		return 0;
 	}
 
 	for (size_t i = 0; i < pathRuleLength; ++i) {
-		if (requestedPath[i] != pathRule[i]) {
+		if (requestedPathSegList[i] != pathRuleSegList[i]) {
 			return 0;
 		}
 	}
@@ -154,8 +156,26 @@ static size_t getMatchedLength(
 	return pathRuleLength;
 }
 
+static std::string pathSegListToStr(
+	const std::vector<std::string> &pathSegList
+)
+{
+	std::string pathStr;
+	std::vector<std::string>::const_iterator itEnd = pathSegList.end();
+	for (
+		std::vector<std::string>::const_iterator it = pathSegList.begin();
+		it != itEnd;
+		++it
+	) {
+		pathStr += "/";
+		pathStr += *it;
+	}
+
+	return pathStr;
+}
+
 HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
-	const std::string &path
+	const std::vector<std::string> &pathSegmentList
 ) const
 {
 	const HttpRouteConfig *matchedRouteConfig = &(this->_routeList[0]);
@@ -167,7 +187,7 @@ HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
 	size_t matchedPathRuleLength = 0;
 	CS_DEBUG()
 		<< "Picking route config for path: "
-		<< "path=" << path
+		<< "path=" << pathSegListToStr(pathSegmentList)
 		<< std::endl;
 	for (
 		size_t i = 0;
@@ -175,23 +195,23 @@ HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
 		++i
 	) {
 		const HttpRouteConfig &routeConfig = this->_routeList[i];
-		size_t pathRuleLength = getMatchedLength(path, routeConfig.getRequestPath());
+		size_t pathRuleLength = getMatchedLength(pathSegmentList, routeConfig.getRequestPathSegmentList());
 		if (pathRuleLength != 0) {
 			CS_DEBUG()
 				<< "Matched path rule: "
-				<< "path=" << path
-				<< " pathRule=" << routeConfig.getRequestPath()
+				<< routeConfig.getRequestPath()
 				<< std::endl;
 		}
 		if (matchedPathRuleLength < pathRuleLength) {
 			matchedPathRuleLength = pathRuleLength;
 			matchedRouteConfig = &(this->_routeList[i]);
+			C_DEBUG("-> Matched path rule updated");
 		}
 	}
 
 	CS_DEBUG()
 		<< "Picked route config: "
-		<< "path=" << path
+		<< "path=" << pathSegListToStr(pathSegmentList)
 		<< " pathRule=" << matchedRouteConfig->getRequestPath()
 		<< " documentRoot=" << matchedRouteConfig->getDocumentRoot()
 		<< std::endl;

@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <utils/normalizePath.hpp>
 #include <utils/pickLine.hpp>
+#include <utils/split.hpp>
 #include <utils/splitNameValue.hpp>
 
 #include "http/HttpFieldMap.hpp"
@@ -230,6 +231,7 @@ bool HttpRequest::parseRequestLine(
 	CS_DEBUG() << "PathSegment: `" << _Path << "`" << std::endl;
 	separatePathAndQuery(this->_Path, this->_Query);
 	this->_NormalizedPath = utils::normalizePath(_Path);
+	this->_PathSegmentList = utils::split(this->_NormalizedPath, '/');
 	CS_DEBUG()
 		<< "Path: `" << _Path << "`, "
 		<< "Query: `" << _Query << "`, "
@@ -304,6 +306,11 @@ bool HttpRequest::isChunkedRequest() const
 std::string HttpRequest::getNormalizedPath() const
 {
 	return this->_NormalizedPath;
+}
+
+const std::vector<std::string> &HttpRequest::getPathSegmentList() const
+{
+	return this->_PathSegmentList;
 }
 
 const ServerRunningConfig &HttpRequest::getServerRunningConfig() const

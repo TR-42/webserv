@@ -20,7 +20,7 @@ jobs:
       - run: mkdir -p ./${{ env.TEST_DIR }}
       - run: cd ./${{ env.TEST_DIR }} && cmake ..
       - run: make -C ./${{ env.TEST_DIR }} -j${{ env.BUILD_PARALLEL }}
-      - run: ./${{ env.TEST_DIR }}/${{ env.TEST_BIN }}
+      - run: ./${{ env.TEST_DIR }}/${{ env.TEST_BIN }} --gtest_color=yes
 
   test-python-http:
     strategy:

@@ -131,6 +131,15 @@ bool HttpFieldMap::empty() const
 	return fieldMap.empty();
 }
 
+HttpFieldMap::FieldMapType::const_iterator HttpFieldMap::cbegin() const
+{
+	return this->fieldMap.begin();
+}
+HttpFieldMap::FieldMapType::const_iterator HttpFieldMap::cend() const
+{
+	return this->fieldMap.end();
+}
+
 bool webserv::HttpFieldMap::tryGetContentLength(
 	size_t &contentLength
 ) const

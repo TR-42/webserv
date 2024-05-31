@@ -1,11 +1,12 @@
 #include <cerrno>
+#include <cstring>
 #include <iostream>
 #include <macros.hpp>
 #include <poll/Poll.hpp>
 #include <stdexcept>
 #include <utils/to_string.hpp>
 
-#define POLL_TIMEOUT 1000
+#define POLL_TIMEOUT 1
 
 namespace webserv
 {
@@ -51,7 +52,7 @@ bool Poll::loop()
 		POLL_TIMEOUT
 	);
 	if (pollResult < 0) {
-		const char *errorStr = strerror(errno);
+		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "poll() failed: " << errorStr
 			<< std::endl;
@@ -68,7 +69,9 @@ bool Poll::loop()
 		bool isPollErr = IS_POLLERR(revents) != 0;
 		bool isPollHup = IS_POLLHUP(revents) != 0;
 		bool isPollNval = IS_POLLNVAL(revents) != 0;
-		if (isFdSame && (isPollErr || isPollHup || isPollNval)) {
+		bool isPollIn = IS_POLLIN(revents) != 0;
+		// エラーでも、PollInが立っている限り入力を読む必要がある
+		if (isFdSame && !isPollIn && (isPollErr || isPollHup || isPollNval)) {
 			CS_WARN()
 				<< "Error event got from pollable " << pollableUuid
 				<< " ("

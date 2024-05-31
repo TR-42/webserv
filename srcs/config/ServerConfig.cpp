@@ -58,10 +58,4 @@ ServerConfig::ServerConfig(
 {
 }
 
-IMPL_REF_GETTER_SETTER_NS(std::vector<std::string>, ServerNameList, ServerConfig::)
-IMPL_GETTER_SETTER_NS(uint16_t, Port, ServerConfig::)
-IMPL_REF_GETTER_SETTER_NS(std::size_t, RequestBodyLimit, ServerConfig::)
-IMPL_REF_GETTER_SETTER_NS(ErrorPageMapType, ErrorPageMap, ServerConfig::)
-IMPL_REF_GETTER_SETTER_NS(RouteListType, RouteList, ServerConfig::)
-
 }	 // namespace webserv

@@ -40,7 +40,4 @@ webserv::HttpRedirectConfig::~HttpRedirectConfig()
 {
 }
 
-IMPL_REF_GETTER_SETTER_NS(std::string, To, HttpRedirectConfig::)
-IMPL_GETTER_SETTER_NS(uint16_t, Code, HttpRedirectConfig::)
-
 }	 // namespace webserv

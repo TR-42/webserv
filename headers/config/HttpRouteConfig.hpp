@@ -15,19 +15,22 @@ typedef std::vector<CgiConfig> CgiConfigListType;
 
 class HttpRouteConfig
 {
-	DECL_VAR_REF_GETTER_SETTER(std::string, RequestPath)
+	DECL_VAR_REF_GETTER(std::string, RequestPath)
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, Methods)
 	DECL_VAR_REF_GETTER_SETTER(HttpRedirectConfig, Redirect)
 	DECL_VAR_REF_GETTER_SETTER(std::string, DocumentRoot)
 	DECL_VAR_GETTER_SETTER(bool, IsDocumentListingEnabled)
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, IndexFileList)
 	DECL_VAR_REF_GETTER_SETTER(CgiConfigListType, CgiConfigList)
+	DECL_VAR_REF_GETTER(std::vector<std::string>, RequestPathSegmentList)
 
  public:
 	HttpRouteConfig();
 	HttpRouteConfig(const HttpRouteConfig &from);
 	virtual ~HttpRouteConfig();
 	HttpRouteConfig &operator=(const HttpRouteConfig &from);
+
+	void setRequestPath(const std::string &RequestPath);
 };
 
 }	 // namespace webserv
