@@ -350,6 +350,7 @@ TEST(CgiResponseTest, ResponseModeClientRedirect)
 	std::string httpStr =
 		"HTTP/1.1 301 Moved Permanently\r\n"
 		"Location: http://localhost/index.html\r\n"
+		"Content-Length: 0\r\n"
 		"Date: " +
 		timeStr +
 		"\r\n"
@@ -410,6 +411,7 @@ TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
 		"HTTP/1.1 301 Moved Permanently\r\n"
 		"Location: http://localhost/index.html\r\n"
 		"Content-Type: text/html; charset=UTF-8\r\n"
+		"Content-Length: 0\r\n"
 		"Date: " +
 		timeStr +
 		"\r\n"
