@@ -1,4 +1,5 @@
 #include <config/HttpRedirectConfig.hpp>
+#include <stdexcept>
 #include <utils/stoul.hpp>
 #include <yaml/MappingNode.hpp>
 #include <yaml/yamlUtils.hpp>
