@@ -4,6 +4,7 @@
 #include <config/ServerRunningConfig.hpp>
 #include <cstring>
 #include <macros.hpp>
+#include <service/CgiService.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
 #include <service/pickService.hpp>
@@ -35,9 +36,9 @@ PollEventResultType ClientSocket::onEventGot(
 
 	if (this->_service != NULL) {
 		if (this->isFdSame(fd)) {
-			this->_processPollService(0);
+			this->_processPollService(0, pollableList);
 		} else {
-			this->_processPollService(revents);
+			this->_processPollService(revents, pollableList);
 			return PollEventResult::OK;
 		}
 	}
@@ -156,12 +157,11 @@ PollEventResultType ClientSocket::_processPollIn(
 		CS_DEBUG()
 			<< "pickService() returned NULL"
 			<< std::endl;
-		// TODO: Method Not Allowed	405
-		this->_setResponse(utils::ErrorPageProvider().notImplemented());
+		this->_setResponse(utils::ErrorPageProvider().methodNotAllowed());
 		return PollEventResult::OK;
 	}
 
-	this->_processPollService(0);
+	this->_processPollService(0, pollableList);
 	return PollEventResult::OK;
 }
 
@@ -234,7 +234,10 @@ PollEventResultType ClientSocket::_processPollOut()
 	return PollEventResult::OK;
 }
 
-void ClientSocket::_processPollService(short revents)
+void ClientSocket::_processPollService(
+	short revents,
+	std::vector<Pollable *> &pollableList
+)
 {
 	ServiceEventResultType serviceResult = this->_service->onEventGot(revents);
 	switch (serviceResult) {
@@ -243,7 +246,32 @@ void ClientSocket::_processPollService(short revents)
 				<< "ServiceEventResult::COMPLETE"
 				<< std::endl;
 			if (!this->_IsResponseSet) {
-				this->_setResponse(this->_service->getResponse());
+				CgiService *cgiService = dynamic_cast<CgiService *>(this->_service);
+				if (cgiService != NULL && cgiService->isLocalRedirect()) {
+					CS_DEBUG()
+						<< "Local redirect: " << cgiService->getLocalRedirectLocation()
+						<< std::endl;
+					this->httpRequest.setPath(cgiService->getLocalRedirectLocation());
+					delete this->_service;
+					this->_service = NULL;
+					this->_service = pickService(
+						this->_clientAddr,
+						this->httpRequest,
+						pollableList,
+						this->logger
+					);
+					if (this->_service == NULL) {
+						CS_DEBUG()
+							<< "pickService() returned NULL"
+							<< std::endl;
+						this->_setResponse(utils::ErrorPageProvider().methodNotAllowed());
+					} else {
+						this->_processPollService(0, pollableList);
+					}
+					return;
+				} else {
+					this->_setResponse(this->_service->getResponse());
+				}
 			}
 			delete this->_service;
 			this->_service = NULL;

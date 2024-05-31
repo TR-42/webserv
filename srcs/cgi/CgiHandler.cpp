@@ -14,14 +14,18 @@ CgiHandler::CgiHandler(
 	const Logger &logger,
 	int fdReadFromCgi,
 	CgiHandler **_cgiServiceCgiHandlerField,
-	HttpResponse *_cgiServiceHttpResponseField
+	HttpResponse *_cgiServiceHttpResponseField,
+	bool *isLocalRedirect,
+	std::string *localRedirectLocation
 ) : Pollable(fdReadFromCgi),
 		logger(logger),
 		_errorPageProvider(errorPageProvider),
 		_isAnyResponseReceived(false),
 		_cgiResponse(logger, errorPageProvider),
 		_cgiServiceCgiHandlerField(_cgiServiceCgiHandlerField),
-		_cgiServiceHttpResponseField(_cgiServiceHttpResponseField)
+		_cgiServiceHttpResponseField(_cgiServiceHttpResponseField),
+		_isLocalRedirect(isLocalRedirect),
+		_localRedirectLocation(localRedirectLocation)
 {
 }
 
@@ -49,7 +53,13 @@ CgiHandler::~CgiHandler()
 	if (this->_cgiServiceCgiHandlerField != NULL) {
 		*(this->_cgiServiceCgiHandlerField) = NULL;
 	}
-	if (this->_cgiServiceHttpResponseField != NULL && this->_isAnyResponseReceived) {
+
+	bool isLocalRedirect = this->_cgiResponse.getMode() == CgiResponseMode::LOCAL_REDIRECT;
+	if (this->_isLocalRedirect != NULL && this->_localRedirectLocation != NULL) {
+		*(this->_isLocalRedirect) = isLocalRedirect;
+		*(this->_localRedirectLocation) = this->_cgiResponse.getLocation();
+	}
+	if (!isLocalRedirect && this->_cgiServiceHttpResponseField != NULL && this->_isAnyResponseReceived) {
 		*(this->_cgiServiceHttpResponseField) = this->_cgiResponse.getHttpResponse();
 	}
 }
@@ -94,9 +104,17 @@ PollEventResultType CgiHandler::onEventGot(
 
 	if (readResult == 0) {
 		C_ERROR("CGI read complete");
-		*(this->_cgiServiceHttpResponseField) = this->_cgiResponse.getHttpResponse();
+		if (this->_cgiResponse.getMode() == CgiResponseMode::LOCAL_REDIRECT) {
+			*(this->_isLocalRedirect) = true;
+			*(this->_localRedirectLocation) = this->_cgiResponse.getLocation();
+		} else {
+			*(this->_cgiServiceHttpResponseField) = this->_cgiResponse.getHttpResponse();
+		}
 		*(this->_cgiServiceCgiHandlerField) = NULL;
 		this->_cgiServiceCgiHandlerField = NULL;
+		this->_cgiServiceHttpResponseField = NULL;
+		this->_isLocalRedirect = NULL;
+		this->_localRedirectLocation = NULL;
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 
@@ -111,6 +129,8 @@ void CgiHandler::setDisposeRequested()
 	C_DEBUG("CgiHandler::setDisposeRequested()");
 	this->_cgiServiceCgiHandlerField = NULL;
 	this->_cgiServiceHttpResponseField = NULL;
+	this->_isLocalRedirect = NULL;
+	this->_localRedirectLocation = NULL;
 }
 
 }	 // namespace webserv
