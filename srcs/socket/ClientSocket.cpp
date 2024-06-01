@@ -326,7 +326,10 @@ void ClientSocket::_setResponse(
 	const HttpResponse &response
 )
 {
-	this->_setResponse(response.generateResponsePacket(this->httpRequest.getMethod() != "HEAD"));
+	this->_setResponse(response.generateResponsePacket(
+		this->httpRequest.getMethod() != "HEAD",
+		this->httpRequest.getVersion() < HttpVersion(1, 0)
+	));
 }
 
 void ClientSocket::setToPollFd(

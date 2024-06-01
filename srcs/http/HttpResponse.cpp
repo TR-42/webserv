@@ -49,9 +49,14 @@ void HttpResponse::setBody(const std::string &body)
 }
 
 std::vector<uint8_t> HttpResponse::generateResponsePacket(
-	bool withBody
+	bool withBody,
+	bool isHttp09
 ) const
 {
+	if (isHttp09) {
+		return this->_Body;
+	}
+
 	std::vector<uint8_t> responsePacket;
 	responsePacket.reserve(1024);
 

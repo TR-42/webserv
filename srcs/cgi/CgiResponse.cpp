@@ -86,7 +86,7 @@ std::vector<uint8_t> CgiResponse::generateResponsePacket(
 	bool withBody
 ) const
 {
-	return this->getHttpResponse().generateResponsePacket(withBody);
+	return this->getHttpResponse().generateResponsePacket(withBody, false);
 }
 
 HttpResponse CgiResponse::getHttpResponse() const

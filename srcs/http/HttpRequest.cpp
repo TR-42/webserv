@@ -1,5 +1,6 @@
 #include <cstring>
 #include <http/HttpRequest.hpp>
+#include <http/exception/BadRequest.hpp>
 #include <http/exception/NotImplemented.hpp>
 #include <iostream>
 #include <stdexcept>
@@ -30,7 +31,7 @@ bool HttpRequest::isRequestHeaderParsed() const { return this->_IsRequestHeaderP
 HttpRequest::HttpRequest(
 	const Logger &logger
 ) : logger(logger),
-		_Version(0, 9),
+		_Version(1, 1),
 		_IsRequestLineParsed(false),
 		_IsRequestHeaderParsed(false),
 		_IsParseCompleted(false),
@@ -103,6 +104,13 @@ bool HttpRequest::pushRequestRaw(
 				this->_IsParseCompleted = true;
 				return false;
 			}
+			if (this->_Version < HttpVersion(1, 0)) {
+				this->_IsRequestHeaderParsed = true;
+				this->_IsParseCompleted = true;
+				C_INFO("HTTP/0.9 -> No Header");
+				return true;
+			}
+
 			requestRawLine = utils::pickLine(this->_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
 				C_DEBUG("NewLine not found");
@@ -230,10 +238,11 @@ bool HttpRequest::parseRequestLine(
 	const uint8_t *pathSegment = spacePos1 + 1;
 	const uint8_t *spacePos2 = (const uint8_t *)std::memchr(pathSegment, ' ', newlinePos - (lenToSpacePos1 + 1));
 	if (spacePos2 == NULL) {
-		C_WARN("spacePos2 was NULL");
-		return false;
+		C_WARN("spacePos2 was NULL -> may be HTTP/0.9");
+		spacePos2 = requestRawData + newlinePos;
+	} else {
+		C_DEBUG("spacePos2 was not null");
 	}
-	C_DEBUG("spacePos2 was not null");
 	size_t lenToSpacePos2 = spacePos2 - pathSegment;
 	if (lenToSpacePos2 == 0) {
 		C_WARN("lenToSpacePos2 was 0");
@@ -250,6 +259,15 @@ bool HttpRequest::parseRequestLine(
 		<< "Query: `" << this->_Query << "`, "
 		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
 		<< std::endl;
+
+	if (spacePos2 == (requestRawData + newlinePos)) {
+		C_WARN("spacePos2 was NULL -> may be HTTP/0.9");
+		this->_Version = HttpVersion(0, 9);
+		if (this->_Method != METHOD_GET) {
+			throw http::exception::BadRequest();
+		}
+		return true;
+	}
 	const uint8_t *versionSegment = spacePos2 + 1;
 	size_t versionStringLength = newlinePos - lenToSpacePos2 - lenToSpacePos1 - 2;
 	CS_DEBUG() << "versionStringLength: " << versionStringLength << std::endl;
