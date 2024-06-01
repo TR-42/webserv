@@ -24,7 +24,7 @@ TEST(CgiResponseTest, GenerateResponsePacket)
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
 	std::vector<uint8_t>
-		expected = httpResponse.generateResponsePacket(true);
+		expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 	std::vector<uint8_t> actual = response.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
@@ -133,7 +133,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket)
 	std::vector<uint8_t> body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
@@ -216,7 +216,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket2)
 		body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
@@ -291,7 +291,7 @@ TEST(CgiResponseTest, GenerateExpectedResponsePacket3)
 	std::vector<uint8_t> body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
