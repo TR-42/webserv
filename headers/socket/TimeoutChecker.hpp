@@ -4,8 +4,8 @@
 #include <ctime>
 #include <stdexcept>
 
-#define DEFAULT_REQUEST_TIMEOUT_MS (20)
-#define SOCKET_TIMEOUT_MS (1 * 100)
+#define DEFAULT_REQUEST_TIMEOUT_MS (100)
+#define SOCKET_TIMEOUT_MS (1 * 1000)
 
 namespace webserv
 {
