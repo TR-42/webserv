@@ -24,7 +24,8 @@ PostFileService::PostFileService(
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger),
-		_fd(-1)
+		_fd(-1),
+		_writtenSize(0)
 {
 	std::string filePath(requestedFileInfo.getTargetFilePath());
 
