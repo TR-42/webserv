@@ -140,7 +140,6 @@ bool HttpRequest::pushRequestRaw(
 			<< "tryGetContentLength result: " << std::boolalpha << tryGetContentLengthResult
 			<< std::endl;
 
-		// TODO: HTTP/1系でHostが指定されていない場合に400を返す
 		if (this->_Headers.isNameExists("Host")) {
 			std::vector<std::string> hostList = this->_Headers.getValueList("Host");
 			if (hostList.size() != 1) {
@@ -154,6 +153,8 @@ bool HttpRequest::pushRequestRaw(
 			}
 
 			this->_Host = hostList[0];
+		} else {
+			throw http::exception::BadRequest();
 		}
 
 		this->_IsRequestHeaderParsed = true;
