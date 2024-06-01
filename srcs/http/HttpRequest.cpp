@@ -15,7 +15,7 @@ namespace webserv
 const std::string &HttpRequest::getMethod() const { return this->_Method; }
 const std::string &HttpRequest::getPath() const { return this->_Path; }
 const std::string &HttpRequest::getQuery() const { return this->_Query; }
-const std::string &HttpRequest::getVersion() const { return this->_Version; }
+const HttpVersion &HttpRequest::getVersion() const { return this->_Version; }
 const HttpFieldMap &HttpRequest::getHeaders() const { return this->_Headers; }
 const std::vector<uint8_t> &HttpRequest::getBody() const { return this->_Body; }
 bool HttpRequest::isRequestLineParsed() const { return this->_IsRequestLineParsed; }
@@ -24,6 +24,7 @@ bool HttpRequest::isRequestHeaderParsed() const { return this->_IsRequestHeaderP
 HttpRequest::HttpRequest(
 	const Logger &logger
 ) : logger(logger),
+		_Version(0, 9),
 		_IsRequestLineParsed(false),
 		_IsRequestHeaderParsed(false),
 		_IsParseCompleted(false),
@@ -151,7 +152,7 @@ bool HttpRequest::pushRequestRaw(
 			<< "Request Header Parse Completed:"
 			<< " Method: " << this->_Method
 			<< ", Path: `" << this->_Path << "`"
-			<< ", Version: " << this->_Version
+			<< ", Version: " << this->_Version.toString()
 			<< ", IsParseCompleted: " << std::boolalpha << this->_IsParseCompleted
 			<< ", ContentLength: " << this->_ContentLength
 			<< ", Host: " << this->_Host
@@ -249,8 +250,14 @@ bool HttpRequest::parseRequestLine(
 		C_WARN("versionStringLength was 0");
 		return false;
 	}
-	this->_Version = std::string((const char *)versionSegment, versionStringLength);
-	CS_DEBUG() << "Version: " << this->_Version << std::endl;
+	std::string versionString((const char *)versionSegment, versionStringLength);
+	this->_Version = HttpVersion::fromString(versionString);
+	CS_DEBUG() << "Version: " << this->_Version.toString() << std::endl;
+
+	if (HttpVersion(2, 0) <= this->_Version) {
+		throw http::exception::HttpVersionNotSupported();
+	}
+
 	return true;
 }
 

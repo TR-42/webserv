@@ -111,7 +111,7 @@ CgiService::CgiService(
 	envManager.set("SERVER_NAME", request.getHost());
 	envManager.set("SERVER_PORT", utils::to_string(serverPort));
 
-	envManager.set("SERVER_PROTOCOL", request.getVersion());
+	envManager.set("SERVER_PROTOCOL", request.getVersion().toString());
 	envManager.set("SERVER_SOFTWARE", "webserv/1.0");
 
 	if (0 < request.getBody().size()) {

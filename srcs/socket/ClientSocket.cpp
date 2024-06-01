@@ -99,12 +99,28 @@ PollEventResultType ClientSocket::_processPollIn(
 		return PollEventResult::OK;
 	}
 
-	bool pushResult = this->httpRequest.pushRequestRaw(std::vector<uint8_t>(buffer, buffer + recvSize));
-	if (!pushResult) {
+	try {
+		bool pushResult = this->httpRequest.pushRequestRaw(std::vector<uint8_t>(buffer, buffer + recvSize));
+		if (!pushResult) {
+			CS_WARN()
+				<< "httpRequest.pushRequestRaw() failed"
+				<< std::endl;
+			this->_setResponse(utils::ErrorPageProvider().badRequest());
+			return PollEventResult::OK;
+		}
+	} catch (http::exception::HttpError &e) {
 		CS_WARN()
-			<< "httpRequest.pushRequestRaw() failed"
+			<< "httpRequest.pushRequestRaw() failed: " << e.what()
 			<< std::endl;
-		this->_setResponse(utils::ErrorPageProvider().badRequest());
+		// TODO: 適切なErrorPageProviderを選択する
+		this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
+		return PollEventResult::OK;
+	} catch (const std::exception &e) {
+		CS_WARN()
+			<< "httpRequest.pushRequestRaw() failed: " << e.what()
+			<< std::endl;
+		// TODO: 適切なErrorPageProviderを選択する
+		this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
 		return PollEventResult::OK;
 	}
 
