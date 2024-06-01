@@ -28,11 +28,36 @@ static const ServerRunningConfig &pickServerConfig(
 PollEventResultType ClientSocket::onEventGot(
 	int fd,
 	short revents,
-	std::vector<Pollable *> &pollableList
+	std::vector<Pollable *> &pollableList,
+	const struct timespec &now
 )
 {
-	(void)pollableList;
-	// TODO: タイムアウト監視 (呼び出し元でのreventチェックを取り除いて実装)
+	if (this->_timeoutChecker.isConnectionTimeouted(now)) {
+		CS_WARN()
+			<< "Connection Timeout"
+			<< std::endl;
+		return PollEventResult::DISPOSE_REQUEST;
+	}
+
+	if (!this->_IsResponseSet && this->_timeoutChecker.isTimeouted(now)) {
+		if (this->httpRequest.isServerRunningConfigSet()) {
+			C_WARN("Gateway Timeout");
+			if (this->httpRequest.isParseCompleted()) {
+				this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().gatewayTimeout());
+			} else {
+				this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().requestTimeout());
+			}
+		} else {
+			C_WARN("Request Timeout");
+			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().requestTimeout());
+		}
+
+		if (this->_service != NULL) {
+			this->_service->setIsDisposingFromChildProcess(this->isDisposingFromChildProcess());
+			delete this->_service;
+			this->_service = NULL;
+		}
+	}
 
 	if (this->_service != NULL) {
 		if (this->isFdSame(fd)) {
@@ -55,7 +80,7 @@ PollEventResultType ClientSocket::onEventGot(
 		CS_DEBUG()
 			<< "POLLIN event"
 			<< std::endl;
-		return this->_processPollIn(pollableList);
+		return this->_processPollIn(now, pollableList);
 	} else if (IS_POLLOUT(revents)) {
 		CS_DEBUG()
 			<< "POLLOUT event"
@@ -67,6 +92,7 @@ PollEventResultType ClientSocket::onEventGot(
 }
 
 PollEventResultType ClientSocket::_processPollIn(
+	const struct timespec &now,
 	std::vector<Pollable *> &pollableList
 )
 {
@@ -135,6 +161,15 @@ PollEventResultType ClientSocket::_processPollIn(
 		}
 
 		httpRequest.setServerRunningConfig(serverRunningConfig);
+
+		this->_timeoutChecker.setTimeoutMs(serverRunningConfig.getTimeoutMs());
+		if (this->_timeoutChecker.isTimeouted(now)) {
+			CS_WARN()
+				<< "Request timeout"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestTimeout());
+			return PollEventResult::OK;
+		}
 	}
 
 	if (!this->httpRequest.isParseCompleted()) {
@@ -342,12 +377,15 @@ void ClientSocket::_setResponse(
 }
 
 void ClientSocket::setToPollFd(
-	struct pollfd &pollFd
+	struct pollfd &pollFd,
+	const struct timespec &now
 ) const
 {
-	Pollable::setToPollFd(pollFd);
-	if (this->_service == NULL) {
-		pollFd.events = this->_IsResponseSet ? POLLOUT : POLLIN;
+	Pollable::setToPollFd(pollFd, now);
+	bool isResponseAvailable = this->_IsResponseSet || this->_timeoutChecker.isTimeouted(now);
+
+	if (isResponseAvailable || this->_service == NULL) {
+		pollFd.events = isResponseAvailable ? POLLOUT : POLLIN;
 	} else {
 		this->_service->setToPollFd(pollFd);
 	}
@@ -380,6 +418,7 @@ ClientSocket::~ClientSocket()
 ClientSocket::ClientSocket(
 	int fd,
 	const struct sockaddr &clientAddr,
+	const timespec &now,
 	const ServerRunningConfigListType &listenConfigList,
 	const Logger &logger
 ) : Pollable(fd),
@@ -389,7 +428,8 @@ ClientSocket::ClientSocket(
 		_IsResponseSet(false),
 		_service(NULL),
 		_clientAddr(clientAddr),
-		_IsHeaderValidationCompleted(false)
+		_IsHeaderValidationCompleted(false),
+		_timeoutChecker(now, logger)
 {
 	CS_DEBUG()
 		<< "ClientSocket(fd:" << utils::to_string(fd) << ")"

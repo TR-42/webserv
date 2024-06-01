@@ -17,6 +17,7 @@ class ServerConfig
 {
 	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, ServerNameList)
 	DECL_VAR_GETTER_SETTER(uint16_t, Port)
+	DECL_VAR_GETTER_SETTER(size_t, TimeoutMs)
 	DECL_VAR_REF_GETTER_SETTER(std::size_t, RequestBodyLimit)
 	DECL_VAR_REF_GETTER_SETTER(ErrorPageMapType, ErrorPageMap)
 	DECL_VAR_REF_GETTER_SETTER(RouteListType, RouteList)
@@ -30,6 +31,7 @@ class ServerConfig
 	ServerConfig(
 		const std::vector<std::string> &serverNameList,
 		uint16_t port,
+		size_t timeoutMs,
 		std::size_t requestBodyLimit,
 		const ErrorPageMapType &errorPages,
 		const RouteListType &routeList

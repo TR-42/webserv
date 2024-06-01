@@ -77,6 +77,7 @@ class HttpRequest
 	bool isChunkedRequest() const;
 	std::string getNormalizedPath() const;
 	const std::vector<std::string> &getPathSegmentList() const;
+	bool isServerRunningConfigSet() const;
 	const ServerRunningConfig &getServerRunningConfig() const;
 	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
 

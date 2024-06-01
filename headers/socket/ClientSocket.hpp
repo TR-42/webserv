@@ -11,6 +11,7 @@
 #include "../Logger.hpp"
 #include "../http/HttpRequest.hpp"
 #include "../http/HttpResponse.hpp"
+#include "./TimeoutChecker.hpp"
 
 namespace webserv
 {
@@ -26,8 +27,10 @@ class ClientSocket : public Pollable
 	ServiceBase *_service;
 	struct sockaddr _clientAddr;
 	bool _IsHeaderValidationCompleted;
+	TimeoutChecker _timeoutChecker;
 
 	PollEventResultType _processPollIn(
+		const struct timespec &now,
 		std::vector<Pollable *> &pollableList
 	);
 	PollEventResultType _processPollOut();
@@ -50,22 +53,22 @@ class ClientSocket : public Pollable
 	ClientSocket(
 		int fd,
 		const struct sockaddr &clientAddr,
+		const timespec &now,
 		const ServerRunningConfigListType &listenConfigList,
 		const Logger &logger
 	);
 	virtual ~ClientSocket();
 
 	virtual void setToPollFd(
-		struct pollfd &pollFd
+		struct pollfd &pollFd,
+		const struct timespec &now
 	) const;
 
 	virtual PollEventResultType onEventGot(
 		int fd,
 		short revents,
-		std::vector<Pollable *> &pollableList
-	);
-	PollEventResultType onEventGot(
-		short revents
+		std::vector<Pollable *> &pollableList,
+		const struct timespec &now
 	);
 };
 

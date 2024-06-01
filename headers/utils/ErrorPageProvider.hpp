@@ -22,6 +22,7 @@ class ErrorPageProvider
 	HttpResponse permissionDenied() const;
 	HttpResponse notFound() const;
 	HttpResponse methodNotAllowed() const;
+	HttpResponse requestTimeout() const;
 	HttpResponse requestEntityTooLarge() const;
 	HttpResponse movedPermanently() const;
 	HttpResponse found() const;
@@ -38,6 +39,7 @@ class ErrorPageProvider
 	static const int PERMISSION_DENIED = 403;
 	static const int NOT_FOUND = 404;
 	static const int METHOD_NOT_ALLOWED = 405;
+	static const int REQUEST_TIMEOUT = 408;
 	static const int REQUEST_ENTITY_TOO_LARGE = 413;
 	static const int MOVED_PERMANENTLY = 301;
 	static const int FOUND = 302;

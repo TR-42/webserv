@@ -306,6 +306,11 @@ const std::vector<std::string> &HttpRequest::getPathSegmentList() const
 	return this->_PathSegmentList;
 }
 
+bool HttpRequest::isServerRunningConfigSet() const
+{
+	return this->serverRunningConfig != NULL;
+}
+
 const ServerRunningConfig &HttpRequest::getServerRunningConfig() const
 {
 	return *this->serverRunningConfig;
