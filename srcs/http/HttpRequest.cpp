@@ -1,5 +1,6 @@
 #include <cstring>
 #include <http/HttpRequest.hpp>
+#include <http/exception/NotImplemented.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <utils/normalizePath.hpp>
@@ -8,6 +9,11 @@
 #include <utils/splitNameValue.hpp>
 
 #include "http/HttpFieldMap.hpp"
+
+#define METHOD_GET "GET"
+#define METHOD_HEAD "HEAD"
+#define METHOD_POST "POST"
+#define METHOD_PUT "DELETE"
 
 namespace webserv
 {
@@ -215,6 +221,12 @@ bool HttpRequest::parseRequestLine(
 	CS_DEBUG() << "lenToSpacePos1: " << lenToSpacePos1 << std::endl;
 	this->_Method = std::string((const char *)requestRawData, lenToSpacePos1);
 	CS_DEBUG() << "Method: " << this->_Method << std::endl;
+
+	if (this->_Method != METHOD_GET && this->_Method != METHOD_HEAD && this->_Method != METHOD_POST && this->_Method != METHOD_PUT) {
+		C_WARN("Invalid Method");
+		throw http::exception::NotImplemented();
+	}
+
 	const uint8_t *pathSegment = spacePos1 + 1;
 	const uint8_t *spacePos2 = (const uint8_t *)std::memchr(pathSegment, ' ', newlinePos - (lenToSpacePos1 + 1));
 	if (spacePos2 == NULL) {
