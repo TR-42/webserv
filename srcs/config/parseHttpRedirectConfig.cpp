@@ -1,4 +1,5 @@
 #include <config/HttpRedirectConfig.hpp>
+#include <config/parseHttpRedirectConfig.hpp>
 #include <stdexcept>
 #include <utils/stoul.hpp>
 #include <yaml/MappingNode.hpp>
@@ -15,8 +16,8 @@ HttpRedirectConfig parseHttpRedirectConfig(const yaml::MappingNode &node)
 	if (!node.has(YAML_KEY_TO) || !node.has(YAML_KEY_CODE))
 		throw std::runtime_error("HttpRedirectConfig: " YAML_KEY_TO " and " YAML_KEY_CODE " are required");
 
-	std::string yaml_code = yaml::getScalarNode(node, "redirectFrom").getValue();
-	std::string yaml_to = yaml::getScalarNode(node, "redirectTo").getValue();
+	std::string yaml_to = yaml::getScalarNode(node, YAML_KEY_TO).getValue();
+	std::string yaml_code = yaml::getScalarNode(node, YAML_KEY_CODE).getValue();
 
 	if (yaml_to.empty())
 		throw std::runtime_error("HttpRedirectConfig: " YAML_KEY_TO " must be a non-empty string");
