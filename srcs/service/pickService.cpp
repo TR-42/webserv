@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+
 #include <config/ListenConfig.hpp>
 #include <config/ServerRunningConfig.hpp>
 #include <service/CgiService.hpp>
@@ -55,26 +57,46 @@ static ServiceBase *pickService(
 
 	if (requestedFileInfo.getIsCgi()) {
 		L_INFO("CgiService selected");
-		return new CgiService(
-			request,
-			requestedFileInfo,
-			serverPort,
-			clientAddr,
-			request.getServerRunningConfig().getErrorPageProvider(),
-			logger,
-			pollableList
-		);
+		bool isExecutable = (requestedFileInfo.getStatBuf().st_mode & (S_IRUSR | S_IXUSR)) == (S_IRUSR | S_IXUSR);
+		if (isExecutable) {
+			return new CgiService(
+				request,
+				requestedFileInfo,
+				serverPort,
+				clientAddr,
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger,
+				pollableList
+			);
+		} else {
+			L_INFO("Permission denied");
+			return new SimpleService(
+				request,
+				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		}
 	}
 
-	// TODO: RouteによるServiceの選択 (特にCGI対応)
 	if (request.getMethod() == "GET" || request.getMethod() == "HEAD") {
 		L_INFO("GetFileService selected");
-		return new GetFileService(
-			request,
-			requestedFileInfo,
-			request.getServerRunningConfig().getErrorPageProvider(),
-			logger
-		);
+		if (requestedFileInfo.getStatBuf().st_mode & S_IRUSR) {
+			return new GetFileService(
+				request,
+				requestedFileInfo,
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		} else {
+			L_INFO("Permission denied");
+			return new SimpleService(
+				request,
+				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		}
 	}
 
 	// ディレクトリ宛のリクエストはGET(HEAD)のみ対応
@@ -90,20 +112,41 @@ static ServiceBase *pickService(
 
 	if (request.getMethod() == "DELETE") {
 		L_INFO("DeleteFileService selected");
-		return new DeleteFileService(
-			request,
-			requestedFileInfo,
-			request.getServerRunningConfig().getErrorPageProvider(),
-			logger
-		);
+		// 本当は書き込み権限が無くても削除できるが、仕様として「書き込み権限がある場合のみ削除可能」とする
+		if (requestedFileInfo.getStatBuf().st_mode & S_IWUSR) {
+			return new DeleteFileService(
+				request,
+				requestedFileInfo,
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		} else {
+			L_INFO("Permission denied");
+			return new SimpleService(
+				request,
+				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		}
 	} else if (request.getMethod() == "POST") {
 		L_INFO("PostFileService selected");
-		return new PostFileService(
-			request,
-			requestedFileInfo,
-			request.getServerRunningConfig().getErrorPageProvider(),
-			logger
-		);
+		if (requestedFileInfo.getStatBuf().st_mode & S_IWUSR) {
+			return new PostFileService(
+				request,
+				requestedFileInfo,
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		} else {
+			L_INFO("Permission denied");
+			return new SimpleService(
+				request,
+				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
+				request.getServerRunningConfig().getErrorPageProvider(),
+				logger
+			);
+		}
 	} else {
 		L_INFO("Method not implemented -> NULL selected");
 		return NULL;

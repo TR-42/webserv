@@ -30,6 +30,7 @@ class RequestedFileInfo
 	DECL_VAR_GETTER(bool, IsNotFound);
 	DECL_VAR_GETTER(bool, IsCgi);
 	DECL_VAR_GETTER(bool, IsAutoIndexAllowed);
+	DECL_VAR_GETTER(bool, IsAutoIndexFile);
 	DECL_VAR_REF_GETTER(CgiConfig, CgiConfig);
 	DECL_VAR_REF_GETTER(struct stat, StatBuf);
 	DECL_VAR_REF_GETTER(std::string, FileExtensionWithoutDot);

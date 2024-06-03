@@ -351,6 +351,11 @@ const std::vector<std::string> &HttpRequest::getPathSegmentList() const
 	return this->_PathSegmentList;
 }
 
+bool HttpRequest::isServerRunningConfigSet() const
+{
+	return this->serverRunningConfig != NULL;
+}
+
 const ServerRunningConfig &HttpRequest::getServerRunningConfig() const
 {
 	return *this->serverRunningConfig;
@@ -362,6 +367,21 @@ void HttpRequest::setServerRunningConfig(const ServerRunningConfig &serverRunnin
 		delete this->serverRunningConfig;
 	}
 	this->serverRunningConfig = new ServerRunningConfig(serverRunningConfig);
+}
+
+void HttpRequest::setPath(
+	const std::string &path
+)
+{
+	this->_Path = path;
+	separatePathAndQuery(this->_Path, this->_Query);
+	this->_NormalizedPath = utils::normalizePath(this->_Path);
+	this->_PathSegmentList = utils::split(this->_NormalizedPath, '/');
+	CS_DEBUG()
+		<< "Path: `" << this->_Path << "`, "
+		<< "Query: `" << this->_Query << "`, "
+		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
+		<< std::endl;
 }
 
 }	 // namespace webserv

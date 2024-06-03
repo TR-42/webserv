@@ -115,6 +115,7 @@ static webserv::ServerRunningConfigListType createDefaultServerConfigList(
 	webserv::ServerConfig serverConfig(
 		hostNameList,
 		port,
+		100,
 		// 128MB
 		128 * 1024 * 1024,
 		errorPageFileMap,

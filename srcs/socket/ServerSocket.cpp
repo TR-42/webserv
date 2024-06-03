@@ -19,7 +19,8 @@ namespace webserv
 PollEventResultType ServerSocket::onEventGot(
 	int fd,
 	short revents,
-	std::vector<Pollable *> &pollableList
+	std::vector<Pollable *> &pollableList,
+	const struct timespec &now
 )
 {
 	(void)fd;
@@ -62,6 +63,7 @@ PollEventResultType ServerSocket::onEventGot(
 	Pollable *clientSocket = new ClientSocket(
 		clientFd,
 		clientAddr,
+		now,
 		this->_listenConfigList,
 		this->logger
 	);
@@ -74,10 +76,11 @@ PollEventResultType ServerSocket::onEventGot(
 }
 
 void ServerSocket::setToPollFd(
-	struct pollfd &pollFd
+	struct pollfd &pollFd,
+	const struct timespec &now
 ) const
 {
-	Pollable::setToPollFd(pollFd);
+	Pollable::setToPollFd(pollFd, now);
 	pollFd.events = POLLIN;
 }
 

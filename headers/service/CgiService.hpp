@@ -19,6 +19,8 @@ class CgiService : public ServiceBase
 	pid_t _pid;
 	CgiExecuter *_cgiExecuter;
 	CgiHandler *_cgiHandler;
+	bool _isLocalRedirect;
+	std::string _localRedirectLocation;
 
  public:
 	CgiService(
@@ -39,6 +41,15 @@ class CgiService : public ServiceBase
 	virtual ServiceEventResultType onEventGot(
 		short revents
 	);
+
+	inline bool isLocalRedirect() const
+	{
+		return this->_isLocalRedirect;
+	}
+	inline std::string getLocalRedirectLocation() const
+	{
+		return this->_localRedirectLocation;
+	}
 };
 
 };	// namespace webserv

@@ -56,6 +56,7 @@ SRCS_SIGNAL	=\
 SRCS_SOCKET	=\
 	ClientSocket.cpp\
 	ServerSocket.cpp\
+	TimeoutChecker.cpp\
 
 SRCS_UTILS	=\
 	ErrorPageProvider.cpp\
