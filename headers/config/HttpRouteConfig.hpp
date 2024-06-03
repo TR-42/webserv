@@ -26,6 +26,15 @@ class HttpRouteConfig
 
  public:
 	HttpRouteConfig();
+	HttpRouteConfig(
+		const std::string &RequestPath,
+		const std::vector<std::string> &Methods,
+		const HttpRedirectConfig &Redirect,
+		const std::string &DocumentRoot,
+		bool IsDocumentListingEnabled,
+		const std::vector<std::string> &IndexFileList,
+		const CgiConfigListType &CgiConfigList
+	);
 	HttpRouteConfig(const HttpRouteConfig &from);
 	virtual ~HttpRouteConfig();
 	HttpRouteConfig &operator=(const HttpRouteConfig &from);

@@ -58,4 +58,23 @@ void HttpRouteConfig::setRequestPath(const std::string &RequestPath)
 	this->_RequestPathSegmentList = utils::split(this->_RequestPath, '/');
 }
 
+HttpRouteConfig::HttpRouteConfig(
+	const std::string &RequestPath,
+	const std::vector<std::string> &Methods,
+	const HttpRedirectConfig &Redirect,
+	const std::string &DocumentRoot,
+	bool IsDocumentListingEnabled,
+	const std::vector<std::string> &IndexFileList,
+	const CgiConfigListType &CgiConfigList
+) : _RequestPath(RequestPath),
+		_Methods(Methods),
+		_Redirect(Redirect),
+		_DocumentRoot(DocumentRoot),
+		_IsDocumentListingEnabled(IsDocumentListingEnabled),
+		_IndexFileList(IndexFileList),
+		_CgiConfigList(CgiConfigList)
+{
+	this->_RequestPathSegmentList = utils::split(this->_RequestPath, '/');
+}
+
 }	 // namespace webserv
