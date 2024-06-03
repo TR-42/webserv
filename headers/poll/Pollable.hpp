@@ -2,6 +2,7 @@
 
 #include <poll.h>
 
+#include <ctime>
 #include <stdexcept>
 #include <utils/UUID.hpp>
 #include <vector>
@@ -38,13 +39,15 @@ class Pollable
 	virtual ~Pollable();
 
 	virtual void setToPollFd(
-		struct pollfd &pollFd
+		struct pollfd &pollFd,
+		const struct timespec &now
 	) const;
 
 	virtual PollEventResultType onEventGot(
 		int fd,
 		short revents,
-		std::vector<Pollable *> &pollableList
+		std::vector<Pollable *> &pollableList,
+		const struct timespec &now
 	) = 0;
 
 	utils::UUID getUUID() const;

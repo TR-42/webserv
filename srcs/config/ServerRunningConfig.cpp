@@ -65,6 +65,7 @@ ServerRunningConfig::ServerRunningConfig(
 	utils::ErrorPageProvider &errorPageProvider,
 	Logger &logger
 ) : _port(serverConfig.getPort()),
+		_timeoutMs(serverConfig.getTimeoutMs()),
 		_serverNameList(_ServerNameVecToSet(serverConfig.getServerNameList())),
 		_errorPageProvider(errorPageProvider),
 		_requestBodyLimit(serverConfig.getRequestBodyLimit()),
@@ -94,6 +95,7 @@ ServerRunningConfig::ServerRunningConfig(
 ServerRunningConfig::ServerRunningConfig(
 	const ServerRunningConfig &from
 ) : _port(from._port),
+		_timeoutMs(from._timeoutMs),
 		_serverNameList(from._serverNameList),
 		_errorPageProvider(from._errorPageProvider),
 		_requestBodyLimit(from._requestBodyLimit),
