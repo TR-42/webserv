@@ -1,5 +1,7 @@
 #include <cstring>
 #include <http/HttpRequest.hpp>
+#include <http/exception/BadRequest.hpp>
+#include <http/exception/NotImplemented.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <utils/normalizePath.hpp>
@@ -9,21 +11,27 @@
 
 #include "http/HttpFieldMap.hpp"
 
+#define METHOD_GET "GET"
+#define METHOD_HEAD "HEAD"
+#define METHOD_POST "POST"
+#define METHOD_PUT "DELETE"
+
 namespace webserv
 {
 
-const std::string &HttpRequest::getMethod() const { return _Method; }
-const std::string &HttpRequest::getPath() const { return _Path; }
+const std::string &HttpRequest::getMethod() const { return this->_Method; }
+const std::string &HttpRequest::getPath() const { return this->_Path; }
 const std::string &HttpRequest::getQuery() const { return this->_Query; }
-const std::string &HttpRequest::getVersion() const { return _Version; }
-const HttpFieldMap &HttpRequest::getHeaders() const { return _Headers; }
-const std::vector<uint8_t> &HttpRequest::getBody() const { return _Body; }
-bool HttpRequest::isRequestLineParsed() const { return _IsRequestLineParsed; }
-bool HttpRequest::isRequestHeaderParsed() const { return _IsRequestHeaderParsed; }
+const HttpVersion &HttpRequest::getVersion() const { return this->_Version; }
+const HttpFieldMap &HttpRequest::getHeaders() const { return this->_Headers; }
+const std::vector<uint8_t> &HttpRequest::getBody() const { return this->_Body; }
+bool HttpRequest::isRequestLineParsed() const { return this->_IsRequestLineParsed; }
+bool HttpRequest::isRequestHeaderParsed() const { return this->_IsRequestHeaderParsed; }
 
 HttpRequest::HttpRequest(
 	const Logger &logger
 ) : logger(logger),
+		_Version(1, 1),
 		_IsRequestLineParsed(false),
 		_IsRequestHeaderParsed(false),
 		_IsParseCompleted(false),
@@ -74,12 +82,12 @@ bool HttpRequest::pushRequestRaw(
 		return true;
 	}
 
-	if (_IsRequestHeaderParsed == false) {
+	if (this->_IsRequestHeaderParsed == false) {
 		C_DEBUG("_IsRequestHeaderParsed was false");
-		_UnparsedRequestRaw.insert(_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
+		this->_UnparsedRequestRaw.insert(this->_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
 
 		C_DEBUG("pickLine executing...");
-		std::vector<uint8_t> *requestRawLine = utils::pickLine(_UnparsedRequestRaw);
+		std::vector<uint8_t> *requestRawLine = utils::pickLine(this->_UnparsedRequestRaw);
 		if (requestRawLine == NULL) {
 			C_DEBUG("NewLine not found");
 			return true;
@@ -87,16 +95,23 @@ bool HttpRequest::pushRequestRaw(
 		CS_DEBUG() << "requestRawLine size: " << requestRawLine->size() << std::endl;
 
 		// リクエストラインの解析
-		if (_IsRequestLineParsed == false) {
+		if (this->_IsRequestLineParsed == false) {
 			C_DEBUG("_IsRequestLineParsed was false");
-			_IsRequestLineParsed = parseRequestLine(*requestRawLine);
+			this->_IsRequestLineParsed = this->parseRequestLine(*requestRawLine);
 			delete requestRawLine;
-			CS_DEBUG() << "_IsRequestLineParsed result: " << _IsRequestLineParsed << std::endl;
-			if (_IsRequestLineParsed == false) {
+			CS_DEBUG() << "_IsRequestLineParsed result: " << this->_IsRequestLineParsed << std::endl;
+			if (this->_IsRequestLineParsed == false) {
 				this->_IsParseCompleted = true;
 				return false;
 			}
-			requestRawLine = utils::pickLine(_UnparsedRequestRaw);
+			if (this->_Version < HttpVersion(1, 0)) {
+				this->_IsRequestHeaderParsed = true;
+				this->_IsParseCompleted = true;
+				C_INFO("HTTP/0.9 -> No Header");
+				return true;
+			}
+
+			requestRawLine = utils::pickLine(this->_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
 				C_DEBUG("NewLine not found");
 				return true;
@@ -105,13 +120,13 @@ bool HttpRequest::pushRequestRaw(
 
 		// リクエストヘッダの解析
 		while (requestRawLine->empty() == false) {
-			bool result = parseRequestHeader(*requestRawLine);
+			bool result = this->parseRequestHeader(*requestRawLine);
 			delete requestRawLine;
 			if (result == false) {
 				this->_IsParseCompleted = true;
 				return false;
 			}
-			requestRawLine = utils::pickLine(_UnparsedRequestRaw);
+			requestRawLine = utils::pickLine(this->_UnparsedRequestRaw);
 			if (requestRawLine == NULL) {
 				C_DEBUG("NewLine not found");
 				return true;
@@ -125,7 +140,6 @@ bool HttpRequest::pushRequestRaw(
 			<< "tryGetContentLength result: " << std::boolalpha << tryGetContentLengthResult
 			<< std::endl;
 
-		// TODO: HTTP/1系でHostが指定されていない場合に400を返す
 		if (this->_Headers.isNameExists("Host")) {
 			std::vector<std::string> hostList = this->_Headers.getValueList("Host");
 			if (hostList.size() != 1) {
@@ -139,37 +153,39 @@ bool HttpRequest::pushRequestRaw(
 			}
 
 			this->_Host = hostList[0];
+		} else {
+			throw http::exception::BadRequest();
 		}
 
-		_IsRequestHeaderParsed = true;
+		this->_IsRequestHeaderParsed = true;
 
-		_Body = _UnparsedRequestRaw;
+		this->_Body = _UnparsedRequestRaw;
 		// TODO: chunkedの処理を実装する
-		this->_IsParseCompleted = this->_ContentLength <= _Body.size();
+		this->_IsParseCompleted = this->_ContentLength <= this->_Body.size();
 
 		CS_INFO()
 			<< "Request Header Parse Completed:"
-			<< " Method: " << _Method
-			<< ", Path: `" << _Path << "`"
-			<< ", Version: " << _Version
+			<< " Method: " << this->_Method
+			<< ", Path: `" << this->_Path << "`"
+			<< ", Version: " << this->_Version.toString()
 			<< ", IsParseCompleted: " << std::boolalpha << this->_IsParseCompleted
-			<< ", ContentLength: " << _ContentLength
-			<< ", Host: " << _Host
+			<< ", ContentLength: " << this->_ContentLength
+			<< ", Host: " << this->_Host
 			<< ", IsChunkedRequest: " << std::boolalpha << this->_IsChunkedRequest
 			<< std::endl;
 
 		return true;
-	} else if (isRequestBodyLengthEnough()) {
+	} else if (this->isRequestBodyLengthEnough()) {
 		CS_DEBUG()
 			<< "too much request body("
-			<< "BodySize: " << _Body.size() << ", "
-			<< "ContentLength: " << getContentLength() << ", "
+			<< "BodySize: " << this->_Body.size() << ", "
+			<< "ContentLength: " << this->getContentLength() << ", "
 			<< "RequestRawSize: " << requestRaw.size()
 			<< ")" << std::endl;
 		this->_IsParseCompleted = true;
 		return false;
 	} else {
-		_Body.insert(_Body.end(), requestRaw.begin(), requestRaw.end());
+		this->_Body.insert(this->_Body.end(), requestRaw.begin(), requestRaw.end());
 		return true;
 	}
 
@@ -212,24 +228,47 @@ bool HttpRequest::parseRequestLine(
 		return false;
 	}
 	CS_DEBUG() << "lenToSpacePos1: " << lenToSpacePos1 << std::endl;
-	_Method = std::string((const char *)requestRawData, lenToSpacePos1);
-	CS_DEBUG() << "Method: " << _Method << std::endl;
+	this->_Method = std::string((const char *)requestRawData, lenToSpacePos1);
+	CS_DEBUG() << "Method: " << this->_Method << std::endl;
+
+	if (this->_Method != METHOD_GET && this->_Method != METHOD_HEAD && this->_Method != METHOD_POST && this->_Method != METHOD_PUT) {
+		C_WARN("Invalid Method");
+		throw http::exception::NotImplemented();
+	}
+
 	const uint8_t *pathSegment = spacePos1 + 1;
 	const uint8_t *spacePos2 = (const uint8_t *)std::memchr(pathSegment, ' ', newlinePos - (lenToSpacePos1 + 1));
 	if (spacePos2 == NULL) {
-		C_WARN("spacePos2 was NULL");
-		return false;
+		C_WARN("spacePos2 was NULL -> may be HTTP/0.9");
+		spacePos2 = requestRawData + newlinePos;
+	} else {
+		C_DEBUG("spacePos2 was not null");
 	}
-	C_DEBUG("spacePos2 was not null");
 	size_t lenToSpacePos2 = spacePos2 - pathSegment;
 	if (lenToSpacePos2 == 0) {
 		C_WARN("lenToSpacePos2 was 0");
 		return false;
 	}
 	CS_DEBUG() << "lenToSpacePos2: " << lenToSpacePos2 << std::endl;
-	std::string path = std::string((const char *)pathSegment, lenToSpacePos2);
-	CS_DEBUG() << "PathSegment: `" << path << "`" << std::endl;
-	this->setPath(path);
+	this->_Path = std::string((const char *)pathSegment, lenToSpacePos2);
+	CS_DEBUG() << "PathSegment: `" << this->_Path << "`" << std::endl;
+	separatePathAndQuery(this->_Path, this->_Query);
+	this->_NormalizedPath = utils::normalizePath(this->_Path);
+	this->_PathSegmentList = utils::split(this->_NormalizedPath, '/');
+	CS_DEBUG()
+		<< "Path: `" << this->_Path << "`, "
+		<< "Query: `" << this->_Query << "`, "
+		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
+		<< std::endl;
+
+	if (spacePos2 == (requestRawData + newlinePos)) {
+		C_WARN("spacePos2 was NULL -> may be HTTP/0.9");
+		this->_Version = HttpVersion(0, 9);
+		if (this->_Method != METHOD_GET) {
+			throw http::exception::BadRequest();
+		}
+		return true;
+	}
 	const uint8_t *versionSegment = spacePos2 + 1;
 	size_t versionStringLength = newlinePos - lenToSpacePos2 - lenToSpacePos1 - 2;
 	CS_DEBUG() << "versionStringLength: " << versionStringLength << std::endl;
@@ -242,8 +281,14 @@ bool HttpRequest::parseRequestLine(
 		C_WARN("versionStringLength was 0");
 		return false;
 	}
-	_Version = std::string((const char *)versionSegment, versionStringLength);
-	CS_DEBUG() << "Version: " << _Version << std::endl;
+	std::string versionString((const char *)versionSegment, versionStringLength);
+	this->_Version = HttpVersion::fromString(versionString);
+	CS_DEBUG() << "Version: " << this->_Version.toString() << std::endl;
+
+	if (HttpVersion(2, 0) <= this->_Version) {
+		throw http::exception::HttpVersionNotSupported();
+	}
+
 	return true;
 }
 
@@ -268,13 +313,13 @@ size_t HttpRequest::getContentLength() const
 
 bool HttpRequest::isRequestBodyLengthEnough() const
 {
-	bool isRequestBodyLengthEnough = _IsRequestHeaderParsed && getContentLength() <= _Body.size();
+	bool isRequestBodyLengthEnough = this->_IsRequestHeaderParsed && this->getContentLength() <= this->_Body.size();
 	return isRequestBodyLengthEnough;
 }
 
 bool HttpRequest::isRequestBodyLengthTooMuch() const
 {
-	bool isRequestBodyLengthTooMuch = _IsRequestHeaderParsed && getContentLength() < _Body.size();
+	bool isRequestBodyLengthTooMuch = this->_IsRequestHeaderParsed && this->getContentLength() < this->_Body.size();
 	return isRequestBodyLengthTooMuch;
 }
 

@@ -23,7 +23,7 @@ TEST(CgiResponseTest, GenerateResponsePacket_DefaultValue)
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
 	std::vector<uint8_t>
-		expected = httpResponse.generateResponsePacket(true);
+		expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 	std::vector<uint8_t> actual = response.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
@@ -130,7 +130,7 @@ TEST(CgiResponseTest, Parse_GenerateResponsePacket_DocumentResponse)
 	std::vector<uint8_t> body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
@@ -211,7 +211,7 @@ TEST(CgiResponseTest, Parse_GenerateResponsePacket_StatusField)
 		body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
@@ -284,7 +284,7 @@ TEST(CgiResponseTest, Parse_GenerateResponsePacket_NoBody)
 	std::vector<uint8_t> body(bodyStr.begin(), bodyStr.end());
 	httpResponse.setBody(body);
 
-	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true);
+	std::vector<uint8_t> expected = httpResponse.generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 
 	CgiResponse cgiResponse(logger, utils::ErrorPageProvider());
