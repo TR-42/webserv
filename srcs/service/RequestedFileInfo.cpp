@@ -26,6 +26,7 @@ RequestedFileInfo::RequestedFileInfo(
 		_IsNotFound(false),
 		_IsCgi(false),
 		_IsAutoIndexAllowed(routeConfig.getIsDocumentListingEnabled()),
+		_IsAutoIndexFile(false),
 		_CgiConfig(),
 		_StatBuf(),
 		_FileExtensionWithoutDot()
@@ -219,6 +220,7 @@ void RequestedFileInfo::_findIndexFile(
 		this->_TargetFilePathWithoutDocumentRoot = joinPath(this->_TargetFilePathWithoutDocumentRoot, *it);
 		this->_CgiScriptName = joinPath(this->_CgiScriptName, *it);
 		this->_IsDirectory = false;
+		this->_IsAutoIndexFile = true;
 		this->_StatBuf = statBuf;
 		LS_INFO()
 			<< "Index file found: " << indexFilePath

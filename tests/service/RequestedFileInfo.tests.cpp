@@ -105,6 +105,7 @@ TEST_F(RequestedFileInfoTests, testDocumentRoot)
 	EXPECT_TRUE(requestedFileInfo.getIsNotFound());
 	EXPECT_FALSE(requestedFileInfo.getIsCgi());
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("", requestedFileInfo.getFileExtensionWithoutDot());
 }
@@ -126,6 +127,7 @@ TEST_F(RequestedFileInfoTests, testDocumentRootAutoIndex)
 	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
 	EXPECT_FALSE(requestedFileInfo.getIsCgi());
 	EXPECT_TRUE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("", requestedFileInfo.getFileExtensionWithoutDot());
 }
@@ -146,6 +148,7 @@ TEST_F(RequestedFileInfoTests, detectIndexHtml)
 	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
 	EXPECT_FALSE(requestedFileInfo.getIsCgi());
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_TRUE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("html", requestedFileInfo.getFileExtensionWithoutDot());
 }
@@ -166,6 +169,7 @@ TEST_F(RequestedFileInfoTests, detectIndexHtml_AutoIndex)
 	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
 	EXPECT_FALSE(requestedFileInfo.getIsCgi());
 	EXPECT_TRUE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_TRUE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("html", requestedFileInfo.getFileExtensionWithoutDot());
 }
@@ -186,6 +190,7 @@ TEST_F(RequestedFileInfoTests, detectIndexPhp_NoPhpRoute)
 	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
 	EXPECT_FALSE(requestedFileInfo.getIsCgi());
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_TRUE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
 }
@@ -206,6 +211,7 @@ TEST_F(RequestedFileInfoTests, detectIndexPhp_PhpRoute)
 	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
 	EXPECT_TRUE(requestedFileInfo.getIsCgi());
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_TRUE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
 	EXPECT_EQ(this->getRouteConfigCgi().getCgiConfigList()[0].getCgiExecutableFullPath(), requestedFileInfo.getCgiConfig().getCgiExecutableFullPath());
@@ -226,6 +232,7 @@ TEST_F(RequestedFileInfoTests, indexPhp_NoPhpRoute_PathInfo)
 	EXPECT_TRUE(requestedFileInfo.getIsNotFound());
 	EXPECT_FALSE(requestedFileInfo.getIsCgi());
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
 }
@@ -246,6 +253,7 @@ TEST_F(RequestedFileInfoTests, indexPhp_PhpRoute_PathInfo)
 	EXPECT_FALSE(requestedFileInfo.getIsNotFound());
 	EXPECT_TRUE(requestedFileInfo.getIsCgi());
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexFile());
 
 	EXPECT_EQ("php", requestedFileInfo.getFileExtensionWithoutDot());
 	EXPECT_EQ(this->getRouteConfigCgi().getCgiConfigList()[0].getCgiExecutableFullPath(), requestedFileInfo.getCgiConfig().getCgiExecutableFullPath());
@@ -267,6 +275,7 @@ TEST_F(RequestedFileInfoTests, directoryRequestButWasFile)
 	EXPECT_TRUE(requestedFileInfo.getIsNotFound());
 	EXPECT_FALSE(requestedFileInfo.getIsCgi());
 	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexAllowed());
+	EXPECT_FALSE(requestedFileInfo.getIsAutoIndexFile());
 }
 
 };	// namespace webserv

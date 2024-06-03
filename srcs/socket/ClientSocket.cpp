@@ -181,6 +181,7 @@ PollEventResultType ClientSocket::_processPollIn(
 
 	CS_DEBUG()
 		<< "Request parse completed"
+		<< "Body size: " << this->httpRequest.getContentLength()
 		<< std::endl;
 	this->_service = pickService(
 		this->_clientAddr,
