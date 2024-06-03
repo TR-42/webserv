@@ -65,21 +65,24 @@ CgiHandler::~CgiHandler()
 }
 
 void CgiHandler::setToPollFd(
-	struct pollfd &pollFd
+	struct pollfd &pollFd,
+	const struct timespec &now
 ) const
 {
-	Pollable::setToPollFd(pollFd);
+	Pollable::setToPollFd(pollFd, now);
 	pollFd.events = POLLIN;
 }
 
 PollEventResultType CgiHandler::onEventGot(
 	int fd,
 	short revents,
-	std::vector<Pollable *> &pollableList
+	std::vector<Pollable *> &pollableList,
+	const struct timespec &now
 )
 {
 	(void)fd;
 	(void)pollableList;
+	(void)now;
 	if (this->_cgiServiceCgiHandlerField == NULL || this->_cgiServiceHttpResponseField == NULL) {
 		C_WARN("CgiHandler is not set to CGI service");
 		return PollEventResult::DISPOSE_REQUEST;

@@ -38,18 +38,18 @@ class CgiHandler : public Pollable
 	virtual ~CgiHandler();
 
 	virtual void setToPollFd(
-		struct pollfd &pollFd
+		struct pollfd &pollFd,
+		const struct timespec &now
 	) const;
 
 	virtual PollEventResultType onEventGot(
 		int fd,
 		short revents,
-		std::vector<Pollable *> &pollableList
+		std::vector<Pollable *> &pollableList,
+		const struct timespec &now
 	);
 
 	void setDisposeRequested();
-
-	// TODO: Redirect対応
 };
 
 }	 // namespace webserv

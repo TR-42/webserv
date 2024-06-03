@@ -21,6 +21,7 @@ const int ErrorPageProvider::BAD_REQUEST;
 const int ErrorPageProvider::PERMISSION_DENIED;
 const int ErrorPageProvider::NOT_FOUND;
 const int ErrorPageProvider::METHOD_NOT_ALLOWED;
+const int ErrorPageProvider::REQUEST_TIMEOUT;
 const int ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE;
 const int ErrorPageProvider::MOVED_PERMANENTLY;
 const int ErrorPageProvider::FOUND;
@@ -72,6 +73,12 @@ static const HttpResponse defaultMethodNotAllowed = createResponse(
 	ErrorPageProvider::METHOD_NOT_ALLOWED,
 	"Method Not Allowed",
 	"405 Method Not Allowed\n"
+);
+
+static const HttpResponse defaultRequestTimeout = createResponse(
+	ErrorPageProvider::REQUEST_TIMEOUT,
+	"Request Timeout",
+	"408 Request Timeout\n"
 );
 
 static const HttpResponse defaultRequestEntityTooLarge = createResponse(
@@ -128,6 +135,8 @@ ErrorPageProvider::ErrorPageProvider()
 	this->_errorPages[ErrorPageProvider::BAD_REQUEST] = defaultBadRequest;
 	this->_errorPages[ErrorPageProvider::PERMISSION_DENIED] = defaultPermissionDenied;
 	this->_errorPages[ErrorPageProvider::NOT_FOUND] = defaultNotFound;
+	this->_errorPages[ErrorPageProvider::METHOD_NOT_ALLOWED] = defaultMethodNotAllowed;
+	this->_errorPages[ErrorPageProvider::REQUEST_TIMEOUT] = defaultRequestTimeout;
 	this->_errorPages[ErrorPageProvider::REQUEST_ENTITY_TOO_LARGE] = defaultRequestEntityTooLarge;
 	this->_errorPages[ErrorPageProvider::MOVED_PERMANENTLY] = defaultMovedPermanently;
 	this->_errorPages[ErrorPageProvider::FOUND] = defaultFound;
@@ -232,6 +241,11 @@ HttpResponse ErrorPageProvider::notFound() const
 HttpResponse ErrorPageProvider::methodNotAllowed() const
 {
 	return this->_errorPages.at(ErrorPageProvider::METHOD_NOT_ALLOWED);
+}
+
+HttpResponse ErrorPageProvider::requestTimeout() const
+{
+	return this->_errorPages.at(ErrorPageProvider::REQUEST_TIMEOUT);
 }
 
 HttpResponse ErrorPageProvider::requestEntityTooLarge() const
