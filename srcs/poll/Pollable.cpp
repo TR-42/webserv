@@ -31,9 +31,11 @@ int Pollable::getFD() const
 }
 
 void Pollable::setToPollFd(
-	struct pollfd &pollFd
+	struct pollfd &pollFd,
+	const struct timespec &now
 ) const
 {
+	(void)now;
 	pollFd.fd = this->_fd;
 	pollFd.events = POLLIN | POLLOUT;
 	pollFd.revents = 0;

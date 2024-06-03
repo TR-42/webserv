@@ -16,6 +16,7 @@ class ServerRunningConfig
 {
  private:
 	uint16_t _port;
+	size_t _timeoutMs;
 	std::set<std::string> _serverNameList;
 	utils::ErrorPageProvider _errorPageProvider;
 	size_t _requestBodyLimit;
@@ -41,6 +42,11 @@ class ServerRunningConfig
 	inline uint16_t getPort() const
 	{
 		return this->_port;
+	}
+
+	inline size_t getTimeoutMs() const
+	{
+		return this->_timeoutMs;
 	}
 
 	inline utils::ErrorPageProvider getErrorPageProvider() const

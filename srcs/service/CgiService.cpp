@@ -73,7 +73,9 @@ CgiService::CgiService(
 ) : ServiceBase(request, errorPageProvider, logger),
 		_pid(-1),
 		_cgiExecuter(NULL),
-		_cgiHandler(NULL)
+		_cgiHandler(NULL),
+		_isLocalRedirect(false),
+		_localRedirectLocation()
 {
 	C_DEBUG("initializing...");
 
@@ -193,7 +195,9 @@ CgiService::CgiService(
 		logger,
 		fdReadFromCgi,
 		&(this->_cgiHandler),
-		&(this->_response)
+		&(this->_response),
+		&(this->_isLocalRedirect),
+		&(this->_localRedirectLocation)
 	);
 
 	CS_DEBUG()

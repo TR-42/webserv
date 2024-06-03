@@ -118,7 +118,8 @@ void HttpFieldMap::appendToVector(
 		}
 	}
 
-	if (!this->isNameExists("Content-Length") && !body.empty()) {
+	// 長さが0でもContent-Lengthを追加する
+	if (!this->isNameExists("Content-Length")) {
 		_appendToVector("Content-Length", utils::to_string(body.size()), dst);
 	}
 	if (!this->isNameExists(("Date"))) {
