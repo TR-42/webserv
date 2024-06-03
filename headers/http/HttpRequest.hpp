@@ -80,6 +80,8 @@ class HttpRequest
 	const ServerRunningConfig &getServerRunningConfig() const;
 	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
 
+	void setPath(const std::string &path);
+
  private:
 	bool parseRequestLine(
 		const std::vector<uint8_t> &requestRawLine

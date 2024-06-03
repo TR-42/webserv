@@ -178,7 +178,7 @@ bool HttpRequest::pushRequestRaw(
 	return true;
 }
 
-void separatePathAndQuery(
+static void separatePathAndQuery(
 	std::string &path,
 	std::string &query
 )
@@ -227,16 +227,9 @@ bool HttpRequest::parseRequestLine(
 		return false;
 	}
 	CS_DEBUG() << "lenToSpacePos2: " << lenToSpacePos2 << std::endl;
-	_Path = std::string((const char *)pathSegment, lenToSpacePos2);
-	CS_DEBUG() << "PathSegment: `" << _Path << "`" << std::endl;
-	separatePathAndQuery(this->_Path, this->_Query);
-	this->_NormalizedPath = utils::normalizePath(_Path);
-	this->_PathSegmentList = utils::split(this->_NormalizedPath, '/');
-	CS_DEBUG()
-		<< "Path: `" << _Path << "`, "
-		<< "Query: `" << _Query << "`, "
-		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
-		<< std::endl;
+	std::string path = std::string((const char *)pathSegment, lenToSpacePos2);
+	CS_DEBUG() << "PathSegment: `" << path << "`" << std::endl;
+	this->setPath(path);
 	const uint8_t *versionSegment = spacePos2 + 1;
 	size_t versionStringLength = newlinePos - lenToSpacePos2 - lenToSpacePos1 - 2;
 	CS_DEBUG() << "versionStringLength: " << versionStringLength << std::endl;
@@ -324,6 +317,21 @@ void HttpRequest::setServerRunningConfig(const ServerRunningConfig &serverRunnin
 		delete this->serverRunningConfig;
 	}
 	this->serverRunningConfig = new ServerRunningConfig(serverRunningConfig);
+}
+
+void HttpRequest::setPath(
+	const std::string &path
+)
+{
+	this->_Path = path;
+	separatePathAndQuery(this->_Path, this->_Query);
+	this->_NormalizedPath = utils::normalizePath(this->_Path);
+	this->_PathSegmentList = utils::split(this->_NormalizedPath, '/');
+	CS_DEBUG()
+		<< "Path: `" << this->_Path << "`, "
+		<< "Query: `" << this->_Query << "`, "
+		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
+		<< std::endl;
 }
 
 }	 // namespace webserv

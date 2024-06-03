@@ -31,7 +31,10 @@ class ClientSocket : public Pollable
 		std::vector<Pollable *> &pollableList
 	);
 	PollEventResultType _processPollOut();
-	void _processPollService(short revents);
+	void _processPollService(
+		short revents,
+		std::vector<Pollable *> &pollableList
+	);
 
 	void _setResponse(
 		const std::vector<uint8_t> &response
