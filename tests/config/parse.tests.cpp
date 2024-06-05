@@ -134,6 +134,54 @@ TEST_F(ParseTests, parseListenConfig)
 	EXPECT_NO_THROW(
 		listenConfig = parseListenConfig(root, this->getTestFileDir() + "/sample.yaml")
 	);
+
+	EXPECT_EQ(listenConfig.getListenMap().size(), 2);
+	EXPECT_EQ(listenConfig.getListenMap().at(8080).size(), 2);
+	EXPECT_EQ(listenConfig.getListenMap().at(8081).size(), 1);
+
+	{
+		HttpRouteConfig route2_1(
+			"/",
+			std::vector<std::string>(),
+			HttpRedirectConfig(),
+			this->getTestFileDir() + "/sample4",
+			false,
+			std::vector<std::string>(),
+			std::vector<CgiConfig>()
+		);
+
+		ServerConfig server2(
+			std::vector<std::string>{"42Tokyo.jp"},
+			8080,
+			0,
+			ErrorPageMapType(),
+			std::vector<HttpRouteConfig>{route2_1}
+		);
+
+		EXPECT_EQ(listenConfig.getListenMap().at(8080).at(1), server2);
+	}
+
+	{
+		HttpRouteConfig route3_1(
+			"/",
+			std::vector<std::string>(),
+			HttpRedirectConfig(),
+			this->getTestFileDir() + "/sample4",
+			false,
+			std::vector<std::string>(),
+			std::vector<CgiConfig>()
+		);
+
+		ServerConfig server3(
+			std::vector<std::string>{"42Tokyo.jp"},
+			8081,
+			0,
+			ErrorPageMapType(),
+			std::vector<HttpRouteConfig>{route3_1}
+		);
+
+		EXPECT_EQ(listenConfig.getListenMap().at(8081).at(0), server3);
+	}
 }
 
 }	 // namespace webserv
