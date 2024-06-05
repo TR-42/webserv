@@ -16,15 +16,15 @@ namespace webserv
 CgiConfig parseCgiConfig(const yaml::MappingNode &node)
 {
 	if (!node.has(YAML_KEY_CGI_FULLPATH) || !node.has(YAML_KEY_EXT))
-		throw std::runtime_error("CgiConfig: " YAML_KEY_CGI_FULLPATH " and " YAML_KEY_EXT " are required");
+		throw std::runtime_error("CgiConfig[" + node.getKey() + "]: " YAML_KEY_CGI_FULLPATH " and " YAML_KEY_EXT " are required");
 
 	std::string yaml_ext = yaml::getScalarNode(node, YAML_KEY_EXT).getValue();
 	std::string yaml_cgi_fullpath = yaml::getScalarNode(node, YAML_KEY_CGI_FULLPATH).getValue();
 
 	if (yaml_cgi_fullpath.empty())
-		throw std::runtime_error("CgiConfig: " YAML_KEY_CGI_FULLPATH " must be a non-empty string");
+		throw std::runtime_error("CgiConfig[" + node.getKey() + "]: " YAML_KEY_CGI_FULLPATH " must be a non-empty string");
 	if (yaml_ext.empty())
-		throw std::runtime_error("CgiConfig: " YAML_KEY_ENV_PRESET " must be a non-empty string");
+		throw std::runtime_error("CgiConfig[" + node.getKey() + "]: " YAML_KEY_ENV_PRESET " must be a non-empty string");
 
 	env::EnvManager env;
 
