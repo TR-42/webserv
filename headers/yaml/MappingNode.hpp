@@ -64,6 +64,25 @@ class MappingNode : public NodeBase
 	}
 
 	NodePtr clone() const { return new MappingNode(*this); }
+
+	inline bool equals(const MappingNode &other) const
+	{
+		if (this->_nodes.size() != other._nodes.size())
+			return false;
+		for (size_t i = 0; i < this->_nodes.size(); ++i) {
+			if (*this->_nodes[i] != *other._nodes[i])
+				return false;
+		}
+		return true;
+	}
+
+	inline virtual bool equals(const NodeBase &other) const
+	{
+		const MappingNode *other_mapping = dynamic_cast<const MappingNode *>(&other);
+		if (other_mapping == NULL)
+			return false;
+		return this->equals(*other_mapping);
+	}
 };
 
 }	 // namespace yaml
