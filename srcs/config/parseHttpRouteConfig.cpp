@@ -25,7 +25,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 {
 	if (!node.has(YAML_KEY_REQUEST_PATH))
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_REQUEST_PATH " is required");
-	if (node.has(YAML_KEY_DOCUMENT_ROOT) != node.has(YAML_KEY_REDIRECT))
+	if (node.has(YAML_KEY_DOCUMENT_ROOT) == node.has(YAML_KEY_REDIRECT))
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " and " YAML_KEY_REDIRECT " must not be both present or both absent");
 
 	std::string yaml_request_path = yaml::getScalarNode(node, YAML_KEY_REQUEST_PATH).getValue();

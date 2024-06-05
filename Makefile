@@ -17,6 +17,11 @@ SRCS_CONFIG	=\
 	HttpRedirectConfig.cpp\
 	HttpRouteConfig.cpp\
 	ListenConfig.cpp\
+	parseCgiConfig.cpp\
+	parseHttpRedirectConfig.cpp\
+	parseHttpRouteConfig.cpp\
+	parseListenConfig.cpp\
+	parseServerConfig.cpp\
 	ServerConfig.cpp\
 	ServerRunningConfig.cpp\
 
