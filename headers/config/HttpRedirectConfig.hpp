@@ -5,6 +5,8 @@
 
 #include "../classDefUtils.hpp"
 
+#define EQ(name) (lhs._##name == rhs._##name)
+
 namespace webserv
 {
 
@@ -27,6 +29,16 @@ class HttpRedirectConfig
 		const std::string &to,
 		uint16_t code
 	);
+
+	friend bool operator==(const HttpRedirectConfig &lhs, const HttpRedirectConfig &rhs)
+	{
+		return (EQ(To) && EQ(Code));
+	}
+
+	friend bool operator!=(const HttpRedirectConfig &lhs, const HttpRedirectConfig &rhs)
+	{
+		return !(lhs == rhs);
+	}
 };
 
 }	 // namespace webserv
