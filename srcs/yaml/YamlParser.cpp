@@ -76,9 +76,22 @@ static bool parse(
 
 		if (indentLevel < count) {
 			if (lastMappingNode.getKey().empty()) {
+				LS_WARN()
+					<< "lines["
+					<< yamlLinesIndex
+					<< "]"
+					<< " key is empty"
+					<< std::endl;
 				return false;
 			}
 			if (!parse(lastMappingNode, yamlLines, yamlLinesIndex, count, logger)) {
+				LS_WARN()
+					<< "lines["
+					<< yamlLinesIndex
+					<< "]"
+					<< "parse failed. yamlRowLine : "
+					<< yamlRowLine
+					<< std::endl;
 				return false;	 // 直上のノードに追加するのに失敗した時
 			}
 			parent.addNode(lastMappingNode);
@@ -86,6 +99,13 @@ static bool parse(
 			if (yamlLinesIndex + 1 < yamlLines.size()) {
 				size_t nextCount = countSpace(yamlLines[yamlLinesIndex + 1]);
 				if (indentLevel < nextCount) {
+					LS_WARN()
+						<< "lines["
+						<< yamlLinesIndex
+						<< "] "
+						<< "indentLevel < nextCount. yamlRowLine : "
+						<< yamlRowLine
+						<< std::endl;
 					return false;
 				}
 			}
