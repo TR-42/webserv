@@ -2,7 +2,7 @@ server1:
   serverNameList:
     localhost:
   port: 80
-  timeoutMs: 5
+  timeoutMs: 500
   requestBodyLimit: 134217728
   errorPages:
     400: ./resources/sample1/400.html
