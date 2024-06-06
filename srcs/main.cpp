@@ -77,7 +77,7 @@ static bool loadConfigFile(
 
 	webserv::yaml::MappingNode root("");
 
-	std::ifstream ifs(configFilePath);
+	std::ifstream ifs(configFilePath.c_str());
 	if (!ifs) {
 		LS_FATAL()
 			<< "failed to open file: " << configFilePath
