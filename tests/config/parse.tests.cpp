@@ -54,6 +54,7 @@ TEST_F(ParseTests, parseListenConfig)
 		"    localhost:",
 		"    42.fr:",
 		"  port: 8080",
+		"  timeoutMs: 100",
 		"  requestBodyLimit: 100",
 		"  errorPages:",
 		"    400: " + this->getTestFileDir() + "/sample1/400.html",
@@ -112,6 +113,7 @@ TEST_F(ParseTests, parseListenConfig)
 		"  serverNameList:",
 		"    42Tokyo.jp:",
 		"  port: 8080",
+		"  timeoutMs: 100",
 		"  routeList:",
 		"    route2-1:",
 		"      request_path: /",
@@ -120,6 +122,7 @@ TEST_F(ParseTests, parseListenConfig)
 		"  serverNameList:",
 		"    42Tokyo.jp:",
 		"  port: 8081",
+		"  timeoutMs: 100",
 		"  routeList:",
 		"    route3-1:",
 		"      request_path: /",
@@ -153,6 +156,7 @@ TEST_F(ParseTests, parseListenConfig)
 		ServerConfig server2(
 			std::vector<std::string>{"42Tokyo.jp"},
 			8080,
+			100,
 			0,
 			ErrorPageMapType(),
 			std::vector<HttpRouteConfig>{route2_1}
@@ -175,6 +179,7 @@ TEST_F(ParseTests, parseListenConfig)
 		ServerConfig server3(
 			std::vector<std::string>{"42Tokyo.jp"},
 			8081,
+			100,
 			0,
 			ErrorPageMapType(),
 			std::vector<HttpRouteConfig>{route3_1}

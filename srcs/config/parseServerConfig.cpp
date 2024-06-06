@@ -11,6 +11,7 @@
 
 #define YAML_KEY_SERVER_NAME_LIST "serverNameList"
 #define YAML_KEY_PORT "port"
+#define YAML_KEY_TIMEOUT_MS "timeoutMs"
 #define YAML_KEY_REQUEST_BODY_LIMIT "requestBodyLimit"
 #define YAML_KEY_ERROR_PAGES "errorPages"
 #define YAML_KEY_ROUTE_LIST "routeList"
@@ -26,9 +27,12 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_PORT " is required");
 	if (!node.has(YAML_KEY_ROUTE_LIST))
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_ROUTE_LIST " is required");
+	if (!node.has(YAML_KEY_TIMEOUT_MS))
+		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_TIMEOUT_MS " is required");
 
 	std::vector<std::string> serverNameList;
 	uint16_t port;
+	size_t timeoutMs = 100;
 	std::size_t requestBodyLimit = 0;
 	ErrorPageMapType errorPageMap;
 	RouteListType routeList;
@@ -44,10 +48,19 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 	if (!utils::stoul(yaml::getScalarNode(node, YAML_KEY_PORT).getValue(), port_ulong))
 		throw std::runtime_error("ServerConfig[" + node.getKey() + "]: " YAML_KEY_PORT " must be a positive integer");
 
-	if (0 < port_ulong && port_ulong <= UINT16_MAX)
+	if (0 < port_ulong && port_ulong <= 65535)
 		port = static_cast<uint16_t>(port_ulong);
 	else
 		throw std::runtime_error("ServerConfig[" + node.getKey() + "]: " YAML_KEY_PORT " must be a positive integer");
+
+	unsigned long timeoutMs_ulong;
+	if (!utils::stoul(yaml::getScalarNode(node, YAML_KEY_TIMEOUT_MS).getValue(), timeoutMs_ulong))
+		throw std::runtime_error("ServerConfig[" + node.getKey() + "]: " YAML_KEY_TIMEOUT_MS " must be a positive integer");
+	timeoutMs = static_cast<size_t>(timeoutMs_ulong);
+	if (timeoutMs == 0)
+		throw std::runtime_error("ServerConfig[" + node.getKey() + "]: " YAML_KEY_TIMEOUT_MS " must not be zero");
+	if (timeoutMs != (size_t)timeoutMs_ulong)
+		throw std::runtime_error("ServerConfig[" + node.getKey() + "]: " YAML_KEY_TIMEOUT_MS " internal server error");
 
 	if (node.has(YAML_KEY_REQUEST_BODY_LIMIT)) {
 		unsigned long requestBodyLimit_ulong;
@@ -87,7 +100,7 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 		routeList.push_back(parseHttpRouteConfig(yaml::getMappingNode(**it), yamlFilePath));
 	}
 
-	return ServerConfig(serverNameList, port, requestBodyLimit, errorPageMap, routeList);
+	return ServerConfig(serverNameList, port, timeoutMs, requestBodyLimit, errorPageMap, routeList);
 }
 
 }	 // namespace webserv
