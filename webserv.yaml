@@ -1,0 +1,34 @@
+server1:
+  serverNameList:
+    localhost:
+  port: 80
+  requestBodyLimit: 134217728
+  errorPages:
+    400: ./resources/sample1/400.html
+    404: ./resources/sample1/404.html
+  routeList:
+    routeListConfig1:
+      document_root: ./
+      document_listing: true
+      request_path: /
+    routeListConfig2:
+      document_root: ./srcs
+      document_listing: false
+      request_path: /route2
+    routeListConfig3:
+      document_root: /
+      document_listing: false
+      request_path: /simple
+    resourcesRoute:
+      document_root: ./resources
+      document_listing: false
+      request_path: /resources
+      cgi:
+        cgi_php:
+          extensionWithoutDot: php
+          cgiExecutableFullPath: /opt/homebrew/bin/php-cgi
+          envPreset:
+            REDIRECT_STATUS: 200
+        cgi_sh:
+          extensionWithoutDot: sh
+          cgiExecutableFullPath: /bin/sh

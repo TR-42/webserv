@@ -174,6 +174,16 @@ int main(int argc, const char *argv[])
 
 			return 1;
 		}
+		pollableList.push_back(serverSocket);
+	}
+
+	LS_INFO()
+		<< "pollableList.size(): " << pollableList.size()
+		<< std::endl;
+
+	if (pollableList.empty()) {
+		L_FATAL("pollableList.empty()");
+		return 1;
 	}
 
 	webserv::Poll poll(pollableList, logger);
