@@ -17,9 +17,13 @@
 #include <utils/getTimeStr.hpp>
 #include <utils/to_string.hpp>
 
+#include "config/parseListenConfig.hpp"
 #include "http/HttpRequest.hpp"
 #include "http/HttpResponse.hpp"
 #include "utils/ErrorPageProvider.hpp"
+#include "yaml/YamlParser.hpp"
+
+#define DEFAULT_CONFIG_FILE_PATH "webserv.yaml"
 
 static void __size_check();
 
@@ -157,6 +161,45 @@ static void generatePidFile(
 #endif
 }
 
+static bool loadConfigFile(
+	const std::string &configFilePath,
+	webserv::Logger &logger,
+	webserv::ListenConfig &listenConfig
+)
+{
+	LS_INFO()
+		<< "configFilePath: " << configFilePath
+		<< std::endl;
+
+	webserv::yaml::MappingNode root("");
+
+	std::ifstream ifs(configFilePath);
+	if (!ifs) {
+		LS_FATAL()
+			<< "failed to open file: " << configFilePath
+			<< std::endl;
+		return false;
+	}
+
+	try {
+		if (!webserv::yaml::parse(
+					ifs,
+					root,
+					logger
+				)) {
+			L_FATAL("yaml::parse failed");
+			return false;
+		}
+		listenConfig = webserv::parseListenConfig(root, configFilePath);
+		return true;
+	} catch (const std::exception &e) {
+		LS_FATAL()
+			<< "parseListenConfig failed: " << e.what()
+			<< std::endl;
+		return false;
+	}
+}
+
 int main(int argc, const char *argv[])
 {
 	__size_check();
@@ -171,6 +214,13 @@ int main(int argc, const char *argv[])
 
 	std::cout << "Hello, World!" << std::endl;
 	L_LOG("argv: " + get_argv_str(argc, argv));
+
+	webserv::ListenConfig listenConfig;
+
+	if (!loadConfigFile(1 < argc ? argv[1] : DEFAULT_CONFIG_FILE_PATH, logger, listenConfig)) {
+		L_FATAL("loadConfigFile failed");
+		return 1;
+	}
 
 	if (!webserv::registerSignalHandler()) {
 		L_FATAL("registerSignalHandler failed");

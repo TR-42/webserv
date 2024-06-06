@@ -101,6 +101,7 @@ SRC_FILES	=\
 	$(addprefix signal/, $(SRCS_SIGNAL))\
 	$(addprefix socket/, $(SRCS_SOCKET))\
 	$(addprefix utils/, $(SRCS_UTILS))\
+	$(addprefix yaml/, $(SRCS_YAML))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
 
