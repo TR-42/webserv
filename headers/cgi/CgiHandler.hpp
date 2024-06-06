@@ -19,6 +19,8 @@ class CgiHandler : public Pollable
 	CgiResponse _cgiResponse;
 	CgiHandler **_cgiServiceCgiHandlerField;
 	HttpResponse *_cgiServiceHttpResponseField;
+	bool *_isLocalRedirect;
+	std::string *_localRedirectLocation;
 
 	CgiHandler(const CgiHandler &src);
 	CgiHandler &operator=(const CgiHandler &src);
@@ -29,23 +31,25 @@ class CgiHandler : public Pollable
 		const Logger &logger,
 		int fdReadFromCgi,
 		CgiHandler **_cgiServiceCgiHandlerField,
-		HttpResponse *_cgiServiceHttpResponseField
+		HttpResponse *_cgiServiceHttpResponseField,
+		bool *isLocalRedirect,
+		std::string *localRedirectLocation
 	);
 	virtual ~CgiHandler();
 
 	virtual void setToPollFd(
-		struct pollfd &pollFd
+		struct pollfd &pollFd,
+		const struct timespec &now
 	) const;
 
 	virtual PollEventResultType onEventGot(
 		int fd,
 		short revents,
-		std::vector<Pollable *> &pollableList
+		std::vector<Pollable *> &pollableList,
+		const struct timespec &now
 	);
 
 	void setDisposeRequested();
-
-	// TODO: Redirect対応
 };
 
 }	 // namespace webserv

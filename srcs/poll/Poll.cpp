@@ -42,8 +42,17 @@ bool Poll::loop()
 	std::vector<Pollable *> _PollableListCopy(_PollableList);
 	const size_t pollableCount = _PollableListCopy.size();
 	_PollFdList.resize(pollableCount);
+
+	struct timespec now;
+	if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
+		const char *errorStr = std::strerror(errno);
+		CS_FATAL()
+			<< "clock_gettime() failed: " << errorStr
+			<< std::endl;
+		return false;
+	}
 	for (size_t i = 0; i < pollableCount; i++) {
-		_PollableListCopy[i]->setToPollFd(_PollFdList[i]);
+		_PollableListCopy[i]->setToPollFd(_PollFdList[i], now);
 	}
 
 	const int pollResult = poll(
@@ -55,6 +64,14 @@ bool Poll::loop()
 		const char *errorStr = std::strerror(errno);
 		CS_FATAL()
 			<< "poll() failed: " << errorStr
+			<< std::endl;
+		return false;
+	}
+
+	if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
+		const char *errorStr = std::strerror(errno);
+		CS_FATAL()
+			<< "clock_gettime() failed: " << errorStr
 			<< std::endl;
 		return false;
 	}
@@ -90,7 +107,8 @@ bool Poll::loop()
 		const PollEventResultType result = _PollableListCopy[i]->onEventGot(
 			fd,
 			revents,
-			_PollableList
+			_PollableList,
+			now
 		);
 
 		switch (result) {

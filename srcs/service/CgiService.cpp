@@ -73,7 +73,9 @@ CgiService::CgiService(
 ) : ServiceBase(request, errorPageProvider, logger),
 		_pid(-1),
 		_cgiExecuter(NULL),
-		_cgiHandler(NULL)
+		_cgiHandler(NULL),
+		_isLocalRedirect(false),
+		_localRedirectLocation()
 {
 	C_DEBUG("initializing...");
 
@@ -111,7 +113,7 @@ CgiService::CgiService(
 	envManager.set("SERVER_NAME", request.getHost());
 	envManager.set("SERVER_PORT", utils::to_string(serverPort));
 
-	envManager.set("SERVER_PROTOCOL", request.getVersion());
+	envManager.set("SERVER_PROTOCOL", request.getVersion().toString());
 	envManager.set("SERVER_SOFTWARE", "webserv/1.0");
 
 	if (0 < request.getBody().size()) {
@@ -193,7 +195,9 @@ CgiService::CgiService(
 		logger,
 		fdReadFromCgi,
 		&(this->_cgiHandler),
-		&(this->_response)
+		&(this->_response),
+		&(this->_isLocalRedirect),
+		&(this->_localRedirectLocation)
 	);
 
 	CS_DEBUG()

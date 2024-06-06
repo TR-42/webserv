@@ -20,7 +20,7 @@ TEST(HttpResponse, test1)
 	std::string body = "Hello, World!";
 	std::vector<uint8_t> bodyVec(body.begin(), body.end());
 	response.setBody(bodyVec);
-	std::vector<uint8_t> responsePacket = response.generateResponsePacket(true);
+	std::vector<uint8_t> responsePacket = response.generateResponsePacket(true, false);
 	std::string responsePacketStr(responsePacket.begin(), responsePacket.end());
 	std::string expectedResponsePacketStr =
 		"HTTP/1.1 200 OK\r\n"
