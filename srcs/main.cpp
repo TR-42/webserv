@@ -25,6 +25,8 @@
 
 #define DEFAULT_CONFIG_FILE_PATH "webserv.yaml"
 
+typedef std::vector<webserv::Pollable *> PollableList;
+
 static void __size_check();
 
 static std::string get_argv_str(int argc, const char *argv[])
@@ -37,104 +39,6 @@ static std::string get_argv_str(int argc, const char *argv[])
 		str += "[" + webserv::utils::to_string(i) + "]:'" + argv[i] + "'";
 	}
 	return str;
-}
-
-static webserv::ServerRunningConfigListType createDefaultServerConfigList(
-	ushort port,
-	webserv::Logger &logger
-)
-{
-	char pathBuf[MAXPATHLEN];
-
-	webserv::HttpRouteConfig httpRouteConfig1;
-	// Document Rootは絶対パスで指定する (YAML Parserで変換する)
-	if (realpath("./", pathBuf) == NULL) {
-		webserv::errno_t err = errno;
-		LS_FATAL()
-			<< "realpath() failed: " << std::strerror(err)
-			<< std::endl;
-		std::exit(1);
-	}
-	httpRouteConfig1.setDocumentRoot(pathBuf);
-	httpRouteConfig1.setIsDocumentListingEnabled(true);
-	httpRouteConfig1.setRequestPath("/");
-
-	webserv::HttpRouteConfig httpRouteConfig2;
-	if (realpath("./srcs", pathBuf) == NULL) {
-		webserv::errno_t err = errno;
-		LS_FATAL()
-			<< "realpath() failed: " << std::strerror(err)
-			<< std::endl;
-		std::exit(1);
-	}
-	httpRouteConfig2.setDocumentRoot(pathBuf);
-	httpRouteConfig2.setIsDocumentListingEnabled(false);
-	httpRouteConfig2.setRequestPath("/route2");
-
-	webserv::HttpRouteConfig httpRouteConfig3;
-	httpRouteConfig3.setDocumentRoot("/");
-	httpRouteConfig3.setIsDocumentListingEnabled(false);
-	httpRouteConfig3.setRequestPath("/simple");
-
-	// /resources
-	webserv::HttpRouteConfig httpRouteConfigResources;
-	if (realpath("./resources", pathBuf) == NULL) {
-		webserv::errno_t err = errno;
-		LS_FATAL()
-			<< "realpath() failed: " << std::strerror(err)
-			<< std::endl;
-		std::exit(1);
-	}
-	httpRouteConfigResources.setDocumentRoot(pathBuf);
-	httpRouteConfigResources.setIsDocumentListingEnabled(false);
-	httpRouteConfigResources.setRequestPath("/resources");
-
-	webserv::CgiConfig cgiConfigPhp;
-	cgiConfigPhp.setExtensionWithoutDot("php");
-	cgiConfigPhp.setCgiExecutableFullPath("/opt/homebrew/bin/php-cgi");
-	webserv::env::EnvManager envManagerPhp;
-	envManagerPhp.set("REDIRECT_STATUS", "200");
-	cgiConfigPhp.setEnvPreset(envManagerPhp);
-
-	webserv::CgiConfig cgiConfigSh;
-	cgiConfigSh.setExtensionWithoutDot("sh");
-	cgiConfigSh.setCgiExecutableFullPath("/bin/sh");
-
-	webserv::CgiConfigListType cgiConfigListPhpSh;
-	cgiConfigListPhpSh.push_back(cgiConfigPhp);
-	cgiConfigListPhpSh.push_back(cgiConfigSh);
-	httpRouteConfigResources.setCgiConfigList(cgiConfigListPhpSh);
-
-	webserv::RouteListType routeList;
-	routeList.push_back(httpRouteConfig1);
-	routeList.push_back(httpRouteConfig2);
-	routeList.push_back(httpRouteConfig3);
-	routeList.push_back(httpRouteConfigResources);
-
-	std::vector<std::string> hostNameList;
-	hostNameList.push_back("localhost");
-	webserv::ErrorPageMapType errorPageFileMap;
-	errorPageFileMap[400] = "resources/sample1/400.html";
-	errorPageFileMap[404] = "resources/sample1/404.html";
-	webserv::ServerConfig serverConfig(
-		hostNameList,
-		port,
-		// 128MB
-		128 * 1024 * 1024,
-		errorPageFileMap,
-		routeList
-	);
-
-	webserv::utils::ErrorPageProvider errorPageProvider;
-	webserv::ServerRunningConfigListType serverConfigList;
-	serverConfigList.push_back(
-		webserv::ServerRunningConfig(
-			serverConfig,
-			errorPageProvider,
-			logger
-		)
-	);
-	return serverConfigList;
 }
 
 static void generatePidFile(
@@ -222,24 +126,56 @@ int main(int argc, const char *argv[])
 		return 1;
 	}
 
+	if (listenConfig.getListenMap().empty()) {
+		L_FATAL("listenConfig.getListenMap().empty()");
+		return 1;
+	}
+
 	if (!webserv::registerSignalHandler()) {
 		L_FATAL("registerSignalHandler failed");
 		return 1;
 	}
 
-	std::vector<webserv::Pollable *> pollableList;
-	webserv::ServerRunningConfigListType conf80 = createDefaultServerConfigList(80, logger);
-	webserv::ServerSocket *serverSocket80 = webserv::ServerSocket::createServerSocket(
-		conf80,
-		80,
-		logger
-	);
-	if (serverSocket80 == NULL) {
-		L_FATAL("createServerSocket80 failed");
-		return 1;
+	PollableList pollableList;
+	for (webserv::ListenMapType::const_iterator it = listenConfig.getListenMap().begin();
+			 it != listenConfig.getListenMap().end();
+			 ++it) {
+		const webserv::uint16_t &port = it->first;
+		const webserv::ServerConfigListType &serverConfigList = it->second;
+		webserv::ServerRunningConfigListType runningConfigList;
+		for (webserv::ServerConfigListType::const_iterator it = serverConfigList.begin();
+				 it != serverConfigList.end();
+				 ++it) {
+			const webserv::ServerConfig &serverConfig = *it;
+			runningConfigList.push_back(
+				webserv::ServerRunningConfig(
+					serverConfig,
+					errorPageProvider,
+					logger
+				)
+			);
+		}
+		webserv::ServerSocket *serverSocket = webserv::ServerSocket::createServerSocket(
+			runningConfigList,
+			port,
+			logger
+		);
+
+		if (serverSocket == NULL) {
+			LS_FATAL()
+				<< "createServerSocket failed: port=" << port
+				<< std::endl;
+			for (PollableList::iterator it = pollableList.begin();
+					 it != pollableList.end();
+					 ++it) {
+				delete *it;
+				*it = NULL;
+			}
+
+			return 1;
+		}
 	}
 
-	pollableList.push_back(serverSocket80);
 	webserv::Poll poll(pollableList, logger);
 	while (!webserv::isExitSignalGot()) {
 		bool result = poll.loop();
