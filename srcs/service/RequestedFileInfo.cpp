@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 
 #include <Logger.hpp>
+#include <algorithm>
 #include <cerrno>
 #include <config/HttpRouteConfig.hpp>
 #include <cstring>
