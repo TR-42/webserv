@@ -32,7 +32,7 @@ class MappingNode : public NodeBase
 	void addNode(const NodeBase &node)
 	{
 		if (this->has(node.getKey()))
-			throw std::runtime_error("MappingNode[" + node.getKey() + "]: key `" + node.getKey() + "` already exists");
+			throw std::runtime_error("MappingNode[" + this->getKey() + "]: key `" + node.getKey() + "` already exists");
 		this->_nodes.push_back(node.clone());
 	}
 	const NodeVector &getNodes() const { return this->_nodes; }
