@@ -153,6 +153,10 @@ bool HttpRequest::pushRequestRaw(
 			}
 
 			this->_Host = hostList[0];
+			size_t colonPos = this->_Host.find(':');
+			if (colonPos != std::string::npos) {
+				this->_Host = this->_Host.substr(0, colonPos);
+			}
 		} else {
 			throw http::exception::BadRequest();
 		}
