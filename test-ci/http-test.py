@@ -41,7 +41,7 @@ def cmp_list(testName: str, actual: list[str], expected: list[str | re.Pattern[s
 				expectedValue = expected[i] if i < len(expected) else None
 				cmp(f"{testName}[{i}]", actualValue, expectedValue)
 
-host = "127.0.0.1"
+host = "localhost"
 
 def Test1():
 	conn = http.client.HTTPConnection(host)

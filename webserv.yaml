@@ -45,3 +45,39 @@ server1:
         cgi_sh:
           extensionWithoutDot: sh
           cgiExecutableFullPath: /bin/sh
+server2:
+  serverNameList:
+    127.0.0.1:
+  port: 80
+  timeoutMs: 500
+  requestBodyLimit: 134217728
+  routeList:
+    routeListConfig1:
+      document_root: ./srcs
+      document_listing: true
+      request_path: /
+server3:
+  serverNameList:
+    localhost:
+  port: 81
+  timeoutMs: 500
+  requestBodyLimit: 134217728
+  errorPages:
+    400: ./resources/sample1/400.html
+    404: ./resources/sample1/404.html
+  routeList:
+    routeListConfig1:
+      document_root: ./headers
+      document_listing: true
+      request_path: /
+server4:
+  serverNameList:
+    127.0.0.1:
+  port: 81
+  timeoutMs: 500
+  requestBodyLimit: 134217728
+  routeList:
+    routeListConfig1:
+      document_root: ./tests
+      document_listing: true
+      request_path: /

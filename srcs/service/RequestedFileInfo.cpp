@@ -138,6 +138,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 
 		if (S_ISDIR(statBuf.st_mode)) {
 			this->_IsDirectory = true;
+			this->_StatBuf = statBuf;
 			LS_LOG()
 				<< "Directory found: " << path
 				<< std::endl;
