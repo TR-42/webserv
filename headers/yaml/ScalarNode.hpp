@@ -32,7 +32,7 @@ class ScalarNode : public NodeBase
 
 	inline bool equals(const ScalarNode &other) const
 	{
-		return this->_value == other._value;
+		return NodeBase::equals(other) && this->_value == other._value;
 	}
 
 	inline virtual bool equals(const NodeBase &other) const

@@ -67,6 +67,8 @@ class MappingNode : public NodeBase
 
 	inline bool equals(const MappingNode &other) const
 	{
+		if (!NodeBase::equals(other))
+			return false;
 		if (this->_nodes.size() != other._nodes.size())
 			return false;
 		for (size_t i = 0; i < this->_nodes.size(); ++i) {
