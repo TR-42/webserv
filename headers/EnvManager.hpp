@@ -29,6 +29,9 @@ class EnvManager
 
 	char **toEnvp() const;
 	static void freeEnvp(char ***envp);
+
+	friend bool operator==(const EnvManager &lhs, const EnvManager &rhs) { return lhs.env == rhs.env; }
+	friend bool operator!=(const EnvManager &lhs, const EnvManager &rhs) { return lhs.env != rhs.env; }
 };
 
 }	 // namespace env

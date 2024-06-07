@@ -5,6 +5,8 @@
 #include "./ServerConfig.hpp"
 #include "./classDefUtils.hpp"
 
+#define EQ(name) (lhs._##name == rhs._##name)
+
 namespace webserv
 {
 
@@ -32,6 +34,16 @@ class ListenConfig
 	void addServerConfig(
 		const ServerConfig &serverConfig
 	);
+
+	friend bool operator==(const ListenConfig &lhs, const ListenConfig &rhs)
+	{
+		return (EQ(ListenMap));
+	}
+
+	friend bool operator!=(const ListenConfig &lhs, const ListenConfig &rhs)
+	{
+		return !(lhs == rhs);
+	}
 };
 
 }	 // namespace webserv

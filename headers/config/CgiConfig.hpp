@@ -5,6 +5,8 @@
 
 #include "../classDefUtils.hpp"
 
+#define EQ(name) (lhs._##name == rhs._##name)
+
 namespace webserv
 {
 
@@ -29,6 +31,16 @@ class CgiConfig
 		const std::string &cgiExecutableFullPath,
 		const env::EnvManager &envPreset
 	);
+
+	friend bool operator==(const CgiConfig &lhs, const CgiConfig &rhs)
+	{
+		return (EQ(ExtensionWithoutDot) && EQ(CgiExecutableFullPath) && EQ(EnvPreset));
+	}
+
+	friend bool operator!=(const CgiConfig &lhs, const CgiConfig &rhs)
+	{
+		return !(lhs == rhs);
+	}
 };
 
 }	 // namespace webserv

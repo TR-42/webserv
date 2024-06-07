@@ -8,6 +8,8 @@
 #include "./CgiConfig.hpp"
 #include "./HttpRedirectConfig.hpp"
 
+#define EQ(name) (lhs._##name == rhs._##name)
+
 namespace webserv
 {
 
@@ -26,11 +28,30 @@ class HttpRouteConfig
 
  public:
 	HttpRouteConfig();
+	HttpRouteConfig(
+		const std::string &RequestPath,
+		const std::vector<std::string> &Methods,
+		const HttpRedirectConfig &Redirect,
+		const std::string &DocumentRoot,
+		bool IsDocumentListingEnabled,
+		const std::vector<std::string> &IndexFileList,
+		const CgiConfigListType &CgiConfigList
+	);
 	HttpRouteConfig(const HttpRouteConfig &from);
 	virtual ~HttpRouteConfig();
 	HttpRouteConfig &operator=(const HttpRouteConfig &from);
 
 	void setRequestPath(const std::string &RequestPath);
+
+	friend bool operator==(const HttpRouteConfig &lhs, const HttpRouteConfig &rhs)
+	{
+		return (EQ(RequestPath) && EQ(Methods) && EQ(Redirect) && EQ(DocumentRoot) && EQ(IsDocumentListingEnabled) && EQ(IndexFileList) && EQ(CgiConfigList));
+	}
+
+	friend bool operator!=(const HttpRouteConfig &lhs, const HttpRouteConfig &rhs)
+	{
+		return !(lhs == rhs);
+	}
 };
 
 }	 // namespace webserv

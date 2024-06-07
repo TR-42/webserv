@@ -7,6 +7,8 @@
 #include "../classDefUtils.hpp"
 #include "./HttpRouteConfig.hpp"
 
+#define EQ(name) (lhs._##name == rhs._##name)
+
 namespace webserv
 {
 
@@ -36,6 +38,16 @@ class ServerConfig
 		const ErrorPageMapType &errorPages,
 		const RouteListType &routeList
 	);
+
+	friend bool operator==(const ServerConfig &lhs, const ServerConfig &rhs)
+	{
+		return (EQ(ServerNameList) && EQ(Port) && EQ(RequestBodyLimit) && EQ(ErrorPageMap) && EQ(RouteList));
+	}
+
+	friend bool operator!=(const ServerConfig &lhs, const ServerConfig &rhs)
+	{
+		return !(lhs == rhs);
+	}
 };
 
 }	 // namespace webserv

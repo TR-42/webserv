@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <vector>
 #include <yaml/NodeBase.hpp>
 
@@ -33,6 +34,21 @@ class MappingNode : public NodeBase
 		this->_nodes.push_back(node.clone());
 	}
 	const NodeVector &getNodes() const { return this->_nodes; }
+	bool has(const std::string &key) const
+	{
+		for (NodeVector::const_iterator it = this->_nodes.begin(); it != this->_nodes.end(); ++it)
+			if ((*it)->getKey() == key)
+				return true;
+		return false;
+	}
+	const NodeBase &get(const std::string &key) const
+	{
+		for (NodeVector::const_iterator it = this->_nodes.begin(); it != this->_nodes.end(); ++it)
+			if ((*it)->getKey() == key)
+				return **it;
+		throw std::runtime_error("MappingNode: key not found");
+	}
+
 	MappingNode &operator=(const MappingNode &other)
 	{
 		if (this == &other)
@@ -48,6 +64,27 @@ class MappingNode : public NodeBase
 	}
 
 	NodePtr clone() const { return new MappingNode(*this); }
+
+	inline bool equals(const MappingNode &other) const
+	{
+		if (!NodeBase::equals(other))
+			return false;
+		if (this->_nodes.size() != other._nodes.size())
+			return false;
+		for (size_t i = 0; i < this->_nodes.size(); ++i) {
+			if (*this->_nodes[i] != *other._nodes[i])
+				return false;
+		}
+		return true;
+	}
+
+	inline virtual bool equals(const NodeBase &other) const
+	{
+		const MappingNode *other_mapping = dynamic_cast<const MappingNode *>(&other);
+		if (other_mapping == NULL)
+			return false;
+		return this->equals(*other_mapping);
+	}
 };
 
 }	 // namespace yaml

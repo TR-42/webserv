@@ -233,6 +233,52 @@ TEST(YamlParser, DeepNesting)
 	EXPECT_EQ(scalarNode5->getValue(), "value5");
 }
 
+TEST(YamlParser, keyOnlyNode)
+{
+	std::vector<std::string> yamlLines = {
+		"map:",
+		"  key1:",
+		"  key2:",
+		"  key3:",
+	};
+	MappingNode root("");
+	Logger logger;
+	EXPECT_TRUE(parse(yamlLines, root, logger));
+	EXPECT_EQ(root.getNodes().size(), 1);
+	if (root.getNodes().size() < 1)
+		return;
+	const MappingNode *mappingNode = dynamic_cast<const MappingNode *>(root.getNodes().at(0));
+	EXPECT_NE(mappingNode, nullptr);
+	if (mappingNode == nullptr)
+		return;
+	EXPECT_EQ(mappingNode->getKey(), "map");
+	EXPECT_EQ(mappingNode->getNodes().size(), 3);
+	if (mappingNode->getNodes().size() < 1)
+		return;
+	const MappingNode *mappingNode1 = dynamic_cast<const MappingNode *>(mappingNode->getNodes().at(0));
+	EXPECT_NE(mappingNode1, nullptr);
+	if (mappingNode1 != nullptr) {
+		EXPECT_EQ(mappingNode1->getKey(), "key1");
+		EXPECT_EQ(mappingNode1->getNodes().size(), 0);
+	}
+	if (mappingNode->getNodes().size() < 2)
+		return;
+	const MappingNode *mappingNode2 = dynamic_cast<const MappingNode *>(mappingNode->getNodes().at(1));
+	EXPECT_NE(mappingNode2, nullptr);
+	if (mappingNode2 != nullptr) {
+		EXPECT_EQ(mappingNode2->getKey(), "key2");
+		EXPECT_EQ(mappingNode2->getNodes().size(), 0);
+	}
+	if (mappingNode->getNodes().size() < 3)
+		return;
+	const MappingNode *mappingNode3 = dynamic_cast<const MappingNode *>(mappingNode->getNodes().at(2));
+	EXPECT_NE(mappingNode3, nullptr);
+	if (mappingNode3 != nullptr) {
+		EXPECT_EQ(mappingNode3->getKey(), "key3");
+		EXPECT_EQ(mappingNode3->getNodes().size(), 0);
+	}
+}
+
 }	 // namespace yaml
 
 }	 // namespace webserv

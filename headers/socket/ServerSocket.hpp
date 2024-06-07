@@ -13,7 +13,7 @@ class ServerSocket : public Pollable
 {
  private:
 	Logger logger;
-	const ServerRunningConfigListType &_listenConfigList;
+	ServerRunningConfigListType _listenConfigList;
 	ServerSocket(
 		int fd,
 		const Logger &logger,

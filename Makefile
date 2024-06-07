@@ -17,6 +17,11 @@ SRCS_CONFIG	=\
 	HttpRedirectConfig.cpp\
 	HttpRouteConfig.cpp\
 	ListenConfig.cpp\
+	parseCgiConfig.cpp\
+	parseHttpRedirectConfig.cpp\
+	parseHttpRouteConfig.cpp\
+	parseListenConfig.cpp\
+	parseServerConfig.cpp\
 	ServerConfig.cpp\
 	ServerRunningConfig.cpp\
 
@@ -97,6 +102,7 @@ SRC_FILES	=\
 	$(addprefix signal/, $(SRCS_SIGNAL))\
 	$(addprefix socket/, $(SRCS_SOCKET))\
 	$(addprefix utils/, $(SRCS_UTILS))\
+	$(addprefix yaml/, $(SRCS_YAML))\
 	$(SRCS_MAIN)\
 	$(SRCS_OTHER)\
 
