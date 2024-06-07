@@ -12,6 +12,12 @@ server1:
       document_root: ./
       document_listing: true
       request_path: /
+      content_type:
+        html: text/html
+        css: text/css
+        js: text/javascript
+        jpg: image/jpeg
+        png: image/png
     routeListConfig2:
       document_root: ./srcs
       document_listing: false
@@ -24,6 +30,12 @@ server1:
       document_root: ./resources
       document_listing: false
       request_path: /resources
+      content_type:
+        html: text/html
+        css: text/css
+        js: text/javascript
+        jpg: image/jpeg
+        png: image/png
       cgi:
         cgi_php:
           extensionWithoutDot: php

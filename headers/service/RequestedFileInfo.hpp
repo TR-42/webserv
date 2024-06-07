@@ -34,6 +34,7 @@ class RequestedFileInfo
 	DECL_VAR_REF_GETTER(CgiConfig, CgiConfig);
 	DECL_VAR_REF_GETTER(struct stat, StatBuf);
 	DECL_VAR_REF_GETTER(std::string, FileExtensionWithoutDot);
+	DECL_VAR_REF_GETTER(std::string, ContentType)
 
 	bool _checkTargetFilePathStat(
 		const bool isRequestEndWithSlash,
@@ -52,6 +53,23 @@ class RequestedFileInfo
 		const HttpRouteConfig &routeConfig,
 		const Logger &logger
 	);
+
+	inline std::string _getContentType(
+		const HttpRouteConfig &routeConfig
+	) const
+	{
+		std::string extension = this->getFileExtensionWithoutDot();
+		if (extension.empty()) {
+			return "application/octet-stream";
+		}
+
+		ContentTypeMapType::const_iterator it = routeConfig.getContentTypeMap().find(extension);
+		if (it == routeConfig.getContentTypeMap().end()) {
+			return "application/octet-stream";
+		}
+
+		return it->second;
+	}
 
  public:
 	RequestedFileInfo(

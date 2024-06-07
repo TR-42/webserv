@@ -67,6 +67,10 @@ GetFileService::GetFileService(
 
 	LS_DEBUG() << "Opened file: " << filePath << std::endl;
 	this->_response.getHeaders().addValue("Last-Modified", utils::getHttpTimeStr(requestedFileInfo.getStatBuf().st_mtime));
+	static std::string _contentType = requestedFileInfo.getContentType();
+	if (!_contentType.empty()) {
+		this->_response.getHeaders().addValue("Content-Type", _contentType);
+	}
 }
 
 GetFileService::~GetFileService()
