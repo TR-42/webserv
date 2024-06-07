@@ -150,7 +150,8 @@ TEST_F(ParseTests, parseListenConfig)
 			this->getTestFileDir() + "/sample4",
 			false,
 			std::vector<std::string>(),
-			std::vector<CgiConfig>()
+			std::vector<CgiConfig>(),
+			ContentTypeMapType()
 		);
 
 		ServerConfig server2(
@@ -173,7 +174,8 @@ TEST_F(ParseTests, parseListenConfig)
 			this->getTestFileDir() + "/sample4",
 			false,
 			std::vector<std::string>(),
-			std::vector<CgiConfig>()
+			std::vector<CgiConfig>(),
+			ContentTypeMapType()
 		);
 
 		ServerConfig server3(
