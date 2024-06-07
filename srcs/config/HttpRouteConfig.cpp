@@ -66,15 +66,14 @@ HttpRouteConfig::HttpRouteConfig(
 	bool IsDocumentListingEnabled,
 	const std::vector<std::string> &IndexFileList,
 	const CgiConfigListType &CgiConfigList
-) : _RequestPath(RequestPath),
-		_Methods(Methods),
+) : _Methods(Methods),
 		_Redirect(Redirect),
 		_DocumentRoot(DocumentRoot),
 		_IsDocumentListingEnabled(IsDocumentListingEnabled),
 		_IndexFileList(IndexFileList),
 		_CgiConfigList(CgiConfigList)
 {
-	this->_RequestPathSegmentList = utils::split(this->_RequestPath, '/');
+	this->setRequestPath(RequestPath);
 }
 
 }	 // namespace webserv
