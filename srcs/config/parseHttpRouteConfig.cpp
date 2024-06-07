@@ -17,6 +17,7 @@
 #define YAML_KEY_DOCUMENT_LISTING "document_listing"
 #define YAML_KEY_INDEX_FILES "index_files"
 #define YAML_KEY_CGI "cgi"
+#define YAML_KEY_CONTENT_TYPE "content_type"
 
 namespace webserv
 {
@@ -35,6 +36,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 	bool yaml_document_listing = false;
 	std::vector<std::string> yaml_index_files;
 	std::vector<CgiConfig> yaml_cgi;
+	ContentTypeMapType yaml_content_type;
 
 	if (yaml_request_path.empty() || yaml_request_path[0] != '/')
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_REQUEST_PATH " must start with a '/'");
@@ -83,6 +85,16 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		}
 	}
 
+	if (node.has(YAML_KEY_CONTENT_TYPE)) {
+		const yaml::MappingNode &content_type_node = yaml::getMappingNode(node, YAML_KEY_CONTENT_TYPE);
+		for (yaml::NodeVector::const_iterator it = content_type_node.getNodes().begin(); it != content_type_node.getNodes().end(); ++it) {
+			const yaml::ScalarNode &ext_content_type_node = yaml::getScalarNode(**it);
+			std::string key = ext_content_type_node.getKey();
+			std::string value = ext_content_type_node.getValue();
+			yaml_content_type[key] = value;
+		}
+	}
+
 	return HttpRouteConfig(
 		yaml_request_path,
 		yaml_methods,
@@ -90,7 +102,8 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		yaml_document_root,
 		yaml_document_listing,
 		yaml_index_files,
-		yaml_cgi
+		yaml_cgi,
+		yaml_content_type
 	);
 }
 

@@ -61,6 +61,8 @@ RequestedFileInfo::RequestedFileInfo(
 	bool isCgiPathInfoAvailable = !this->_CgiPathInfo.empty();
 	this->_IsNotFound = !this->_IsCgi && isCgiPathInfoAvailable;
 
+	this->_ContentType = this->_getContentType(routeConfig);
+
 	L_LOG("Process End");
 }
 
@@ -262,7 +264,9 @@ void RequestedFileInfo::_pickFileExtensionWithoutDot(
 		return;
 	}
 
-	this->_FileExtensionWithoutDot = this->_FileName.substr(dotPos + 1);
+	std::string fileExtensionWithoutDot = this->_FileName.substr(dotPos + 1);
+	std::transform(fileExtensionWithoutDot.begin(), fileExtensionWithoutDot.end(), fileExtensionWithoutDot.begin(), ::tolower);
+	this->_FileExtensionWithoutDot = fileExtensionWithoutDot;
 
 	LS_DEBUG()
 		<< "File extension without dot: `" << this->_FileExtensionWithoutDot << "`"
@@ -313,7 +317,8 @@ RequestedFileInfo::RequestedFileInfo(
 		_IsAutoIndexAllowed(other._IsAutoIndexAllowed),
 		_CgiConfig(other._CgiConfig),
 		_StatBuf(other._StatBuf),
-		_FileExtensionWithoutDot(other._FileExtensionWithoutDot)
+		_FileExtensionWithoutDot(other._FileExtensionWithoutDot),
+		_ContentType(other._ContentType)
 {
 }
 
@@ -332,6 +337,7 @@ RequestedFileInfo &webserv::RequestedFileInfo::operator=(const RequestedFileInfo
 	this->_CgiConfig = other._CgiConfig;
 	this->_StatBuf = other._StatBuf;
 	this->_FileExtensionWithoutDot = other._FileExtensionWithoutDot;
+	this->_ContentType = other._ContentType;
 
 	return *this;
 }
