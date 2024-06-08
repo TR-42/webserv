@@ -210,6 +210,8 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< "Body size: " << this->httpRequest.getContentLength()
 		<< std::endl;
 	this->_service = pickService(
+		this->httpRequest.getServerRunningConfig().getPort(),
+		this->httpRequest.getRouteConfig(),
 		this->_clientAddr,
 		this->httpRequest,
 		pollableList,
@@ -317,6 +319,8 @@ void ClientSocket::_processPollService(
 					delete this->_service;
 					this->_service = NULL;
 					this->_service = pickService(
+						this->httpRequest.getServerRunningConfig().getPort(),
+						this->httpRequest.getServerRunningConfig().pickRouteConfig(this->httpRequest.getPathSegmentList()),
 						this->_clientAddr,
 						this->httpRequest,
 						pollableList,

@@ -15,7 +15,7 @@
 namespace webserv
 {
 
-static ServiceBase *pickService(
+ServiceBase *pickService(
 	uint16_t serverPort,
 	const HttpRouteConfig &routeConfig,
 	const struct sockaddr &clientAddr,
@@ -151,26 +151,6 @@ static ServiceBase *pickService(
 		L_INFO("Method not implemented -> NULL selected");
 		return NULL;
 	}
-}
-
-ServiceBase *pickService(
-	const struct sockaddr &clientAddr,
-	const HttpRequest &request,
-	std::vector<Pollable *> &pollableList,
-	const Logger &logger
-)
-{
-	HttpRouteConfig routeConfig = request.getServerRunningConfig().pickRouteConfig(
-		request.getPathSegmentList()
-	);
-	return pickService(
-		request.getServerRunningConfig().getPort(),
-		routeConfig,
-		clientAddr,
-		request,
-		pollableList,
-		logger
-	);
 }
 
 }	 // namespace webserv
