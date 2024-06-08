@@ -371,6 +371,7 @@ void HttpRequest::setServerRunningConfig(const ServerRunningConfig &serverRunnin
 		delete this->serverRunningConfig;
 	}
 	this->serverRunningConfig = new ServerRunningConfig(serverRunningConfig);
+	this->_routeConfig = this->serverRunningConfig->pickRouteConfig(this->_PathSegmentList);
 }
 
 void HttpRequest::setPath(

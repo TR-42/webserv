@@ -186,6 +186,16 @@ PollEventResultType ClientSocket::_processPollIn(
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestTimeout());
 			return PollEventResult::OK;
 		}
+
+		const HttpRedirectConfig &redirect = this->httpRequest.getRouteConfig().getRedirect();
+		if (!redirect.getTo().empty()) {
+			ServerRunningConfig serverRunningConfig = this->httpRequest.getServerRunningConfig();
+			utils::ErrorPageProvider errorPageProvider = serverRunningConfig.getErrorPageProvider();
+			HttpResponse response = errorPageProvider.getErrorPage(redirect.getCode());
+			response.getHeaders().addValue("Location", redirect.getTo());
+			this->_setResponse(response);
+			return PollEventResult::OK;
+		}
 	}
 
 	if (!this->httpRequest.isParseCompleted()) {
@@ -200,6 +210,8 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< "Body size: " << this->httpRequest.getContentLength()
 		<< std::endl;
 	this->_service = pickService(
+		this->httpRequest.getServerRunningConfig().getPort(),
+		this->httpRequest.getRouteConfig(),
 		this->_clientAddr,
 		this->httpRequest,
 		pollableList,
@@ -307,6 +319,8 @@ void ClientSocket::_processPollService(
 					delete this->_service;
 					this->_service = NULL;
 					this->_service = pickService(
+						this->httpRequest.getServerRunningConfig().getPort(),
+						this->httpRequest.getServerRunningConfig().pickRouteConfig(this->httpRequest.getPathSegmentList()),
 						this->_clientAddr,
 						this->httpRequest,
 						pollableList,
