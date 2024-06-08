@@ -24,6 +24,7 @@ class HttpFieldMap
 
 	std::vector<std::string> getValueList(const std::string &name) const;
 	void addValue(const std::string &name, const std::string &value);
+	void removeKey(const std::string &name);
 
 	bool isNameExists(const std::string &name) const;
 
@@ -45,6 +46,8 @@ class HttpFieldMap
 	 * @return false ContentLengthが設定されていなかった (見つからなかった)
 	 */
 	bool tryGetContentLength(size_t &contentLength) const;
+
+	bool isChunked() const;
 
 	friend bool operator==(const HttpFieldMap &lhs, const HttpFieldMap &rhs);
 };

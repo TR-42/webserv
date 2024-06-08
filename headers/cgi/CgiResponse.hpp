@@ -2,6 +2,7 @@
 
 #include <poll.h>
 
+#include <http/MessageBody.hpp>
 #include <types.hpp>
 #include <vector>
 
@@ -29,7 +30,7 @@ class CgiResponse
 	const std::string &getReasonPhrase() const;
 	const HttpFieldMap &getProtocolFieldMap() const;
 	const HttpFieldMap &getExtensionFieldMap() const;
-	const std::vector<uint8_t> &getResponseBody() const;
+	const MessageBody &getResponseBody() const;
 
 	bool pushResponseRaw(const std::vector<uint8_t> &responseRaw);
 
@@ -55,6 +56,7 @@ class CgiResponse
 	bool isAbsolutePath;
 
 	std::vector<uint8_t> _UnparsedResponseRaw;
+	MessageBody _ResponseBody;
 
 	utils::ErrorPageProvider _errorPageProvider;
 

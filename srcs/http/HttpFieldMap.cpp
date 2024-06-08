@@ -1,6 +1,8 @@
 #include "http/HttpFieldMap.hpp"
 
 #include <cctype>
+#include <http/exception/BadRequest.hpp>
+#include <http/exception/NotImplemented.hpp>
 #include <utils/getTimeStr.hpp>
 #include <utils/stoul.hpp>
 #include <utils/to_string.hpp>
@@ -75,6 +77,12 @@ void HttpFieldMap::addValue(const std::string &name, const std::string &value)
 	fieldMap[upperName].push_back(value);
 }
 
+void HttpFieldMap::removeKey(const std::string &name)
+{
+	// 存在しないキーを削除しても問題ない
+	fieldMap.erase(capitalize(name));
+}
+
 bool HttpFieldMap::isNameExists(const std::string &name) const
 {
 	std::string upperName = capitalize(name);
@@ -104,11 +112,11 @@ void HttpFieldMap::appendToVector(
 		it != fieldMap.end();
 		++it
 	) {
-		if (it->first == "Location" || it->first == "Connection") {
+		if (it->first == "Location" || it->first == "Transfer-Encoding" || it->first == "Connection") {
 			continue;
 		}
 
-		// TODO: 同じ名前のフィールドが複数ある場合の処理
+		// 同じ名前のフィールドが複数あるのはSet-Cookieだけ
 		for (
 			std::vector<std::string>::const_iterator it2 = it->second.begin();
 			it2 != it->second.end();
@@ -155,7 +163,28 @@ bool webserv::HttpFieldMap::tryGetContentLength(
 	if (valueList.empty()) {
 		return false;
 	}
-	utils::stoul(valueList[0], contentLength);
+	if (!utils::stoul(valueList[0], contentLength)) {
+		throw http::exception::BadRequest("Content-Length: " + valueList[0]);
+	}
+
+	return true;
+}
+
+bool HttpFieldMap::isChunked() const
+{
+	if (!this->isNameExists("Transfer-Encoding")) {
+		return false;
+	}
+
+	std::vector<std::string> valueList = this->getValueList("Transfer-Encoding");
+	if (valueList.empty()) {
+		return false;
+	}
+
+	if (valueList[0] != "chunked") {
+		throw http::exception::NotImplemented("Transfer-Encoding: " + valueList[0]);
+	}
+
 	return true;
 }
 

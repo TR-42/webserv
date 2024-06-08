@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "./HttpVersion.hpp"
+#include "./MessageBody.hpp"
 #include "config/ServerRunningConfig.hpp"
 #include "http/HttpFieldMap.hpp"
 
@@ -24,19 +25,17 @@ class HttpRequest
 	}
 
 	const Logger &logger;
+	size_t _TotalRequestSize;
 	std::string _Method;
 	std::string _Path;
 	std::string _Query;
 	HttpVersion _Version;
 	HttpFieldMap _Headers;
-	std::vector<uint8_t> _Body;
+	MessageBody _Body;
 
 	bool _IsRequestLineParsed;
 	bool _IsRequestHeaderParsed;
-	bool _IsParseCompleted;
-	size_t _ContentLength;
 	std::string _Host;
-	bool _IsChunkedRequest;
 	std::string _NormalizedPath;
 
 	// 正規化されて分割されたパスが入る
@@ -68,15 +67,11 @@ class HttpRequest
 	const std::string &getQuery() const;
 	const HttpVersion &getVersion() const;
 	const HttpFieldMap &getHeaders() const;
-	const std::vector<uint8_t> &getBody() const;
+	const MessageBody &getBody() const;
 	bool isRequestLineParsed() const;
 	bool isRequestHeaderParsed() const;
-	size_t getContentLength() const;
-	bool isRequestBodyLengthEnough() const;
-	bool isRequestBodyLengthTooMuch() const;
-	bool isParseCompleted();
+	bool isParseCompleted() const;
 	std::string getHost() const;
-	bool isChunkedRequest() const;
 	std::string getNormalizedPath() const;
 	const std::vector<std::string> &getPathSegmentList() const;
 	bool isServerRunningConfigSet() const;

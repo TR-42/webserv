@@ -52,23 +52,28 @@ void setToEnvManager(
 	const HttpFieldMap &fieldMap
 )
 {
-	const std::set<std::string> &IGNORED_HEADERS = getIgnoredHeaders();
+	static const std::set<std::string> &IGNORED_HEADERS = getIgnoredHeaders();
 
 	for (
 		HttpFieldMap::FieldMapType::const_iterator it = fieldMap.cbegin();
 		it != fieldMap.cend();
 		++it
 	) {
-		if (it->first.empty()) {
+		if (it->first.empty() || it->second.empty()) {
 			continue;
 		} else if (IGNORED_HEADERS.find(it->first) != IGNORED_HEADERS.end()) {
 			continue;
 		}
 
 		const std::vector<std::string> &values = it->second;
+		std::string combinedValue = values[0];
+		for (size_t i = 1; i < values.size(); i++) {
+			combinedValue += ", ";
+			combinedValue += values[i];
+		}
 		envManager.set(
 			getEnvKey(it->first),
-			values[values.size() - 1]
+			combinedValue
 		);
 	}
 }

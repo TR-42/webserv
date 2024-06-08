@@ -13,17 +13,10 @@ static webserv::Logger logger;
 
 TEST(CgiResponseTest, GenerateResponsePacket_DefaultValue)
 {
-	HttpResponse httpResponse;
-	httpResponse.setVersion("HTTP/1.1");
-	httpResponse.setStatusCode("200");
-	httpResponse.setReasonPhrase("OK");
-	httpResponse.setHeaders(HttpFieldMap());
-	httpResponse.setBody(std::vector<uint8_t>());
-
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
 	std::vector<uint8_t>
-		expected = httpResponse.generateResponsePacket(true, false);
+		expected = utils::ErrorPageProvider().internalServerError().generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 	std::vector<uint8_t> actual = response.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
@@ -42,7 +35,7 @@ TEST(CgiResponseTest, Getters_DefaultValue)
 	EXPECT_EQ(response.getReasonPhrase(), "OK");
 	EXPECT_EQ(response.getProtocolFieldMap(), HttpFieldMap());
 	EXPECT_EQ(response.getExtensionFieldMap(), HttpFieldMap());
-	EXPECT_EQ(response.getResponseBody(), std::vector<uint8_t>());
+	EXPECT_EQ(response.getResponseBody().getBody(), std::vector<uint8_t>());
 }
 
 TEST(CgiResponseTest, Parse_Getter_DocumentResponse)
@@ -96,7 +89,7 @@ TEST(CgiResponseTest, Parse_Getter_DocumentResponse)
 		"    <p>num1=10&num2=20</p>\n"
 		"  </body>\n"
 		"</html>\n";
-	std::vector<uint8_t> responseBody = cgiResponse.getResponseBody();
+	std::vector<uint8_t> responseBody = cgiResponse.getResponseBody().getBody();
 	std::string responseBodyStr(responseBody.begin(), responseBody.end());
 	EXPECT_EQ(responseBodyStr, bodyStr);
 }
@@ -189,7 +182,7 @@ TEST(CgiResponseTest, Parse_Getter_StatusField)
 	if (response.getProtocolFieldMap().isNameExists("Date")) {
 		EXPECT_EQ(response.getProtocolFieldMap().getValueList("Date")[0], "Wed, 15 May 2024 12:34:56 GMT");
 	}
-	std::vector<uint8_t> responseBody = response.getResponseBody();
+	std::vector<uint8_t> responseBody = response.getResponseBody().getBody();
 	std::string responseBodyStr(responseBody.begin(), responseBody.end());
 	EXPECT_EQ(responseBodyStr, "No input file specified.");
 }
@@ -262,7 +255,7 @@ TEST(CgiResponseTest, Parse_Getter_NoBody)
 	if (response.getProtocolFieldMap().isNameExists("x-ghi-abc")) {
 		EXPECT_EQ(response.getProtocolFieldMap().getValueList("x-ghi-abc")[0], "def ghi");
 	}
-	std::vector<uint8_t> responseBody = response.getResponseBody();
+	std::vector<uint8_t> responseBody = response.getResponseBody().getBody();
 	std::string responseBodyStr(responseBody.begin(), responseBody.end());
 	EXPECT_EQ(responseBodyStr, "");
 }
@@ -293,7 +286,8 @@ TEST(CgiResponseTest, Parse_GenerateResponsePacket_NoBody)
 		"x-powered-by: PHP/8.3.4 abc\n"
 		"content-type: text/html; charset=UTF-8\n"
 		"date: Wed, 15 May 2024 12:34:56 GMT\n"
-		"x-ghi-abc: def ghi\n";
+		"x-ghi-abc: def ghi\n"
+		"\n";
 	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
 	cgiResponse.pushResponseRaw(cgiResponseVector);
 	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket(true);
@@ -370,25 +364,11 @@ TEST(CgiResponseTest, ResponseModeClientRedirectWithBody)
 		"\n"
 		"abc";
 	std::vector<uint8_t> cgiResponseVector4(cgiResponseStr.begin(), cgiResponseStr.end());
-	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector4));
+	EXPECT_FALSE(response.pushResponseRaw(cgiResponseVector4));
 	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT);
 	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
 	EXPECT_EQ(response.getStatusCode(), "301");
 	EXPECT_EQ(response.getReasonPhrase(), "Moved Permanently");
-
-	std::vector<uint8_t> actual = response.generateResponsePacket(true);
-	std::string timeStr = webserv::utils::getHttpTimeStr();
-	std::string httpStr =
-		"HTTP/1.1 500 Internal Server Error\r\n"
-		"Content-Length: 26\r\n"
-		"Date: " +
-		timeStr +
-		"\r\n" +
-		"Connection: close\r\n"
-		"\r\n"
-		"500 Internal Server Error\n";
-	std::string actualStr(actual.begin(), actual.end());
-	EXPECT_EQ(actualStr, httpStr);
 }
 
 TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
@@ -438,12 +418,41 @@ TEST(CgiResponseTest, MultipleFields)
 		"Date: Wed, 15 May 2024 12:34:56 GMT\n"
 		"\n";
 	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
-	response.pushResponseRaw(cgiResponseVector);
-	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector));
+	EXPECT_TRUE(response.getProtocolFieldMap().isNameExists("X-Powered-By"));
 	if (response.getProtocolFieldMap().isNameExists("X-Powered-By")) {
-		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[0], "PHP/8.3.4");
-		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[1], "PHP/8.3.5");
-		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[2], "PHP/8.3.6");
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By").size(), 3);
+		if (0 < response.getProtocolFieldMap().getValueList("X-Powered-By").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[0], "PHP/8.3.4");
+		if (1 < response.getProtocolFieldMap().getValueList("X-Powered-By").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[1], "PHP/8.3.5");
+		if (2 < response.getProtocolFieldMap().getValueList("X-Powered-By").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[2], "PHP/8.3.6");
+	}
+}
+
+TEST(CgiResponseTest, SetCookie)
+{
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
+	std::string cgiResponseStr =
+		"Set-Cookie: PHP/8.3.4\n"
+		"Set-Cookie: PHP/8.3.5\n"
+		"Set-Cookie: PHP/8.3.6\n"
+		"Content-type: text/html; charset=UTF-8\n"
+		"Date: Wed, 15 May 2024 12:34:56 GMT\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector));
+	EXPECT_TRUE(response.getProtocolFieldMap().isNameExists("Set-Cookie"));
+	if (response.getProtocolFieldMap().isNameExists("Set-Cookie")) {
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie").size(), 3);
+		if (0 < response.getProtocolFieldMap().getValueList("Set-Cookie").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie")[0], "PHP/8.3.4");
+		if (1 < response.getProtocolFieldMap().getValueList("Set-Cookie").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie")[1], "PHP/8.3.5");
+		if (2 < response.getProtocolFieldMap().getValueList("Set-Cookie").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie")[2], "PHP/8.3.6");
 	}
 }
 

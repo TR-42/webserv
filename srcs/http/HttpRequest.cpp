@@ -2,14 +2,18 @@
 #include <http/HttpRequest.hpp>
 #include <http/exception/BadRequest.hpp>
 #include <http/exception/NotImplemented.hpp>
+#include <http/exception/RequestEntityTooLarge.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <utils/normalizePath.hpp>
 #include <utils/pickLine.hpp>
 #include <utils/split.hpp>
 #include <utils/splitNameValue.hpp>
+#include <utils/strcasecmp.hpp>
 
 #include "http/HttpFieldMap.hpp"
+
+#define REQUEST_MAX_SIZE (512 * 1024 * 1024)
 
 #define METHOD_GET "GET"
 #define METHOD_HEAD "HEAD"
@@ -24,19 +28,17 @@ const std::string &HttpRequest::getPath() const { return this->_Path; }
 const std::string &HttpRequest::getQuery() const { return this->_Query; }
 const HttpVersion &HttpRequest::getVersion() const { return this->_Version; }
 const HttpFieldMap &HttpRequest::getHeaders() const { return this->_Headers; }
-const std::vector<uint8_t> &HttpRequest::getBody() const { return this->_Body; }
+const MessageBody &HttpRequest::getBody() const { return this->_Body; }
 bool HttpRequest::isRequestLineParsed() const { return this->_IsRequestLineParsed; }
 bool HttpRequest::isRequestHeaderParsed() const { return this->_IsRequestHeaderParsed; }
 
 HttpRequest::HttpRequest(
 	const Logger &logger
 ) : logger(logger),
+		_TotalRequestSize(0),
 		_Version(1, 1),
 		_IsRequestLineParsed(false),
 		_IsRequestHeaderParsed(false),
-		_IsParseCompleted(false),
-		_ContentLength(0),
-		_IsChunkedRequest(false),
 		serverRunningConfig(NULL)
 {
 }
@@ -44,6 +46,7 @@ HttpRequest::HttpRequest(
 HttpRequest::HttpRequest(
 	const HttpRequest &src
 ) : logger(src.logger),
+		_TotalRequestSize(src._TotalRequestSize),
 		_Method(src._Method),
 		_Path(src._Path),
 		_Query(src._Query),
@@ -52,10 +55,7 @@ HttpRequest::HttpRequest(
 		_Body(src._Body),
 		_IsRequestLineParsed(src._IsRequestLineParsed),
 		_IsRequestHeaderParsed(src._IsRequestHeaderParsed),
-		_IsParseCompleted(src._IsParseCompleted),
-		_ContentLength(src._ContentLength),
 		_Host(src._Host),
-		_IsChunkedRequest(src._IsChunkedRequest),
 		_NormalizedPath(src._NormalizedPath),
 		serverRunningConfig(new ServerRunningConfig(*src.serverRunningConfig))
 {
@@ -77,9 +77,16 @@ bool HttpRequest::pushRequestRaw(
 		return true;
 	}
 
-	if (this->_IsParseCompleted) {
+	if (this->isParseCompleted()) {
 		C_DEBUG("Request parsing was already completed");
 		return true;
+	}
+
+	// バッファサイズ的にオーバーフローは考えられないため、チェックしない
+	this->_TotalRequestSize += requestRaw.size();
+	if (REQUEST_MAX_SIZE < this->_TotalRequestSize) {
+		C_WARN("Request size is too large");
+		throw http::exception::RequestEntityTooLarge();
 	}
 
 	if (this->_IsRequestHeaderParsed == false) {
@@ -101,13 +108,11 @@ bool HttpRequest::pushRequestRaw(
 			delete requestRawLine;
 			CS_DEBUG() << "_IsRequestLineParsed result: " << this->_IsRequestLineParsed << std::endl;
 			if (this->_IsRequestLineParsed == false) {
-				this->_IsParseCompleted = true;
 				return false;
 			}
 			if (this->_Version < HttpVersion(1, 0)) {
 				this->_IsRequestHeaderParsed = true;
-				this->_IsParseCompleted = true;
-				C_INFO("HTTP/0.9 -> No Header");
+				C_INFO("HTTP/0.9 -> No Header/NoBody");
 				return true;
 			}
 
@@ -123,7 +128,6 @@ bool HttpRequest::pushRequestRaw(
 			bool result = this->parseRequestHeader(*requestRawLine);
 			delete requestRawLine;
 			if (result == false) {
-				this->_IsParseCompleted = true;
 				return false;
 			}
 			requestRawLine = utils::pickLine(this->_UnparsedRequestRaw);
@@ -135,12 +139,8 @@ bool HttpRequest::pushRequestRaw(
 		}
 		delete requestRawLine;
 
-		bool tryGetContentLengthResult = this->_Headers.tryGetContentLength(this->_ContentLength);
-		CS_DEBUG()
-			<< "tryGetContentLength result: " << std::boolalpha << tryGetContentLengthResult
-			<< std::endl;
-
-		if (this->_Headers.isNameExists("Host")) {
+		// HostフィールドはHTTP/1.1で必須になった
+		if (HttpVersion(1, 1) <= this->_Version && this->_Headers.isNameExists("Host")) {
 			std::vector<std::string> hostList = this->_Headers.getValueList("Host");
 			if (hostList.size() != 1) {
 				C_WARN("Host header is not unique");
@@ -163,34 +163,22 @@ bool HttpRequest::pushRequestRaw(
 
 		this->_IsRequestHeaderParsed = true;
 
-		this->_Body = _UnparsedRequestRaw;
-		// TODO: chunkedの処理を実装する
-		this->_IsParseCompleted = this->_ContentLength <= this->_Body.size();
+		this->_Body = MessageBody::init(this->_Headers, false);
 
 		CS_INFO()
 			<< "Request Header Parse Completed:"
 			<< " Method: " << this->_Method
 			<< ", Path: `" << this->_Path << "`"
 			<< ", Version: " << this->_Version.toString()
-			<< ", IsParseCompleted: " << std::boolalpha << this->_IsParseCompleted
-			<< ", ContentLength: " << this->_ContentLength
+			<< ", IsParseCompleted: " << std::boolalpha << this->isParseCompleted()
+			<< ", ContentLength: " << this->_Body.getContentLength()
+			<< ", Chunked: " << std::boolalpha << this->_Body.getIsChunked()
 			<< ", Host: " << this->_Host
-			<< ", IsChunkedRequest: " << std::boolalpha << this->_IsChunkedRequest
 			<< std::endl;
 
-		return true;
-	} else if (this->isRequestBodyLengthEnough()) {
-		CS_DEBUG()
-			<< "too much request body("
-			<< "BodySize: " << this->_Body.size() << ", "
-			<< "ContentLength: " << this->getContentLength() << ", "
-			<< "RequestRawSize: " << requestRaw.size()
-			<< ")" << std::endl;
-		this->_IsParseCompleted = true;
-		return false;
+		return this->_Body.pushData(this->_UnparsedRequestRaw.data(), this->_UnparsedRequestRaw.size());
 	} else {
-		this->_Body.insert(this->_Body.end(), requestRaw.begin(), requestRaw.end());
-		return true;
+		return this->_Body.pushData(requestRaw.data(), requestRaw.size());
 	}
 
 	C_DEBUG("return true");
@@ -305,44 +293,26 @@ bool HttpRequest::parseRequestHeader(
 		C_WARN("nameValue.first was empty");
 		return false;
 	}
+	if (utils::strcasecmp(nameValue.first, "Transfer-Encoding")) {
+		if (nameValue.second != "chunked") {
+			C_WARN("Transfer-Encoding is not chunked");
+			throw http::exception::NotImplemented();
+		}
+	}
+
 	this->_Headers.addValue(nameValue.first, nameValue.second);
 
 	return true;
 }
 
-size_t HttpRequest::getContentLength() const
+bool webserv::HttpRequest::isParseCompleted() const
 {
-	return this->_ContentLength;
-}
-
-bool HttpRequest::isRequestBodyLengthEnough() const
-{
-	bool isRequestBodyLengthEnough = this->_IsRequestHeaderParsed && this->getContentLength() <= this->_Body.size();
-	return isRequestBodyLengthEnough;
-}
-
-bool HttpRequest::isRequestBodyLengthTooMuch() const
-{
-	bool isRequestBodyLengthTooMuch = this->_IsRequestHeaderParsed && this->getContentLength() < this->_Body.size();
-	return isRequestBodyLengthTooMuch;
-}
-
-bool webserv::HttpRequest::isParseCompleted()
-{
-	if (!this->_IsParseCompleted) {
-		this->_IsParseCompleted = this->isRequestBodyLengthEnough();
-	}
-	return this->_IsParseCompleted;
+	return this->_IsRequestHeaderParsed && this->_Body.getIsProcessComplete();
 }
 
 std::string HttpRequest::getHost() const
 {
 	return this->_Host;
-}
-
-bool HttpRequest::isChunkedRequest() const
-{
-	return this->_IsChunkedRequest;
 }
 
 std::string HttpRequest::getNormalizedPath() const

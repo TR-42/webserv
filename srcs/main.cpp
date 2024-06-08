@@ -110,7 +110,13 @@ int main(int argc, const char *argv[])
 
 	std::ofstream logFile;
 	std::string logFilePath("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log");
-	logFile.open(logFilePath.c_str(), std::ios_base::app);
+	try {
+		logFile.open(logFilePath.c_str(), std::ios_base::app);
+	} catch (const std::exception &e) {
+		std::cerr << "logFile.open failed: " << e.what() << std::endl;
+		return 1;
+	}
+
 	webserv::Logger logger(logFile);
 	webserv::utils::ErrorPageProvider errorPageProvider;
 
@@ -121,60 +127,87 @@ int main(int argc, const char *argv[])
 
 	webserv::ListenConfig listenConfig;
 
-	if (!loadConfigFile(1 < argc ? argv[1] : DEFAULT_CONFIG_FILE_PATH, logger, listenConfig)) {
-		L_FATAL("loadConfigFile failed");
-		return 1;
-	}
+	try {
+		if (!loadConfigFile(1 < argc ? argv[1] : DEFAULT_CONFIG_FILE_PATH, logger, listenConfig)) {
+			L_FATAL("loadConfigFile failed");
+			return 1;
+		}
 
-	if (listenConfig.getListenMap().empty()) {
-		L_FATAL("listenConfig.getListenMap().empty()");
-		return 1;
-	}
+		if (listenConfig.getListenMap().empty()) {
+			L_FATAL("listenConfig.getListenMap().empty()");
+			return 1;
+		}
 
-	if (!webserv::registerSignalHandler()) {
-		L_FATAL("registerSignalHandler failed");
+		if (!webserv::registerSignalHandler()) {
+			L_FATAL("registerSignalHandler failed");
+			return 1;
+		}
+	} catch (const std::exception &e) {
+		LS_FATAL()
+			<< "loadConfigFile/registerSignalHandler failed: " << e.what()
+			<< std::endl;
 		return 1;
 	}
 
 	PollableList pollableList;
-	for (webserv::ListenMapType::const_iterator it = listenConfig.getListenMap().begin();
-			 it != listenConfig.getListenMap().end();
-			 ++it) {
-		const webserv::uint16_t &port = it->first;
-		const webserv::ServerConfigListType &serverConfigList = it->second;
-		webserv::ServerRunningConfigListType runningConfigList;
-		for (webserv::ServerConfigListType::const_iterator it = serverConfigList.begin();
-				 it != serverConfigList.end();
+	try {
+		for (webserv::ListenMapType::const_iterator it = listenConfig.getListenMap().begin();
+				 it != listenConfig.getListenMap().end();
 				 ++it) {
-			const webserv::ServerConfig &serverConfig = *it;
-			runningConfigList.push_back(
-				webserv::ServerRunningConfig(
-					serverConfig,
-					errorPageProvider,
-					logger
-				)
-			);
-		}
-		webserv::ServerSocket *serverSocket = webserv::ServerSocket::createServerSocket(
-			runningConfigList,
-			port,
-			logger
-		);
-
-		if (serverSocket == NULL) {
-			LS_FATAL()
-				<< "createServerSocket failed: port=" << port
-				<< std::endl;
-			for (PollableList::iterator it = pollableList.begin();
-					 it != pollableList.end();
+			const webserv::uint16_t &port = it->first;
+			const webserv::ServerConfigListType &serverConfigList = it->second;
+			webserv::ServerRunningConfigListType runningConfigList;
+			for (webserv::ServerConfigListType::const_iterator it = serverConfigList.begin();
+					 it != serverConfigList.end();
 					 ++it) {
-				delete *it;
-				*it = NULL;
+				const webserv::ServerConfig &serverConfig = *it;
+				runningConfigList.push_back(
+					webserv::ServerRunningConfig(
+						serverConfig,
+						errorPageProvider,
+						logger
+					)
+				);
 			}
+			webserv::ServerSocket *serverSocket = webserv::ServerSocket::createServerSocket(
+				runningConfigList,
+				port,
+				logger
+			);
 
-			return 1;
+			if (serverSocket == NULL) {
+				LS_FATAL()
+					<< "createServerSocket failed(NULL): port=" << port
+					<< std::endl;
+				for (PollableList::iterator it = pollableList.begin();
+						 it != pollableList.end();
+						 ++it) {
+					delete *it;
+					*it = NULL;
+				}
+
+				pollableList.clear();
+
+				return 1;
+			}
+			pollableList.push_back(serverSocket);
 		}
-		pollableList.push_back(serverSocket);
+	} catch (const std::exception &e) {
+		LS_FATAL()
+			<< "createServerSocket failed(Exception)"
+			<< " e.what(): " << e.what()
+			<< std::endl;
+
+		for (PollableList::iterator it = pollableList.begin();
+				 it != pollableList.end();
+				 ++it) {
+			delete *it;
+			*it = NULL;
+		}
+
+		pollableList.clear();
+
+		return 1;
 	}
 
 	LS_INFO()
@@ -188,9 +221,14 @@ int main(int argc, const char *argv[])
 
 	webserv::Poll poll(pollableList, logger);
 	while (!webserv::isExitSignalGot()) {
-		bool result = poll.loop();
-		if (!result) {
-			L_FATAL("poll loop failed");
+		try {
+			bool result = poll.loop();
+			if (!result) {
+				L_FATAL("poll loop failed");
+				return 1;
+			}
+		} catch (...) {
+			L_FATAL("poll loop failed with uncaught exception");
 			return 1;
 		}
 	}

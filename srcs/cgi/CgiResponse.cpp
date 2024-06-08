@@ -91,11 +91,18 @@ std::vector<uint8_t> CgiResponse::generateResponsePacket(
 
 HttpResponse CgiResponse::getHttpResponse() const
 {
+	if (!this->_IsResponseHeaderParsed) {
+		return this->_errorPageProvider.internalServerError();
+	}
 	if (this->_mode == CgiResponseMode::LOCAL_REDIRECT) {
 		return this->_errorPageProvider.internalServerError();
 	}
 
-	if (this->_mode == CgiResponseMode::CLIENT_REDIRECT && !this->_UnparsedResponseRaw.empty()) {
+	if (this->_mode == CgiResponseMode::CLIENT_REDIRECT && !this->_ResponseBody.empty()) {
+		return this->_errorPageProvider.internalServerError();
+	}
+
+	if (!this->_ResponseBody.getIsEndWithEOF() && !this->_ResponseBody.getIsProcessComplete()) {
 		return this->_errorPageProvider.internalServerError();
 	}
 
@@ -104,9 +111,9 @@ HttpResponse CgiResponse::getHttpResponse() const
 	httpResponse.setStatusCode(this->_StatusCode);
 	httpResponse.setReasonPhrase(this->_ReasonPhrase);
 	httpResponse.setHeaders(this->_ProtocolFieldMap);
-	httpResponse.setBody(this->_UnparsedResponseRaw);
+	httpResponse.setBody(this->_ResponseBody.getBody());
 
-	if (!this->_ContentType.empty()) {
+	if (this->isSetContentType) {
 		httpResponse.getHeaders().addValue("Content-Type", this->_ContentType);
 	}
 
@@ -121,15 +128,19 @@ bool CgiResponse::pushResponseRaw(
 	const std::vector<uint8_t> &responseRaw
 )
 {
-	_UnparsedResponseRaw.insert(
+	if (this->_IsResponseHeaderParsed) {
+		if (this->_mode != CgiResponseMode::DOCUMENT && this->_mode != CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT) {
+			return false;
+		}
+
+		return this->_ResponseBody.pushData(responseRaw.data(), responseRaw.size());
+	}
+
+	this->_UnparsedResponseRaw.insert(
 		_UnparsedResponseRaw.end(),
 		responseRaw.begin(),
 		responseRaw.end()
 	);
-
-	if (_IsResponseHeaderParsed) {
-		return true;
-	}
 
 	while (true) {
 		std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw);
@@ -141,7 +152,7 @@ bool CgiResponse::pushResponseRaw(
 			_IsResponseHeaderParsed = true;
 			delete responseRawLine;
 
-			CS_INFO()
+			CS_DEBUG()
 				<< "isSetContentType: " << std::boolalpha << this->isSetContentType
 				<< ", isSetLocation: " << std::boolalpha << this->isSetLocation
 				<< ", isSetStatus: " << std::boolalpha << this->isSetStatus
@@ -156,6 +167,12 @@ bool CgiResponse::pushResponseRaw(
 				!this->isSetLocation
 			) {
 				this->_mode = CgiResponseMode::DOCUMENT;
+				this->_ResponseBody = MessageBody::init(this->_ProtocolFieldMap, true);
+				this->_ProtocolFieldMap.isNameExists("Content-Length");
+				this->_ProtocolFieldMap.isNameExists("Transfer-Encoding");
+				bool pushResult = this->_ResponseBody.pushData(this->_UnparsedResponseRaw.data(), this->_UnparsedResponseRaw.size());
+				this->_UnparsedResponseRaw.clear();
+				return pushResult;
 			}
 
 			// location以外存在しないことを確認
@@ -169,6 +186,9 @@ bool CgiResponse::pushResponseRaw(
 				this->isAbsolutePath
 			) {
 				this->_mode = CgiResponseMode::LOCAL_REDIRECT;
+				if (!this->_UnparsedResponseRaw.empty()) {
+					return false;
+				}
 			}
 
 			else if (
@@ -181,6 +201,9 @@ bool CgiResponse::pushResponseRaw(
 				this->_mode = CgiResponseMode::CLIENT_REDIRECT;
 				this->_StatusCode = "301";
 				this->_ReasonPhrase = "Moved Permanently";
+				if (!this->_UnparsedResponseRaw.empty()) {
+					return false;
+				}
 			}
 
 			else if (
@@ -190,6 +213,12 @@ bool CgiResponse::pushResponseRaw(
 				!this->isAbsolutePath
 			) {
 				this->_mode = CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT;
+				this->_ResponseBody = MessageBody::init(this->_ProtocolFieldMap, true);
+				this->_ProtocolFieldMap.isNameExists("Content-Length");
+				this->_ProtocolFieldMap.isNameExists("Transfer-Encoding");
+				bool pushResult = this->_ResponseBody.pushData(this->_UnparsedResponseRaw.data(), this->_UnparsedResponseRaw.size());
+				this->_UnparsedResponseRaw.clear();
+				return pushResult;
 			}
 
 			else {
@@ -219,12 +248,22 @@ bool CgiResponse::parseResponseHeader(
 	}
 
 	if (utils::strcasecmp(nameValue.first, "content-type")) {
+		if (this->isSetContentType) {
+			C_WARN("Content-Type already set");
+			return false;
+		}
+
 		this->isSetContentType = true;
 		_ContentType = nameValue.second;
 		return true;
 	}
 
 	if (utils::strcasecmp(nameValue.first, "location")) {
+		if (this->isSetLocation) {
+			C_WARN("Location already set");
+			return false;
+		}
+
 		this->isSetLocation = true;
 		if (nameValue.second.empty()) {
 			C_WARN("nameValue.second was empty");
@@ -236,6 +275,11 @@ bool CgiResponse::parseResponseHeader(
 	}
 
 	if (utils::strcasecmp(nameValue.first, "status")) {
+		if (this->isSetStatus) {
+			C_WARN("Status already set");
+			return false;
+		}
+
 		std::vector<std::string> statusParts = utils::splitWithSpace(nameValue.second, 2);
 
 		if (statusParts.size() < 2) {
@@ -294,9 +338,9 @@ const HttpFieldMap &CgiResponse::getExtensionFieldMap() const
 	return this->_ExtensionFieldMap;
 }
 
-const std::vector<uint8_t> &CgiResponse::getResponseBody() const
+const MessageBody &CgiResponse::getResponseBody() const
 {
-	return this->_UnparsedResponseRaw;
+	return this->_ResponseBody;
 }
 
 }	 // namespace webserv
