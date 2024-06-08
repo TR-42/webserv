@@ -9,6 +9,7 @@
 #include <utils/pickLine.hpp>
 #include <utils/split.hpp>
 #include <utils/splitNameValue.hpp>
+#include <utils/strcasecmp.hpp>
 
 #include "http/HttpFieldMap.hpp"
 
@@ -291,6 +292,13 @@ bool HttpRequest::parseRequestHeader(
 		C_WARN("nameValue.first was empty");
 		return false;
 	}
+	if (utils::strcasecmp(nameValue.first, "Transfer-Encoding") == 0) {
+		if (nameValue.second != "chunked") {
+			C_WARN("Transfer-Encoding is not chunked");
+			throw http::exception::NotImplemented();
+		}
+	}
+
 	this->_Headers.addValue(nameValue.first, nameValue.second);
 
 	return true;
