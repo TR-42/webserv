@@ -13,17 +13,10 @@ static webserv::Logger logger;
 
 TEST(CgiResponseTest, GenerateResponsePacket_DefaultValue)
 {
-	HttpResponse httpResponse;
-	httpResponse.setVersion("HTTP/1.1");
-	httpResponse.setStatusCode("200");
-	httpResponse.setReasonPhrase("OK");
-	httpResponse.setHeaders(HttpFieldMap());
-	httpResponse.setBody(std::vector<uint8_t>());
-
 	CgiResponse response(logger, utils::ErrorPageProvider());
 
 	std::vector<uint8_t>
-		expected = httpResponse.generateResponsePacket(true, false);
+		expected = utils::ErrorPageProvider().internalServerError().generateResponsePacket(true, false);
 	std::string expectedStr(expected.begin(), expected.end());
 	std::vector<uint8_t> actual = response.generateResponsePacket(true);
 	std::string actualStr(actual.begin(), actual.end());
@@ -293,7 +286,8 @@ TEST(CgiResponseTest, Parse_GenerateResponsePacket_NoBody)
 		"x-powered-by: PHP/8.3.4 abc\n"
 		"content-type: text/html; charset=UTF-8\n"
 		"date: Wed, 15 May 2024 12:34:56 GMT\n"
-		"x-ghi-abc: def ghi\n";
+		"x-ghi-abc: def ghi\n"
+		"\n";
 	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
 	cgiResponse.pushResponseRaw(cgiResponseVector);
 	std::vector<uint8_t> actual = cgiResponse.generateResponsePacket(true);
