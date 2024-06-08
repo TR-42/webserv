@@ -139,7 +139,8 @@ bool HttpRequest::pushRequestRaw(
 		}
 		delete requestRawLine;
 
-		if (this->_Headers.isNameExists("Host")) {
+		// HostフィールドはHTTP/1.1で必須になった
+		if (HttpVersion(1, 1) <= this->_Version && this->_Headers.isNameExists("Host")) {
 			std::vector<std::string> hostList = this->_Headers.getValueList("Host");
 			if (hostList.size() != 1) {
 				C_WARN("Host header is not unique");
