@@ -24,6 +24,7 @@ class HttpRequest
 	}
 
 	const Logger &logger;
+	size_t _TotalRequestSize;
 	std::string _Method;
 	std::string _Path;
 	std::string _Query;

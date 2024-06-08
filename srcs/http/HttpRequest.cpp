@@ -2,6 +2,7 @@
 #include <http/HttpRequest.hpp>
 #include <http/exception/BadRequest.hpp>
 #include <http/exception/NotImplemented.hpp>
+#include <http/exception/RequestEntityTooLarge.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <utils/normalizePath.hpp>
@@ -10,6 +11,8 @@
 #include <utils/splitNameValue.hpp>
 
 #include "http/HttpFieldMap.hpp"
+
+#define REQUEST_MAX_SIZE (512 * 1024 * 1024)
 
 #define METHOD_GET "GET"
 #define METHOD_HEAD "HEAD"
@@ -31,6 +34,7 @@ bool HttpRequest::isRequestHeaderParsed() const { return this->_IsRequestHeaderP
 HttpRequest::HttpRequest(
 	const Logger &logger
 ) : logger(logger),
+		_TotalRequestSize(0),
 		_Version(1, 1),
 		_IsRequestLineParsed(false),
 		_IsRequestHeaderParsed(false),
@@ -44,6 +48,7 @@ HttpRequest::HttpRequest(
 HttpRequest::HttpRequest(
 	const HttpRequest &src
 ) : logger(src.logger),
+		_TotalRequestSize(src._TotalRequestSize),
 		_Method(src._Method),
 		_Path(src._Path),
 		_Query(src._Query),
@@ -80,6 +85,13 @@ bool HttpRequest::pushRequestRaw(
 	if (this->_IsParseCompleted) {
 		C_DEBUG("Request parsing was already completed");
 		return true;
+	}
+
+	// バッファサイズ的にオーバーフローは考えられないため、チェックしない
+	this->_TotalRequestSize += requestRaw.size();
+	if (REQUEST_MAX_SIZE < this->_TotalRequestSize) {
+		C_WARN("Request size is too large");
+		throw http::exception::RequestEntityTooLarge();
 	}
 
 	if (this->_IsRequestHeaderParsed == false) {
