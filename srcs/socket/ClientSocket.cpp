@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <config/ServerRunningConfig.hpp>
 #include <cstring>
@@ -184,6 +185,15 @@ PollEventResultType ClientSocket::_processPollIn(
 				<< "Request timeout"
 				<< std::endl;
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestTimeout());
+			return PollEventResult::OK;
+		}
+
+		const std::vector<std::string> &allowedMethods = this->httpRequest.getRouteConfig().getMethods();
+		if (!allowedMethods.empty() && std::find(allowedMethods.begin(), allowedMethods.end(), this->httpRequest.getMethod()) == allowedMethods.end()) {
+			CS_WARN()
+				<< "Method not allowed"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().methodNotAllowed());
 			return PollEventResult::OK;
 		}
 
