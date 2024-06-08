@@ -186,6 +186,16 @@ PollEventResultType ClientSocket::_processPollIn(
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestTimeout());
 			return PollEventResult::OK;
 		}
+
+		const HttpRedirectConfig &redirect = this->httpRequest.getRouteConfig().getRedirect();
+		if (!redirect.getTo().empty()) {
+			ServerRunningConfig serverRunningConfig = this->httpRequest.getServerRunningConfig();
+			utils::ErrorPageProvider errorPageProvider = serverRunningConfig.getErrorPageProvider();
+			HttpResponse response = errorPageProvider.getErrorPage(redirect.getCode());
+			response.getHeaders().addValue("Location", redirect.getTo());
+			this->_setResponse(response);
+			return PollEventResult::OK;
+		}
 	}
 
 	if (!this->httpRequest.isParseCompleted()) {

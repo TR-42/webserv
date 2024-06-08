@@ -56,15 +56,14 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		yaml_document_root = yaml::getScalarNode(node, YAML_KEY_DOCUMENT_ROOT).getValue();
 		if (yaml_document_root.empty())
 			throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " must not be empty");
-	}
-
-	if (yaml_document_root[0] != '/') {
-		yaml_document_root = yamlFilePath.substr(0, yamlFilePath.find_last_of('/') + 1) + yaml_document_root;
-		char resolved_path[PATH_MAX];
-		if (realpath(yaml_document_root.c_str(), resolved_path) == NULL) {
-			throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path");
+		if (yaml_document_root[0] != '/') {
+			yaml_document_root = yamlFilePath.substr(0, yamlFilePath.find_last_of('/') + 1) + yaml_document_root;
+			char resolved_path[PATH_MAX];
+			if (realpath(yaml_document_root.c_str(), resolved_path) == NULL) {
+				throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path");
+			}
+			yaml_document_root = resolved_path;
 		}
-		yaml_document_root = resolved_path;
 	}
 
 	if (node.has(YAML_KEY_DOCUMENT_LISTING)) {
