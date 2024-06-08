@@ -46,6 +46,8 @@ class HttpFieldMap
 	 */
 	bool tryGetContentLength(size_t &contentLength) const;
 
+	bool isChunked() const;
+
 	friend bool operator==(const HttpFieldMap &lhs, const HttpFieldMap &rhs);
 };
 
