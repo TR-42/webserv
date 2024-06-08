@@ -32,6 +32,7 @@ SRCS_HTTP	=\
 	HttpFieldMap.cpp\
 	HttpRequest.cpp\
 	HttpResponse.cpp\
+	MessageBody.cpp\
 
 SRCS_LOGGER	=\
 	Logger.cpp\

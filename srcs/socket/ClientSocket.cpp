@@ -170,7 +170,8 @@ PollEventResultType ClientSocket::_processPollIn(
 			this->logger
 		);
 
-		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getContentLength())) {
+		// chunkedの場合も一旦チェック
+		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().getContentLength())) {
 			CS_WARN()
 				<< "Request size limit exceeded"
 				<< std::endl;
@@ -178,7 +179,7 @@ PollEventResultType ClientSocket::_processPollIn(
 			return PollEventResult::OK;
 		}
 
-		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getContentLength()) {
+		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().getContentLength()) {
 			CS_WARN()
 				<< "Request body size is too large"
 				<< std::endl;
@@ -196,6 +197,24 @@ PollEventResultType ClientSocket::_processPollIn(
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestTimeout());
 			return PollEventResult::OK;
 		}
+	} else if (this->httpRequest.isRequestHeaderParsed() && this->httpRequest.getBody().getIsChunked()) {
+		// ここに来る時点で、セット済みであるはずである
+		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
+		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().getContentLength())) {
+			CS_WARN()
+				<< "Request size limit exceeded"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
+			return PollEventResult::OK;
+		}
+
+		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().getContentLength()) {
+			CS_WARN()
+				<< "Request body size is too large"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
+			return PollEventResult::OK;
+		}
 	}
 
 	if (!this->httpRequest.isParseCompleted()) {
@@ -207,7 +226,8 @@ PollEventResultType ClientSocket::_processPollIn(
 
 	CS_DEBUG()
 		<< "Request parse completed"
-		<< "Body size: " << this->httpRequest.getContentLength()
+		<< "Body size: " << this->httpRequest.getBody().getContentLength()
+		<< " (chunked: " << std::boolalpha << this->httpRequest.getBody().getIsChunked() << ")"
 		<< std::endl;
 
 	try {

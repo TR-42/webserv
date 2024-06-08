@@ -116,8 +116,8 @@ CgiService::CgiService(
 	envManager.set("SERVER_PROTOCOL", request.getVersion().toString());
 	envManager.set("SERVER_SOFTWARE", "webserv/1.0");
 
-	if (0 < request.getBody().size()) {
-		envManager.set("CONTENT_LENGTH", utils::to_string(request.getBody().size()));
+	if (!request.getBody().getBody().empty()) {
+		envManager.set("CONTENT_LENGTH", utils::to_string(request.getBody().getBody().size()));
 	}
 	if (request.getHeaders().isNameExists("Content-Type")) {
 		envManager.set("CONTENT_TYPE", request.getHeaders().getValueList("Content-Type")[0]);
@@ -153,7 +153,7 @@ CgiService::CgiService(
 
 	std::string workingDir = _dirname(requestedFileInfo.getTargetFilePath());
 	this->_cgiExecuter = new CgiExecuter(
-		request.getBody(),
+		request.getBody().getBody(),
 		argv,
 		envp,
 		workingDir,

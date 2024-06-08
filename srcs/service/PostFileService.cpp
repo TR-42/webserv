@@ -142,15 +142,15 @@ ServiceEventResultType PostFileService::onEventGot(
 		return ServiceEventResult::CONTINUE;
 	}
 
-	size_t dataSize = this->_request.getBody().size() - this->_writtenSize;
+	size_t dataSize = this->_request.getBody().getBody().size() - this->_writtenSize;
 	size_t writeSize = std::min(dataSize, static_cast<size_t>(INT_MAX));
 	CS_LOG()
-		<< "Writing " << writeSize << " / " << this->_request.getBody().size() << " bytes"
+		<< "Writing " << writeSize << " / " << this->_request.getBody().getBody().size() << " bytes"
 		<< " (already written: " << this->_writtenSize << ")"
 		<< std::endl;
 	ssize_t writtenLength = write(
 		this->_fd,
-		this->_request.getBody().data() + this->_writtenSize,
+		this->_request.getBody().getBody().data() + this->_writtenSize,
 		writeSize
 	);
 
@@ -164,7 +164,7 @@ ServiceEventResultType PostFileService::onEventGot(
 	}
 
 	this->_writtenSize += writtenLength;
-	if (this->_request.getBody().size() == this->_writtenSize) {
+	if (this->_request.getBody().getBody().size() == this->_writtenSize) {
 		LS_DEBUG() << "Write " << writtenLength << " bytes Completed" << std::endl;
 		return ServiceEventResult::COMPLETE;
 	}
