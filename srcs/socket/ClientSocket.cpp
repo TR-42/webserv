@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <config/ServerRunningConfig.hpp>
 #include <cstring>
