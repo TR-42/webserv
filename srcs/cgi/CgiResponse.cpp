@@ -91,6 +91,9 @@ std::vector<uint8_t> CgiResponse::generateResponsePacket(
 
 HttpResponse CgiResponse::getHttpResponse() const
 {
+	if (!this->_IsResponseHeaderParsed) {
+		return this->_errorPageProvider.internalServerError();
+	}
 	if (this->_mode == CgiResponseMode::LOCAL_REDIRECT) {
 		return this->_errorPageProvider.internalServerError();
 	}
