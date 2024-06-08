@@ -104,7 +104,7 @@ void HttpFieldMap::appendToVector(
 		it != fieldMap.end();
 		++it
 	) {
-		if (it->first == "Location") {
+		if (it->first == "Location" || it->first == "Connection") {
 			continue;
 		}
 
@@ -125,6 +125,8 @@ void HttpFieldMap::appendToVector(
 	if (!this->isNameExists(("Date"))) {
 		_appendToVector("Date", utils::getHttpTimeStr(), dst);
 	}
+
+	_appendToVector("Connection", "close", dst);
 }
 
 bool HttpFieldMap::empty() const
