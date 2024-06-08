@@ -22,6 +22,8 @@ server1:
       document_root: ./srcs
       document_listing: false
       request_path: /route2
+      methods:
+        GET:
     routeListConfig3:
       document_root: /
       document_listing: false

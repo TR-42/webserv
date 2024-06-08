@@ -187,6 +187,15 @@ PollEventResultType ClientSocket::_processPollIn(
 			return PollEventResult::OK;
 		}
 
+		const std::vector<std::string> &allowedMethods = this->httpRequest.getRouteConfig().getMethods();
+		if (!allowedMethods.empty() && std::find(allowedMethods.begin(), allowedMethods.end(), this->httpRequest.getMethod()) == allowedMethods.end()) {
+			CS_WARN()
+				<< "Method not allowed"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().methodNotAllowed());
+			return PollEventResult::OK;
+		}
+
 		const HttpRedirectConfig &redirect = this->httpRequest.getRouteConfig().getRedirect();
 		if (!redirect.getTo().empty()) {
 			ServerRunningConfig serverRunningConfig = this->httpRequest.getServerRunningConfig();
