@@ -95,7 +95,11 @@ HttpResponse CgiResponse::getHttpResponse() const
 		return this->_errorPageProvider.internalServerError();
 	}
 
-	if (this->_mode == CgiResponseMode::CLIENT_REDIRECT && !this->_UnparsedResponseRaw.empty()) {
+	if (this->_mode == CgiResponseMode::CLIENT_REDIRECT && !this->_ResponseBody.empty()) {
+		return this->_errorPageProvider.internalServerError();
+	}
+
+	if (!this->_ResponseBody.getIsEndWithEOF() && !this->_ResponseBody.getIsProcessComplete()) {
 		return this->_errorPageProvider.internalServerError();
 	}
 
@@ -104,7 +108,7 @@ HttpResponse CgiResponse::getHttpResponse() const
 	httpResponse.setStatusCode(this->_StatusCode);
 	httpResponse.setReasonPhrase(this->_ReasonPhrase);
 	httpResponse.setHeaders(this->_ProtocolFieldMap);
-	httpResponse.setBody(this->_UnparsedResponseRaw);
+	httpResponse.setBody(this->_ResponseBody.getBody());
 
 	if (this->isSetContentType) {
 		httpResponse.getHeaders().addValue("Content-Type", this->_ContentType);
@@ -121,15 +125,19 @@ bool CgiResponse::pushResponseRaw(
 	const std::vector<uint8_t> &responseRaw
 )
 {
-	_UnparsedResponseRaw.insert(
+	if (this->_IsResponseHeaderParsed) {
+		if (this->_mode != CgiResponseMode::DOCUMENT && this->_mode != CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT) {
+			return false;
+		}
+
+		return this->_ResponseBody.pushData(responseRaw.data(), responseRaw.size());
+	}
+
+	this->_UnparsedResponseRaw.insert(
 		_UnparsedResponseRaw.end(),
 		responseRaw.begin(),
 		responseRaw.end()
 	);
-
-	if (_IsResponseHeaderParsed) {
-		return true;
-	}
 
 	while (true) {
 		std::vector<uint8_t> *responseRawLine = utils::pickLine(_UnparsedResponseRaw);
@@ -156,6 +164,12 @@ bool CgiResponse::pushResponseRaw(
 				!this->isSetLocation
 			) {
 				this->_mode = CgiResponseMode::DOCUMENT;
+				this->_ResponseBody = MessageBody::init(this->_ProtocolFieldMap, true);
+				this->_ProtocolFieldMap.isNameExists("Content-Length");
+				this->_ProtocolFieldMap.isNameExists("Transfer-Encoding");
+				bool pushResult = this->_ResponseBody.pushData(this->_UnparsedResponseRaw.data(), this->_UnparsedResponseRaw.size());
+				this->_UnparsedResponseRaw.clear();
+				return pushResult;
 			}
 
 			// location以外存在しないことを確認
@@ -169,6 +183,9 @@ bool CgiResponse::pushResponseRaw(
 				this->isAbsolutePath
 			) {
 				this->_mode = CgiResponseMode::LOCAL_REDIRECT;
+				if (!this->_UnparsedResponseRaw.empty()) {
+					return false;
+				}
 			}
 
 			else if (
@@ -181,6 +198,9 @@ bool CgiResponse::pushResponseRaw(
 				this->_mode = CgiResponseMode::CLIENT_REDIRECT;
 				this->_StatusCode = "301";
 				this->_ReasonPhrase = "Moved Permanently";
+				if (!this->_UnparsedResponseRaw.empty()) {
+					return false;
+				}
 			}
 
 			else if (
@@ -190,6 +210,12 @@ bool CgiResponse::pushResponseRaw(
 				!this->isAbsolutePath
 			) {
 				this->_mode = CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT;
+				this->_ResponseBody = MessageBody::init(this->_ProtocolFieldMap, true);
+				this->_ProtocolFieldMap.isNameExists("Content-Length");
+				this->_ProtocolFieldMap.isNameExists("Transfer-Encoding");
+				bool pushResult = this->_ResponseBody.pushData(this->_UnparsedResponseRaw.data(), this->_UnparsedResponseRaw.size());
+				this->_UnparsedResponseRaw.clear();
+				return pushResult;
 			}
 
 			else {
@@ -309,9 +335,9 @@ const HttpFieldMap &CgiResponse::getExtensionFieldMap() const
 	return this->_ExtensionFieldMap;
 }
 
-const std::vector<uint8_t> &CgiResponse::getResponseBody() const
+const MessageBody &CgiResponse::getResponseBody() const
 {
-	return this->_UnparsedResponseRaw;
+	return this->_ResponseBody;
 }
 
 }	 // namespace webserv

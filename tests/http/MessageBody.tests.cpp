@@ -6,7 +6,7 @@ using namespace webserv;
 
 TEST(MessageBody, noChunk0)
 {
-	MessageBody body(false, 0);
+	MessageBody body(false, false, 0);
 
 	EXPECT_FALSE(body.getIsChunked());
 	EXPECT_EQ(body.getContentLength(), 0);
@@ -22,7 +22,7 @@ TEST(MessageBody, noChunk0)
 
 TEST(MessageBody, noChunk10)
 {
-	MessageBody body(false, 10);
+	MessageBody body(false, false, 10);
 
 	EXPECT_FALSE(body.getIsChunked());
 	EXPECT_EQ(body.getContentLength(), 10);
@@ -41,7 +41,7 @@ TEST(MessageBody, noChunk10)
 
 TEST(MessageBody, Chunked0)
 {
-	MessageBody body(true, 0);
+	MessageBody body(false, true, 0);
 
 	EXPECT_TRUE(body.getIsChunked());
 	EXPECT_EQ(body.getContentLength(), 0);
@@ -59,7 +59,7 @@ TEST(MessageBody, Chunked0)
 
 TEST(MessageBody, Chunked10)
 {
-	MessageBody body(true, 0);
+	MessageBody body(false, true, 0);
 
 	EXPECT_TRUE(body.getIsChunked());
 	EXPECT_EQ(body.getContentLength(), 0);

@@ -26,6 +26,8 @@ bool MessageBody::pushData(
 				break;
 			}
 		}
+	} else if (this->_IsEndWithEOF) {
+		this->_Body.insert(this->_Body.end(), data, data + size);
 	} else {
 		size_t remaining = this->_ContentLength - this->_Body.size();
 		this->_Body.insert(this->_Body.end(), data, data + std::min(remaining, size));

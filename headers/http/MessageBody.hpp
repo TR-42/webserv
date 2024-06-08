@@ -9,6 +9,7 @@ namespace webserv
 
 class MessageBody
 {
+	DECL_VAR_GETTER(bool, IsEndWithEOF)
 	DECL_VAR_GETTER(bool, IsChunked)
 	DECL_VAR_GETTER(size_t, ContentLength)
 	DECL_VAR_GETTER(bool, IsProcessComplete)
@@ -24,7 +25,8 @@ class MessageBody
 
  public:
 	MessageBody(
-	) : _IsChunked(false),
+	) : _IsEndWithEOF(false),
+			_IsChunked(false),
 			_ContentLength(0),
 			_IsProcessComplete(true),
 			_isChunkSizeDecoded(false),
@@ -33,11 +35,13 @@ class MessageBody
 	{
 	}
 	MessageBody(
+		bool isEndWithEOF,
 		bool isChunked,
 		size_t contentLength
-	) : _IsChunked(isChunked),
+	) : _IsEndWithEOF(isEndWithEOF),
+			_IsChunked(isChunked),
 			_ContentLength(contentLength),
-			_IsProcessComplete(!isChunked && contentLength == 0),
+			_IsProcessComplete(!isEndWithEOF && !isChunked && contentLength == 0),
 			_isChunkSizeDecoded(false),
 			_currentChunkSize(0),
 			_uncompletedChunk()
@@ -46,10 +50,13 @@ class MessageBody
 
 	MessageBody(
 		const MessageBody &from
-	) : _IsChunked(from._IsChunked),
+	) : _IsEndWithEOF(from._IsEndWithEOF),
+			_IsChunked(from._IsChunked),
 			_ContentLength(from._ContentLength),
 			_IsProcessComplete(from._IsProcessComplete),
-			_Body(from._Body)
+			_Body(from._Body),
+			_isChunkSizeDecoded(from._isChunkSizeDecoded),
+			_currentChunkSize(from._currentChunkSize)
 	{
 	}
 	MessageBody &operator=(
@@ -60,17 +67,39 @@ class MessageBody
 			return *this;
 		}
 
+		this->_IsEndWithEOF = from._IsEndWithEOF;
 		this->_IsChunked = from._IsChunked;
 		this->_ContentLength = from._ContentLength;
 		this->_IsProcessComplete = from._IsProcessComplete;
 		this->_Body = from._Body;
+		this->_isChunkSizeDecoded = from._isChunkSizeDecoded;
+		this->_currentChunkSize = from._currentChunkSize;
 
 		return *this;
 	}
 	~MessageBody() {}
 
+	inline size_t size(
+	) const
+	{
+		return this->_Body.size();
+	}
+
+	inline bool empty(
+	) const
+	{
+		return this->_Body.empty();
+	}
+
+	inline const uint8_t *data(
+	) const
+	{
+		return this->_Body.data();
+	}
+
 	static inline MessageBody init(
-		const HttpFieldMap &fieldMap
+		const HttpFieldMap &fieldMap,
+		bool isEndWithEOF
 	)
 	{
 		bool isChunked = false;
@@ -92,7 +121,11 @@ class MessageBody
 			isChunked = true;
 		}
 
-		return MessageBody(isChunked, contentLength);
+		return MessageBody(
+			isEndWithEOF && !hasContentLength && !hasTransferEncoding,
+			isChunked,
+			contentLength
+		);
 	}
 
 	bool pushData(

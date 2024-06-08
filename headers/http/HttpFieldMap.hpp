@@ -24,6 +24,7 @@ class HttpFieldMap
 
 	std::vector<std::string> getValueList(const std::string &name) const;
 	void addValue(const std::string &name, const std::string &value);
+	void removeKey(const std::string &name);
 
 	bool isNameExists(const std::string &name) const;
 

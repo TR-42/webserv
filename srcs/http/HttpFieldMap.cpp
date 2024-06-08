@@ -77,6 +77,12 @@ void HttpFieldMap::addValue(const std::string &name, const std::string &value)
 	fieldMap[upperName].push_back(value);
 }
 
+void HttpFieldMap::removeKey(const std::string &name)
+{
+	// 存在しないキーを削除しても問題ない
+	fieldMap.erase(capitalize(name));
+}
+
 bool HttpFieldMap::isNameExists(const std::string &name) const
 {
 	std::string upperName = capitalize(name);

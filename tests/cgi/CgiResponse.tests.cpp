@@ -42,7 +42,7 @@ TEST(CgiResponseTest, Getters_DefaultValue)
 	EXPECT_EQ(response.getReasonPhrase(), "OK");
 	EXPECT_EQ(response.getProtocolFieldMap(), HttpFieldMap());
 	EXPECT_EQ(response.getExtensionFieldMap(), HttpFieldMap());
-	EXPECT_EQ(response.getResponseBody(), std::vector<uint8_t>());
+	EXPECT_EQ(response.getResponseBody().getBody(), std::vector<uint8_t>());
 }
 
 TEST(CgiResponseTest, Parse_Getter_DocumentResponse)
@@ -96,7 +96,7 @@ TEST(CgiResponseTest, Parse_Getter_DocumentResponse)
 		"    <p>num1=10&num2=20</p>\n"
 		"  </body>\n"
 		"</html>\n";
-	std::vector<uint8_t> responseBody = cgiResponse.getResponseBody();
+	std::vector<uint8_t> responseBody = cgiResponse.getResponseBody().getBody();
 	std::string responseBodyStr(responseBody.begin(), responseBody.end());
 	EXPECT_EQ(responseBodyStr, bodyStr);
 }
@@ -189,7 +189,7 @@ TEST(CgiResponseTest, Parse_Getter_StatusField)
 	if (response.getProtocolFieldMap().isNameExists("Date")) {
 		EXPECT_EQ(response.getProtocolFieldMap().getValueList("Date")[0], "Wed, 15 May 2024 12:34:56 GMT");
 	}
-	std::vector<uint8_t> responseBody = response.getResponseBody();
+	std::vector<uint8_t> responseBody = response.getResponseBody().getBody();
 	std::string responseBodyStr(responseBody.begin(), responseBody.end());
 	EXPECT_EQ(responseBodyStr, "No input file specified.");
 }
@@ -262,7 +262,7 @@ TEST(CgiResponseTest, Parse_Getter_NoBody)
 	if (response.getProtocolFieldMap().isNameExists("x-ghi-abc")) {
 		EXPECT_EQ(response.getProtocolFieldMap().getValueList("x-ghi-abc")[0], "def ghi");
 	}
-	std::vector<uint8_t> responseBody = response.getResponseBody();
+	std::vector<uint8_t> responseBody = response.getResponseBody().getBody();
 	std::string responseBodyStr(responseBody.begin(), responseBody.end());
 	EXPECT_EQ(responseBodyStr, "");
 }
@@ -369,23 +369,11 @@ TEST(CgiResponseTest, ResponseModeClientRedirectWithBody)
 		"\n"
 		"abc";
 	std::vector<uint8_t> cgiResponseVector4(cgiResponseStr.begin(), cgiResponseStr.end());
-	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector4));
+	EXPECT_FALSE(response.pushResponseRaw(cgiResponseVector4));
 	EXPECT_EQ(response.getMode(), CgiResponseMode::CLIENT_REDIRECT);
 	EXPECT_EQ(response.getLocation(), "http://localhost/index.html");
 	EXPECT_EQ(response.getStatusCode(), "301");
 	EXPECT_EQ(response.getReasonPhrase(), "Moved Permanently");
-
-	std::vector<uint8_t> actual = response.generateResponsePacket(true);
-	std::string timeStr = webserv::utils::getHttpTimeStr();
-	std::string httpStr =
-		"HTTP/1.1 500 Internal Server Error\r\n"
-		"Content-Length: 26\r\n"
-		"Date: " +
-		timeStr +
-		"\r\n\r\n"
-		"500 Internal Server Error\n";
-	std::string actualStr(actual.begin(), actual.end());
-	EXPECT_EQ(actualStr, httpStr);
 }
 
 TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)

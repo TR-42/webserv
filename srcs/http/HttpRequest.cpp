@@ -162,7 +162,7 @@ bool HttpRequest::pushRequestRaw(
 
 		this->_IsRequestHeaderParsed = true;
 
-		this->_Body = MessageBody::init(this->_Headers);
+		this->_Body = MessageBody::init(this->_Headers, false);
 
 		CS_INFO()
 			<< "Request Header Parse Completed:"
@@ -292,7 +292,7 @@ bool HttpRequest::parseRequestHeader(
 		C_WARN("nameValue.first was empty");
 		return false;
 	}
-	if (utils::strcasecmp(nameValue.first, "Transfer-Encoding") == 0) {
+	if (utils::strcasecmp(nameValue.first, "Transfer-Encoding")) {
 		if (nameValue.second != "chunked") {
 			C_WARN("Transfer-Encoding is not chunked");
 			throw http::exception::NotImplemented();

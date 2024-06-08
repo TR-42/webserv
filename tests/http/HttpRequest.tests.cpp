@@ -155,7 +155,7 @@ TEST(HttpRequest, RequestHeader_ContentLength)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.isRequestHeaderParsed(), true);
-	EXPECT_EQ(request.getContentLength(), 10);
+	EXPECT_EQ(request.getBody().getContentLength(), 10);
 }
 
 TEST(HttpRequest, RequestBody)
@@ -167,9 +167,7 @@ TEST(HttpRequest, RequestBody)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.isRequestHeaderParsed(), true);
-	EXPECT_EQ(request.getContentLength(), 10);
-	EXPECT_EQ(request.isRequestBodyLengthEnough(), true);
-	EXPECT_EQ(request.isRequestBodyLengthTooMuch(), false);
+	EXPECT_EQ(request.getBody().getContentLength(), 10);
 	EXPECT_EQ(request.getBody().size(), 10);
 	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1, 10), 0);
 }
@@ -187,9 +185,7 @@ TEST(HttpRequest, RequestBody_Partially)
 
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.isRequestHeaderParsed(), true);
-	EXPECT_EQ(request.getContentLength(), 10);
-	EXPECT_EQ(request.isRequestBodyLengthEnough(), true);
-	EXPECT_EQ(request.isRequestBodyLengthTooMuch(), false);
+	EXPECT_EQ(request.getBody().getContentLength(), 10);
 	EXPECT_EQ(request.getBody().size(), 10);
 	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1, 10), 0);
 }
@@ -203,11 +199,10 @@ TEST(HttpRequest, RequestBody_TooMuch)
 	EXPECT_EQ(request.pushRequestRaw(reqPacket), true);
 	EXPECT_EQ(request.isRequestLineParsed(), true);
 	EXPECT_EQ(request.isRequestHeaderParsed(), true);
-	EXPECT_EQ(request.getContentLength(), 10);
-	EXPECT_EQ(request.isRequestBodyLengthEnough(), true);
-	EXPECT_EQ(request.isRequestBodyLengthTooMuch(), true);
-	EXPECT_EQ(request.getBody().size(), 20);
-	EXPECT_EQ(std::memcmp(request.getBody().data(), BODY_1 BODY_1, 20), 0);
+	EXPECT_EQ(request.getBody().getContentLength(), 10);
+	EXPECT_EQ(request.getBody().getIsProcessComplete(), true);
+	EXPECT_EQ(request.getBody().size(), 10);
+	EXPECT_EQ(std::memcmp(request.getBody().getBody().data(), BODY_1 BODY_1, 10), 0);
 }
 
 #define TEST_REQ_LINE_ERROR_CASE(CASE) \
