@@ -106,7 +106,7 @@ HttpResponse CgiResponse::getHttpResponse() const
 	httpResponse.setHeaders(this->_ProtocolFieldMap);
 	httpResponse.setBody(this->_UnparsedResponseRaw);
 
-	if (!this->_ContentType.empty()) {
+	if (this->isSetContentType) {
 		httpResponse.getHeaders().addValue("Content-Type", this->_ContentType);
 	}
 
@@ -141,7 +141,7 @@ bool CgiResponse::pushResponseRaw(
 			_IsResponseHeaderParsed = true;
 			delete responseRawLine;
 
-			CS_INFO()
+			CS_DEBUG()
 				<< "isSetContentType: " << std::boolalpha << this->isSetContentType
 				<< ", isSetLocation: " << std::boolalpha << this->isSetLocation
 				<< ", isSetStatus: " << std::boolalpha << this->isSetStatus
@@ -219,12 +219,22 @@ bool CgiResponse::parseResponseHeader(
 	}
 
 	if (utils::strcasecmp(nameValue.first, "content-type")) {
+		if (this->isSetContentType) {
+			C_WARN("Content-Type already set");
+			return false;
+		}
+
 		this->isSetContentType = true;
 		_ContentType = nameValue.second;
 		return true;
 	}
 
 	if (utils::strcasecmp(nameValue.first, "location")) {
+		if (this->isSetLocation) {
+			C_WARN("Location already set");
+			return false;
+		}
+
 		this->isSetLocation = true;
 		if (nameValue.second.empty()) {
 			C_WARN("nameValue.second was empty");
@@ -236,6 +246,11 @@ bool CgiResponse::parseResponseHeader(
 	}
 
 	if (utils::strcasecmp(nameValue.first, "status")) {
+		if (this->isSetStatus) {
+			C_WARN("Status already set");
+			return false;
+		}
+
 		std::vector<std::string> statusParts = utils::splitWithSpace(nameValue.second, 2);
 
 		if (statusParts.size() < 2) {

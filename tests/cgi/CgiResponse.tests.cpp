@@ -434,12 +434,41 @@ TEST(CgiResponseTest, MultipleFields)
 		"Date: Wed, 15 May 2024 12:34:56 GMT\n"
 		"\n";
 	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
-	response.pushResponseRaw(cgiResponseVector);
-	EXPECT_EQ(response.getProtocolFieldMap().isNameExists("X-Powered-By"), true);
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector));
+	EXPECT_TRUE(response.getProtocolFieldMap().isNameExists("X-Powered-By"));
 	if (response.getProtocolFieldMap().isNameExists("X-Powered-By")) {
-		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[0], "PHP/8.3.4");
-		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[1], "PHP/8.3.5");
-		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[2], "PHP/8.3.6");
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By").size(), 3);
+		if (0 < response.getProtocolFieldMap().getValueList("X-Powered-By").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[0], "PHP/8.3.4");
+		if (1 < response.getProtocolFieldMap().getValueList("X-Powered-By").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[1], "PHP/8.3.5");
+		if (2 < response.getProtocolFieldMap().getValueList("X-Powered-By").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("X-Powered-By")[2], "PHP/8.3.6");
+	}
+}
+
+TEST(CgiResponseTest, SetCookie)
+{
+	CgiResponse response(logger, utils::ErrorPageProvider());
+
+	std::string cgiResponseStr =
+		"Set-Cookie: PHP/8.3.4\n"
+		"Set-Cookie: PHP/8.3.5\n"
+		"Set-Cookie: PHP/8.3.6\n"
+		"Content-type: text/html; charset=UTF-8\n"
+		"Date: Wed, 15 May 2024 12:34:56 GMT\n"
+		"\n";
+	std::vector<uint8_t> cgiResponseVector(cgiResponseStr.begin(), cgiResponseStr.end());
+	EXPECT_TRUE(response.pushResponseRaw(cgiResponseVector));
+	EXPECT_TRUE(response.getProtocolFieldMap().isNameExists("Set-Cookie"));
+	if (response.getProtocolFieldMap().isNameExists("Set-Cookie")) {
+		EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie").size(), 3);
+		if (0 < response.getProtocolFieldMap().getValueList("Set-Cookie").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie")[0], "PHP/8.3.4");
+		if (1 < response.getProtocolFieldMap().getValueList("Set-Cookie").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie")[1], "PHP/8.3.5");
+		if (2 < response.getProtocolFieldMap().getValueList("Set-Cookie").size())
+			EXPECT_EQ(response.getProtocolFieldMap().getValueList("Set-Cookie")[2], "PHP/8.3.6");
 	}
 }
 
