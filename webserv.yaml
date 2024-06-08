@@ -22,10 +22,18 @@ server1:
       document_root: ./srcs
       document_listing: false
       request_path: /route2
+      methods:
+        GET:
     routeListConfig3:
       document_root: /
       document_listing: false
       request_path: /simple
+    routeListConfig4:
+      redirect:
+        to: https://www.google.com
+        code: 302
+      document_listing: false
+      request_path: /redirect
     resourcesRoute:
       document_root: ./resources
       document_listing: false

@@ -41,6 +41,7 @@ class HttpRequest
 	// 正規化されて分割されたパスが入る
 	std::vector<std::string> _PathSegmentList;
 	ServerRunningConfig *serverRunningConfig;
+	HttpRouteConfig _routeConfig;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;
 	// chunkは後で実装
@@ -78,6 +79,8 @@ class HttpRequest
 	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
 
 	void setPath(const std::string &path);
+
+	inline const HttpRouteConfig &getRouteConfig() const { return this->_routeConfig; }
 
  private:
 	bool parseRequestLine(

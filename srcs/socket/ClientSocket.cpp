@@ -1,5 +1,6 @@
 #include <sys/socket.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <config/ServerRunningConfig.hpp>
 #include <cstring>
@@ -215,6 +216,25 @@ PollEventResultType ClientSocket::_processPollIn(
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
 			return PollEventResult::OK;
 		}
+
+		const std::vector<std::string> &allowedMethods = this->httpRequest.getRouteConfig().getMethods();
+		if (!allowedMethods.empty() && std::find(allowedMethods.begin(), allowedMethods.end(), this->httpRequest.getMethod()) == allowedMethods.end()) {
+			CS_WARN()
+				<< "Method not allowed"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().methodNotAllowed());
+			return PollEventResult::OK;
+		}
+
+		const HttpRedirectConfig &redirect = this->httpRequest.getRouteConfig().getRedirect();
+		if (!redirect.getTo().empty()) {
+			ServerRunningConfig serverRunningConfig = this->httpRequest.getServerRunningConfig();
+			utils::ErrorPageProvider errorPageProvider = serverRunningConfig.getErrorPageProvider();
+			HttpResponse response = errorPageProvider.getErrorPage(redirect.getCode());
+			response.getHeaders().addValue("Location", redirect.getTo());
+			this->_setResponse(response);
+			return PollEventResult::OK;
+		}
 	}
 
 	if (!this->httpRequest.isParseCompleted()) {
@@ -232,6 +252,8 @@ PollEventResultType ClientSocket::_processPollIn(
 
 	try {
 		this->_service = pickService(
+			this->httpRequest.getServerRunningConfig().getPort(),
+			this->httpRequest.getRouteConfig(),
 			this->_clientAddr,
 			this->httpRequest,
 			pollableList,
@@ -391,6 +413,8 @@ void ClientSocket::_processPollService(
 
 					try {
 						this->_service = pickService(
+							this->httpRequest.getServerRunningConfig().getPort(),
+							this->httpRequest.getServerRunningConfig().pickRouteConfig(this->httpRequest.getPathSegmentList()),
 							this->_clientAddr,
 							this->httpRequest,
 							pollableList,
