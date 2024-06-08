@@ -354,6 +354,7 @@ TEST(CgiResponseTest, ResponseModeClientRedirect)
 		"Date: " +
 		timeStr +
 		"\r\n"
+		"Connection: close\r\n"
 		"\r\n";
 	std::string actualStr(actual.begin(), actual.end());
 	EXPECT_EQ(actualStr, httpStr);
@@ -382,7 +383,9 @@ TEST(CgiResponseTest, ResponseModeClientRedirectWithBody)
 		"Content-Length: 26\r\n"
 		"Date: " +
 		timeStr +
-		"\r\n\r\n"
+		"\r\n" +
+		"Connection: close\r\n"
+		"\r\n"
 		"500 Internal Server Error\n";
 	std::string actualStr(actual.begin(), actual.end());
 	EXPECT_EQ(actualStr, httpStr);
@@ -414,7 +417,8 @@ TEST(CgiResponseTest, ResponseModeClientRedirectWithDocument)
 		"Content-Length: 0\r\n"
 		"Date: " +
 		timeStr +
-		"\r\n"
+		"\r\n" +
+		"Connection: close\r\n"
 		"\r\n";
 
 	std::string actualStr(actual.begin(), actual.end());
