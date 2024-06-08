@@ -112,8 +112,7 @@ void HttpFieldMap::appendToVector(
 		it != fieldMap.end();
 		++it
 	) {
-		// Responseでchunkedは対応しない
-		if (it->first == "Location" || it->first == "Transfer-Encoding") {
+		if (it->first == "Location" || it->first == "Transfer-Encoding" || it->first == "Connection") {
 			continue;
 		}
 
@@ -134,6 +133,8 @@ void HttpFieldMap::appendToVector(
 	if (!this->isNameExists(("Date"))) {
 		_appendToVector("Date", utils::getHttpTimeStr(), dst);
 	}
+
+	_appendToVector("Connection", "close", dst);
 }
 
 bool HttpFieldMap::empty() const

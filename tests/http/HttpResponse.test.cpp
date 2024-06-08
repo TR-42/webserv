@@ -29,6 +29,7 @@ TEST(HttpResponse, test1)
 		"Date: " +
 		webserv::utils::getHttpTimeStr() +
 		"\r\n"
+		"Connection: close\r\n"
 		"\r\n"
 		"Hello, World!";
 	EXPECT_EQ(responsePacketStr, expectedResponsePacketStr);
