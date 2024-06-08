@@ -132,22 +132,32 @@ PollEventResultType ClientSocket::_processPollIn(
 			CS_WARN()
 				<< "httpRequest.pushRequestRaw() failed"
 				<< std::endl;
-			this->_setResponse(utils::ErrorPageProvider().badRequest());
+			if (this->httpRequest.isServerRunningConfigSet()) {
+				this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().badRequest());
+			} else {
+				this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().badRequest());
+			}
 			return PollEventResult::OK;
 		}
 	} catch (http::exception::HttpError &e) {
 		CS_WARN()
-			<< "httpRequest.pushRequestRaw() failed: " << e.what()
+			<< "httpRequest.pushRequestRaw() failed(HTTPError): " << e.what()
 			<< std::endl;
-		// TODO: 適切なErrorPageProviderを選択する
-		this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
+		if (this - httpRequest.isServerRunningConfigSet()) {
+			this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
+		} else {
+			this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
+		}
 		return PollEventResult::OK;
 	} catch (const std::exception &e) {
 		CS_WARN()
-			<< "httpRequest.pushRequestRaw() failed: " << e.what()
+			<< "httpRequest.pushRequestRaw() failed(Exception): " << e.what()
 			<< std::endl;
-		// TODO: 適切なErrorPageProviderを選択する
-		this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
+		if (this - httpRequest.isServerRunningConfigSet()) {
+			this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
+		} else {
+			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
+		}
 		return PollEventResult::OK;
 	}
 
@@ -199,17 +209,45 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< "Request parse completed"
 		<< "Body size: " << this->httpRequest.getContentLength()
 		<< std::endl;
-	this->_service = pickService(
-		this->_clientAddr,
-		this->httpRequest,
-		pollableList,
-		this->logger
-	);
+
+	try {
+		this->_service = pickService(
+			this->_clientAddr,
+			this->httpRequest,
+			pollableList,
+			this->logger
+		);
+	} catch (http::exception::HttpError &e) {
+		CS_WARN()
+			<< "pickService() failed(HTTPError): " << e.what()
+			<< std::endl;
+		if (this - httpRequest.isServerRunningConfigSet()) {
+			this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
+		} else {
+			this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
+		}
+		return PollEventResult::OK;
+	} catch (const std::exception &e) {
+		CS_WARN()
+			<< "pickService() failed(Exception): " << e.what()
+			<< std::endl;
+		if (this - httpRequest.isServerRunningConfigSet()) {
+			this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
+		} else {
+			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
+		}
+		return PollEventResult::OK;
+	}
+
 	if (this->_service == NULL) {
 		CS_DEBUG()
 			<< "pickService() returned NULL"
 			<< std::endl;
-		this->_setResponse(utils::ErrorPageProvider().methodNotAllowed());
+		if (this->httpRequest.isServerRunningConfigSet()) {
+			this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
+		} else {
+			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
+		}
 		return PollEventResult::OK;
 	}
 
@@ -291,7 +329,31 @@ void ClientSocket::_processPollService(
 	std::vector<Pollable *> &pollableList
 )
 {
-	ServiceEventResultType serviceResult = this->_service->onEventGot(revents);
+	ServiceEventResultType serviceResult;
+	try {
+		serviceResult = this->_service->onEventGot(revents);
+	} catch (http::exception::HttpError &e) {
+		CS_WARN()
+			<< "service.onEventGot() failed(HTTPError): " << e.what()
+			<< std::endl;
+		if (this - httpRequest.isServerRunningConfigSet()) {
+			this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
+		} else {
+			this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
+		}
+		return;
+	} catch (const std::exception &e) {
+		CS_WARN()
+			<< "service.onEventGot() failed(Exception): " << e.what()
+			<< std::endl;
+		if (this - httpRequest.isServerRunningConfigSet()) {
+			this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
+		} else {
+			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
+		}
+		return;
+	}
+
 	switch (serviceResult) {
 		case ServiceEventResult::COMPLETE:
 			CS_DEBUG()
@@ -306,17 +368,45 @@ void ClientSocket::_processPollService(
 					this->httpRequest.setPath(cgiService->getLocalRedirectLocation());
 					delete this->_service;
 					this->_service = NULL;
-					this->_service = pickService(
-						this->_clientAddr,
-						this->httpRequest,
-						pollableList,
-						this->logger
-					);
+
+					try {
+						this->_service = pickService(
+							this->_clientAddr,
+							this->httpRequest,
+							pollableList,
+							this->logger
+						);
+					} catch (http::exception::HttpError &e) {
+						CS_WARN()
+							<< "pickService() failed(HTTPError): " << e.what()
+							<< std::endl;
+						if (this - httpRequest.isServerRunningConfigSet()) {
+							this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
+						} else {
+							this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
+						}
+						return;
+					} catch (const std::exception &e) {
+						CS_WARN()
+							<< "pickService() failed(Exception): " << e.what()
+							<< std::endl;
+						if (this - httpRequest.isServerRunningConfigSet()) {
+							this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
+						} else {
+							this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
+						}
+						return;
+					}
+
 					if (this->_service == NULL) {
 						CS_DEBUG()
 							<< "pickService() returned NULL"
 							<< std::endl;
-						this->_setResponse(utils::ErrorPageProvider().methodNotAllowed());
+						if (this->httpRequest.isServerRunningConfigSet()) {
+							this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().methodNotAllowed());
+						} else {
+							this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().methodNotAllowed());
+						}
 					} else {
 						this->_processPollService(0, pollableList);
 					}
@@ -345,7 +435,11 @@ void ClientSocket::_processPollService(
 			this->_service->setIsDisposingFromChildProcess(this->isDisposingFromChildProcess());
 			delete this->_service;
 			this->_service = NULL;
-			this->_setResponse(utils::ErrorPageProvider().internalServerError());
+			if (this->httpRequest.isServerRunningConfigSet()) {
+				this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
+			} else {
+				this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
+			}
 			return;
 
 		case ServiceEventResult::CONTINUE:
