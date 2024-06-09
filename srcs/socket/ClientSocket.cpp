@@ -15,7 +15,7 @@
 #include <utils/UUIDv7.hpp>
 #include <utils/to_string.hpp>
 
-#define RECV_BUFFER_SIZE 1024
+#define RECV_BUFFER_SIZE 4096
 #define WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES (128 * 1024 * 1024)
 
 namespace webserv
