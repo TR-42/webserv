@@ -16,6 +16,7 @@
 #define REQUEST_MAX_SIZE (512 * 1024 * 1024)
 
 #define METHOD_GET "GET"
+#define METHOD_DELETE "DELETE"
 #define METHOD_HEAD "HEAD"
 #define METHOD_POST "POST"
 #define METHOD_PUT "PUT"
