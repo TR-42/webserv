@@ -7,6 +7,7 @@
 #include <Logger.hpp>
 #include <cerrno>
 #include <config/ServerRunningConfig.hpp>
+#include <config/validateConfig.hpp>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -95,13 +96,27 @@ static bool loadConfigFile(
 			return false;
 		}
 		listenConfig = webserv::parseListenConfig(root, configFilePath);
-		return true;
 	} catch (const std::exception &e) {
 		LS_FATAL()
 			<< "parseListenConfig failed: " << e.what()
 			<< std::endl;
 		return false;
 	}
+
+	std::vector<std::string> errorMessageList = webserv::validateConfig(listenConfig);
+	if (!errorMessageList.empty()) {
+		LS_FATAL()
+			<< "validateConfig failed: errorMessageList.size(): " << errorMessageList.size()
+			<< std::endl;
+		for (size_t i = 0; i < errorMessageList.size(); ++i) {
+			LS_ERROR()
+				<< "[" << std::dec << i << "]: " << errorMessageList[i]
+				<< std::endl;
+		}
+		return false;
+	}
+
+	return true;
 }
 
 int main(int argc, const char *argv[])
@@ -133,11 +148,6 @@ int main(int argc, const char *argv[])
 	try {
 		if (!loadConfigFile(1 < argc ? argv[1] : DEFAULT_CONFIG_FILE_PATH, logger, listenConfig)) {
 			L_FATAL("loadConfigFile failed");
-			return 1;
-		}
-
-		if (listenConfig.getListenMap().empty()) {
-			L_FATAL("listenConfig.getListenMap().empty()");
 			return 1;
 		}
 

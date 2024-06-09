@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -19,7 +20,7 @@ typedef std::map<std::string, std::string> ContentTypeMapType;
 class HttpRouteConfig
 {
 	DECL_VAR_REF_GETTER(std::string, RequestPath)
-	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, Methods)
+	DECL_VAR_REF_GETTER_SETTER(std::set<std::string>, Methods)
 	DECL_VAR_REF_GETTER_SETTER(HttpRedirectConfig, Redirect)
 	DECL_VAR_REF_GETTER_SETTER(std::string, DocumentRoot)
 	DECL_VAR_GETTER_SETTER(bool, IsDocumentListingEnabled)
@@ -32,7 +33,7 @@ class HttpRouteConfig
 	HttpRouteConfig();
 	HttpRouteConfig(
 		const std::string &RequestPath,
-		const std::vector<std::string> &Methods,
+		const std::set<std::string> &Methods,
 		const HttpRedirectConfig &Redirect,
 		const std::string &DocumentRoot,
 		bool IsDocumentListingEnabled,

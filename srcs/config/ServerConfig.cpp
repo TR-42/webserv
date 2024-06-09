@@ -52,7 +52,7 @@ ServerConfig &webserv::ServerConfig::operator=(
 
 ServerConfig::ServerConfig(
 	const std::string &key,
-	const std::vector<std::string> &serverNameList,
+	const std::set<std::string> &serverNameList,
 	uint16_t port,
 	size_t timeoutMs,
 	std::size_t requestBodyLimit,
