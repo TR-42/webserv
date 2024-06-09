@@ -127,6 +127,8 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	int result = execve(argv[0], argv, envp);
 	errno_t err = errno;
 	CS_ERROR() << "execve() failed with code " << result << ": " << std::strerror(err) << std::endl;
+	delete[] argv;
+	delete[] envp;
 	std::exit(1);
 }
 
