@@ -123,7 +123,7 @@ PollEventResultType CgiHandler::onEventGot(
 	}
 
 	if (readResult == 0) {
-		C_ERROR("CGI read complete");
+		C_DEBUG("CGI read complete");
 		if (this->_cgiResponse.getMode() == CgiResponseMode::LOCAL_REDIRECT) {
 			*(this->_isLocalRedirect) = true;
 			*(this->_localRedirectLocation) = this->_cgiResponse.getLocation();
