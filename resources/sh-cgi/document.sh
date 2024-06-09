@@ -29,6 +29,6 @@ echo
 FNAME=$(mktemp $TMPDIR/cgi.XXXXXX)
 cat > $FNAME
 
-cat < $FNAME
+cat $FNAME
 
 rm -f $FNAME
