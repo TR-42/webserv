@@ -144,12 +144,12 @@ def TestPathInfo():
 	conn.close()
 
 def TestBody():
-	BODY_STR_LIST = ["Hello, World!", "from Python"]
+	BODY_STR_LIST = ["Hello, World!", "from Python"] * 5000
 	BODY_STR = "\n".join(BODY_STR_LIST)
 	conn = http.client.HTTPConnection(host)
 	conn.request(
 		"POST",
-		"/resources/sh-cgi/document.sh/abc/def?query=value&key=value2",
+		"/resources/sh-cgi/document.sh/abc/def?query=value&key=value2&chunked=false",
 		headers={
 			"Host": host,
 			"Accept-Encoding": "identity",
@@ -168,32 +168,34 @@ def TestBody():
 	cmp("server", headers["Date"] != "", True)
 
 	actualBody = response.read().decode()
+
+	expected = [
+		"Content-Type: text/plain",
+		f"Content-Length: {len(BODY_STR)}",
+		"Gateway Interface: CGI/1.1",
+		"Path Info: /abc/def",
+		f"Path Translated: {PROJ_ROOT_DIR}/resources/sh-cgi/document.sh",
+		"Query String: query=value&key=value2&chunked=false",
+		"Request Method: POST",
+		"Script Name: /resources/sh-cgi/document.sh",
+		"Remote Address: 127.0.0.1",
+		lambda actual: actual.startswith("Remote Port: ") and actual[14:].isdigit() and int(actual[14:]) > 0 and int(actual[14:]) < 65536,
+		f"Server Name: {host}",
+		"Server Port: 80",
+		"Server Protocol: HTTP/1.1",
+		"Server Software: webserv/1.0",
+		"Hello, World!",
+		"",
+		"HTTP_ACCEPT_ENCODING=identity",
+		f"HTTP_HOST={host}",
+		"",
+	]
+	expected.extend(BODY_STR_LIST)
+
 	cmp_list(
 		"body",
 		actualBody.split("\n"),
-		[
-			"Content-Type: text/plain",
-			f"Content-Length: {len(BODY_STR)}",
-			"Gateway Interface: CGI/1.1",
-			"Path Info: /abc/def",
-			f"Path Translated: {PROJ_ROOT_DIR}/resources/sh-cgi/document.sh",
-			"Query String: query=value&key=value2",
-			"Request Method: POST",
-			"Script Name: /resources/sh-cgi/document.sh",
-			"Remote Address: 127.0.0.1",
-			lambda actual: actual.startswith("Remote Port: ") and actual[14:].isdigit() and int(actual[14:]) > 0 and int(actual[14:]) < 65536,
-			f"Server Name: {host}",
-			"Server Port: 80",
-			"Server Protocol: HTTP/1.1",
-			"Server Software: webserv/1.0",
-			"Hello, World!",
-			"",
-			"HTTP_ACCEPT_ENCODING=identity",
-			f"HTTP_HOST={host}",
-			"",
-			BODY_STR_LIST[0],
-			BODY_STR_LIST[1],
-		]
+		expected
 	)
 
 	conn.close()
