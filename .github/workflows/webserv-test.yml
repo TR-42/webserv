@@ -73,8 +73,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - run: make -j${{ env.BUILD_PARALLEL }}
       - run: make leaks -j${{ env.BUILD_PARALLEL }}
-      - run: ./leaks &
+      - run: leaks -q --atExit -- ./webserv &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
