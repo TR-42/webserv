@@ -433,7 +433,10 @@ void ClientSocket::_processPollService(
 					try {
 						this->_service = pickService(
 							this->httpRequest.getServerRunningConfig().getPort(),
-							this->httpRequest.getServerRunningConfig().pickRouteConfig(this->httpRequest.getPathSegmentList()),
+							this->httpRequest.getServerRunningConfig().pickRouteConfig(
+								this->httpRequest.getPathSegmentList(),
+								this->httpRequest.getMethod()
+							),
 							this->_clientAddr,
 							this->httpRequest,
 							pollableList,

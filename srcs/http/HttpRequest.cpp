@@ -344,13 +344,18 @@ const ServerRunningConfig &HttpRequest::getServerRunningConfig() const
 	return *this->serverRunningConfig;
 }
 
-void HttpRequest::setServerRunningConfig(const ServerRunningConfig &serverRunningConfig)
+void HttpRequest::setServerRunningConfig(
+	const ServerRunningConfig &serverRunningConfig
+)
 {
 	if (this->serverRunningConfig != NULL) {
 		delete this->serverRunningConfig;
 	}
 	this->serverRunningConfig = new ServerRunningConfig(serverRunningConfig);
-	this->_routeConfig = this->serverRunningConfig->pickRouteConfig(this->_PathSegmentList);
+	this->_routeConfig = this->serverRunningConfig->pickRouteConfig(
+		this->_PathSegmentList,
+		this->_Method
+	);
 }
 
 void HttpRequest::setPath(

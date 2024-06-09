@@ -37,7 +37,10 @@ class ServerRunningConfig
 
 	bool isServerNameMatch(const std::string &serverName) const;
 	bool isSizeLimitExceeded(const size_t contentLength) const;
-	HttpRouteConfig pickRouteConfig(const std::vector<std::string> &pathSegmentList) const;
+	HttpRouteConfig pickRouteConfig(
+		const std::vector<std::string> &pathSegmentList,
+		const std::string &method
+	) const;
 
 	inline uint16_t getPort() const
 	{
