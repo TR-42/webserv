@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <sys/socket.h>
 
 #include <algorithm>
@@ -589,6 +590,12 @@ ClientSocket::ClientSocket(
 		_IsHeaderValidationCompleted(false),
 		_timeoutChecker(now, logger)
 {
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0) {
+		LS_ERROR()
+			<< "fcntl() failed to set flags: " << std::strerror(errno)
+			<< std::endl;
+	}
+
 	CS_DEBUG()
 		<< "ClientSocket(fd:" << utils::to_string(fd) << ")"
 		<< " created: " << this->getUUID()

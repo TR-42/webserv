@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -47,8 +48,24 @@ static bool _preparePipe(
 
 	fdReadFromCgi = pipeFd[PIPE_READ];
 	fdWriteToParent = pipeFd[PIPE_WRITE];
-
-	return true;
+	if (fcntl(fdReadFromCgi, F_SETFL, O_NONBLOCK) < 0) {
+		errno_t err = errno;
+		LS_ERROR()
+			<< "fcntl() failed to set flags: " << std::strerror(err)
+			<< std::endl;
+	} else if (fcntl(fdWriteToCgi, F_SETFL, O_NONBLOCK) < 0) {
+		errno_t err = errno;
+		LS_ERROR()
+			<< "fcntl() failed to set flags: " << std::strerror(err)
+			<< std::endl;
+	} else {
+		return true;
+	}
+	close(fdWriteToCgi);
+	close(fdReadFromParent);
+	close(fdReadFromCgi);
+	close(fdWriteToParent);
+	return false;
 }
 
 static inline std::string _dirname(
