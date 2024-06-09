@@ -62,7 +62,7 @@ void HttpRouteConfig::setRequestPath(const std::string &RequestPath)
 
 HttpRouteConfig::HttpRouteConfig(
 	const std::string &RequestPath,
-	const std::vector<std::string> &Methods,
+	const std::set<std::string> &Methods,
 	const HttpRedirectConfig &Redirect,
 	const std::string &DocumentRoot,
 	bool IsDocumentListingEnabled,

@@ -44,29 +44,13 @@ static inline std::string _ConvertToLowerCase(std::string str)
 	return str;
 }
 
-static inline std::set<std::string> _ServerNameVecToSet(const std::vector<std::string> &strList)
-{
-	std::set<std::string> serverNameSet;
-
-	std::vector<std::string>::const_iterator itEnd = strList.end();
-	for (
-		std::vector<std::string>::const_iterator it = strList.begin();
-		it != itEnd;
-		++it
-	) {
-		serverNameSet.insert(_ConvertToLowerCase(*it));
-	}
-
-	return serverNameSet;
-}
-
 ServerRunningConfig::ServerRunningConfig(
 	const ServerConfig &serverConfig,
 	utils::ErrorPageProvider &errorPageProvider,
 	Logger &logger
 ) : _port(serverConfig.getPort()),
 		_timeoutMs(serverConfig.getTimeoutMs()),
-		_serverNameList(_ServerNameVecToSet(serverConfig.getServerNameList())),
+		_serverNameList(serverConfig.getServerNameList()),
 		_errorPageProvider(errorPageProvider),
 		_requestBodyLimit(serverConfig.getRequestBodyLimit()),
 		_routeList(serverConfig.getRouteList()),

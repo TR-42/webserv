@@ -1,8 +1,10 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include <algorithm>
 #include <config/parseHttpRouteConfig.hpp>
 #include <config/parseServerConfig.hpp>
+#include <cstring>
 #include <stdexcept>
 #include <utils/stoul.hpp>
 #include <yaml/MappingNode.hpp>
@@ -19,6 +21,17 @@
 namespace webserv
 {
 
+static std::string toLower(const std::string &str)
+{
+	std::string lower(str);
+	for (std::string::iterator it = lower.begin(); it != lower.end(); ++it) {
+		if (std::isupper(*it)) {
+			*it = *it - 'A' + 'a';
+		}
+	}
+	return lower;
+}
+
 ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string &yamlFilePath)
 {
 	if (!node.has(YAML_KEY_SERVER_NAME_LIST))
@@ -30,7 +43,7 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 	if (!node.has(YAML_KEY_TIMEOUT_MS))
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_TIMEOUT_MS " is required");
 
-	std::vector<std::string> serverNameList;
+	std::set<std::string> serverNameList;
 	uint16_t port;
 	size_t timeoutMs = 100;
 	std::size_t requestBodyLimit = 0;
@@ -41,7 +54,9 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 	if (serverNameListNode.getNodes().empty())
 		throw std::runtime_error("ServerConfig[" + node.getKey() + "]: " YAML_KEY_SERVER_NAME_LIST " must not be empty");
 	for (yaml::NodeVector::const_iterator it = serverNameListNode.getNodes().begin(); it != serverNameListNode.getNodes().end(); ++it) {
-		serverNameList.push_back(yaml::getMappingNode(**it).getKey());
+		std::string serverName = toLower(yaml::getMappingNode(**it).getKey());
+		if (!serverNameList.insert(serverName).second)
+			throw std::runtime_error("ServerConfig[" + node.getKey() + "]: " YAML_KEY_SERVER_NAME_LIST " must not contain duplicate values");
 	}
 
 	unsigned long port_ulong;
@@ -100,7 +115,15 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 		routeList.push_back(parseHttpRouteConfig(yaml::getMappingNode(**it), yamlFilePath));
 	}
 
-	return ServerConfig(serverNameList, port, timeoutMs, requestBodyLimit, errorPageMap, routeList);
+	return ServerConfig(
+		node.getKey(),
+		serverNameList,
+		port,
+		timeoutMs,
+		requestBodyLimit,
+		errorPageMap,
+		routeList
+	);
 }
 
 }	 // namespace webserv

@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include <cctype>
 #include <config/HttpRouteConfig.hpp>
 #include <config/parseCgiConfig.hpp>
 #include <config/parseHttpRedirectConfig.hpp>
@@ -22,6 +23,37 @@
 namespace webserv
 {
 
+static std::string toUpper(const std::string &str)
+{
+	std::string upper(str);
+	for (std::string::iterator it = upper.begin(); it != upper.end(); ++it) {
+		if (std::islower(*it)) {
+			*it = *it - 'a' + 'A';
+		}
+	}
+	return upper;
+}
+static std::string toLower(const std::string &str)
+{
+	std::string lower(str);
+	for (std::string::iterator it = lower.begin(); it != lower.end(); ++it) {
+		if (std::isupper(*it)) {
+			*it = *it - 'A' + 'a';
+		}
+	}
+	return lower;
+}
+
+static bool isUpper(const std::string &str)
+{
+	for (size_t i = 0; i < str.size(); ++i) {
+		if (!std::isupper(str[i])) {
+			return false;
+		}
+	}
+	return true;
+}
+
 HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::string &yamlFilePath)
 {
 	if (!node.has(YAML_KEY_REQUEST_PATH))
@@ -30,7 +62,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " and " YAML_KEY_REDIRECT " must not be both present or both absent");
 
 	std::string yaml_request_path = yaml::getScalarNode(node, YAML_KEY_REQUEST_PATH).getValue();
-	std::vector<std::string> yaml_methods;
+	std::set<std::string> yaml_methods;
 	HttpRedirectConfig yaml_redirect;
 	std::string yaml_document_root;
 	bool yaml_document_listing = false;
@@ -44,7 +76,11 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 	if (node.has(YAML_KEY_METHODS)) {
 		const yaml::MappingNode &methods_node = yaml::getMappingNode(node, YAML_KEY_METHODS);
 		for (yaml::NodeVector::const_iterator it = methods_node.getNodes().begin(); it != methods_node.getNodes().end(); ++it) {
-			yaml_methods.push_back(yaml::getMappingNode(**it).getKey());
+			std::string method = toUpper(yaml::getMappingNode(**it).getKey());
+			if (method.empty() || !isUpper(method))
+				throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_METHODS ": Method must be uppercase: " + method);
+			if (!yaml_methods.insert(method).second)
+				throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_METHODS ": Duplicate method: " + method);
 		}
 	}
 
@@ -88,8 +124,10 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		const yaml::MappingNode &content_type_node = yaml::getMappingNode(node, YAML_KEY_CONTENT_TYPE);
 		for (yaml::NodeVector::const_iterator it = content_type_node.getNodes().begin(); it != content_type_node.getNodes().end(); ++it) {
 			const yaml::ScalarNode &ext_content_type_node = yaml::getScalarNode(**it);
-			std::string key = ext_content_type_node.getKey();
+			std::string key = toLower(ext_content_type_node.getKey());
 			std::string value = ext_content_type_node.getValue();
+			if (yaml_content_type.find(key) != yaml_content_type.end())
+				throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_CONTENT_TYPE ": Duplicate content type extension: " + key);
 			yaml_content_type[key] = value;
 		}
 	}

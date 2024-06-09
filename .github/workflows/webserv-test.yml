@@ -36,20 +36,8 @@ jobs:
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
       - if: always() &&  steps.exec-webserv.outcome == 'success'
-        name: Find latest log file
-        id: latest-log
-        run: echo "file=$(ls -t logs | head -n 1)" >> $GITHUB_OUTPUT
-        continue-on-error: true
-      - if: always() &&  steps.exec-webserv.outcome == 'success'
         run: sudo kill $(pgrep webserv)
         continue-on-error: true
-      - if: always() &&  steps.exec-webserv.outcome == 'success'
-        run: cat logs/${{ steps.latest-log.outputs.file }}
-      - if: always() &&  steps.exec-webserv.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: webserv-${{ matrix.os }}-log
-          path: logs/${{ steps.latest-log.outputs.file }}
 
   debug-test-python-http:
     strategy:

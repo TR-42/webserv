@@ -24,6 +24,7 @@ SRCS_CONFIG	=\
 	parseServerConfig.cpp\
 	ServerConfig.cpp\
 	ServerRunningConfig.cpp\
+	validateConfig.cpp\
 
 SRCS_ENV	=\
 	EnvManager.cpp\

@@ -49,6 +49,11 @@ class ErrorPageProvider
 	static const int GATEWAY_TIMEOUT = 504;
 	static const int HTTP_VERSION_NOT_SUPPORTED = 505;
 
+	inline bool hasPage(int statusCode) const
+	{
+		return this->_errorPages.find(statusCode) != this->_errorPages.end();
+	}
+
 	void setErrorPageFromFile(
 		int statusCode,
 		const std::string &path

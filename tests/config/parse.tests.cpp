@@ -145,7 +145,7 @@ TEST_F(ParseTests, parseListenConfig)
 	{
 		HttpRouteConfig route2_1(
 			"/",
-			std::vector<std::string>(),
+			std::set<std::string>(),
 			HttpRedirectConfig(),
 			this->getTestFileDir() + "/sample4",
 			false,
@@ -155,7 +155,8 @@ TEST_F(ParseTests, parseListenConfig)
 		);
 
 		ServerConfig server2(
-			std::vector<std::string>{"42Tokyo.jp"},
+			"server2",
+			std::set<std::string>{"42tokyo.jp"},
 			8080,
 			100,
 			0,
@@ -169,7 +170,7 @@ TEST_F(ParseTests, parseListenConfig)
 	{
 		HttpRouteConfig route3_1(
 			"/",
-			std::vector<std::string>(),
+			std::set<std::string>(),
 			HttpRedirectConfig(),
 			this->getTestFileDir() + "/sample4",
 			false,
@@ -179,7 +180,8 @@ TEST_F(ParseTests, parseListenConfig)
 		);
 
 		ServerConfig server3(
-			std::vector<std::string>{"42Tokyo.jp"},
+			"server3",
+			std::set<std::string>{"42tokyo.jp"},
 			8081,
 			100,
 			0,
