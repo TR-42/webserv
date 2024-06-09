@@ -287,6 +287,16 @@ print()
 print("TestChunkedBody - Big")
 TestChunkedBody(5000)
 
+if "CI" in os.environ:
+	print()
+	print("TestBody - VeryBig")
+	TestBody(500000)
+
+	print()
+	print("TestChunkedBody - VeryBig")
+	TestChunkedBody(500000)
+
+
 print()
 
 if success:
