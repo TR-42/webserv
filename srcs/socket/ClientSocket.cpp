@@ -266,6 +266,9 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< " (chunked: " << std::boolalpha << this->httpRequest.getBody().getIsChunked() << ")"
 		<< std::endl;
 
+	delete[] this->_readBuf;
+	this->_readBuf = NULL;
+
 	try {
 		this->_service = pickService(
 			this->httpRequest.getServerRunningConfig().getPort(),

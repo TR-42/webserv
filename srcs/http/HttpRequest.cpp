@@ -183,7 +183,9 @@ bool HttpRequest::pushRequestRaw(
 			<< ", Host: " << this->_Host
 			<< std::endl;
 
-		return this->_Body.pushData(this->_UnparsedRequestRaw.data(), this->_UnparsedRequestRaw.size());
+		bool result = this->_Body.pushData(this->_UnparsedRequestRaw.data(), this->_UnparsedRequestRaw.size());
+		this->_UnparsedRequestRaw.clear();
+		return result;
 	} else {
 		return this->_Body.pushData(requestRaw, requestRawSize);
 	}

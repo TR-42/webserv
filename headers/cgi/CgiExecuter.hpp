@@ -11,7 +11,7 @@ namespace webserv
 class CgiExecuter
 {
  private:
-	std::vector<uint8_t> _requestBody;
+	const std::vector<uint8_t> &_requestBody;
 	int _fdWriteToCgi;
 	pid_t _pid;
 	Logger logger;

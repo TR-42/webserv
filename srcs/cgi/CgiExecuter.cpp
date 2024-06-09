@@ -69,7 +69,7 @@ CgiExecuter::CgiExecuter(
 
 CgiExecuter::CgiExecuter(
 	const CgiExecuter &src
-)
+) : _requestBody(src._requestBody)
 {
 	(void)src;
 	throw std::runtime_error("CgiExecuter copy constructor is not allowed");
