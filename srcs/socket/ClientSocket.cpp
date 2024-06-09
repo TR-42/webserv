@@ -236,7 +236,7 @@ PollEventResultType ClientSocket::_processPollIn(
 	} else if (this->httpRequest.isRequestHeaderParsed() && this->httpRequest.getBody().getIsChunked()) {
 		// ここに来る時点で、セット済みであるはずである
 		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
-		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().getContentLength())) {
+		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().size())) {
 			CS_WARN()
 				<< "Request size limit exceeded"
 				<< std::endl;
@@ -244,7 +244,7 @@ PollEventResultType ClientSocket::_processPollIn(
 			return PollEventResult::OK;
 		}
 
-		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().getContentLength()) {
+		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().size()) {
 			CS_WARN()
 				<< "Request body size is too large"
 				<< std::endl;
@@ -262,7 +262,7 @@ PollEventResultType ClientSocket::_processPollIn(
 
 	CS_DEBUG()
 		<< "Request parse completed"
-		<< "Body size: " << this->httpRequest.getBody().getContentLength()
+		<< "Body size: " << this->httpRequest.getBody().size()
 		<< " (chunked: " << std::boolalpha << this->httpRequest.getBody().getIsChunked() << ")"
 		<< std::endl;
 
