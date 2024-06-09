@@ -29,7 +29,7 @@ CgiConfig parseCgiConfig(const yaml::MappingNode &node)
 	env::EnvManager env;
 
 	if (!node.has(YAML_KEY_ENV_PRESET))
-		return CgiConfig(yaml_ext, yaml_cgi_fullpath, env);
+		return CgiConfig(node.getKey(), yaml_ext, yaml_cgi_fullpath, env);
 
 	const yaml::MappingNode &env_node = yaml::getMappingNode(node, YAML_KEY_ENV_PRESET);
 
@@ -38,7 +38,7 @@ CgiConfig parseCgiConfig(const yaml::MappingNode &node)
 		env.set(env_entry.getKey(), env_entry.getValue());
 	}
 
-	return CgiConfig(yaml_ext, yaml_cgi_fullpath, env);
+	return CgiConfig(node.getKey(), yaml_ext, yaml_cgi_fullpath, env);
 }
 
 }	 // namespace webserv

@@ -155,6 +155,7 @@ TEST_F(ParseTests, parseListenConfig)
 		);
 
 		ServerConfig server2(
+			"server2",
 			std::vector<std::string>{"42Tokyo.jp"},
 			8080,
 			100,
@@ -179,6 +180,7 @@ TEST_F(ParseTests, parseListenConfig)
 		);
 
 		ServerConfig server3(
+			"server3",
 			std::vector<std::string>{"42Tokyo.jp"},
 			8081,
 			100,

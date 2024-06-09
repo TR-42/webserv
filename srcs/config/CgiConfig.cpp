@@ -8,10 +8,12 @@ CgiConfig::CgiConfig()
 }
 
 CgiConfig::CgiConfig(
+	const std::string &key,
 	const std::string &extensionWithoutDot,
 	const std::string &cgiExecutableFullPath,
 	const env::EnvManager &envPreset
-) : _ExtensionWithoutDot(extensionWithoutDot),
+) : _Key(key),
+		_ExtensionWithoutDot(extensionWithoutDot),
 		_CgiExecutableFullPath(cgiExecutableFullPath),
 		_EnvPreset(envPreset)
 {
@@ -19,7 +21,8 @@ CgiConfig::CgiConfig(
 
 CgiConfig::CgiConfig(
 	const CgiConfig &from
-) : _ExtensionWithoutDot(from._ExtensionWithoutDot),
+) : _Key(from._Key),
+		_ExtensionWithoutDot(from._ExtensionWithoutDot),
 		_CgiExecutableFullPath(from._CgiExecutableFullPath),
 		_EnvPreset(from._EnvPreset)
 {
@@ -32,6 +35,7 @@ CgiConfig &CgiConfig::operator=(
 	if (this == &from)
 		return *this;
 
+	this->_Key = from._Key;
 	this->_ExtensionWithoutDot = from._ExtensionWithoutDot;
 	this->_CgiExecutableFullPath = from._CgiExecutableFullPath;
 	this->_EnvPreset = from._EnvPreset;

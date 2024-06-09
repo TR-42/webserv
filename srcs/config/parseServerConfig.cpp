@@ -100,7 +100,15 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 		routeList.push_back(parseHttpRouteConfig(yaml::getMappingNode(**it), yamlFilePath));
 	}
 
-	return ServerConfig(serverNameList, port, timeoutMs, requestBodyLimit, errorPageMap, routeList);
+	return ServerConfig(
+		node.getKey(),
+		serverNameList,
+		port,
+		timeoutMs,
+		requestBodyLimit,
+		errorPageMap,
+		routeList
+	);
 }
 
 }	 // namespace webserv

@@ -6,7 +6,8 @@ namespace webserv
 {
 
 ServerConfig::ServerConfig(
-) : _ServerNameList(),
+) : _Key(),
+		_ServerNameList(),
 		_Port(0),
 		_TimeoutMs(100),
 		_RequestBodyLimit(0),
@@ -17,7 +18,8 @@ ServerConfig::ServerConfig(
 
 webserv::ServerConfig::ServerConfig(
 	const ServerConfig &from
-) : _ServerNameList(from._ServerNameList),
+) : _Key(from._Key),
+		_ServerNameList(from._ServerNameList),
 		_Port(from._Port),
 		_TimeoutMs(from._TimeoutMs),
 		_RequestBodyLimit(from._RequestBodyLimit),
@@ -37,6 +39,7 @@ ServerConfig &webserv::ServerConfig::operator=(
 	if (this == &from)
 		return *this;
 
+	this->_Key = from._Key;
 	this->_ServerNameList = from._ServerNameList;
 	this->_Port = from._Port;
 	this->_TimeoutMs = from._TimeoutMs;
@@ -48,13 +51,15 @@ ServerConfig &webserv::ServerConfig::operator=(
 }
 
 ServerConfig::ServerConfig(
+	const std::string &key,
 	const std::vector<std::string> &serverNameList,
 	uint16_t port,
 	size_t timeoutMs,
 	std::size_t requestBodyLimit,
 	const ErrorPageMapType &errorPageMap,
 	const RouteListType &routeList
-) : _ServerNameList(serverNameList),
+) : _Key(key),
+		_ServerNameList(serverNameList),
 		_Port(port),
 		_TimeoutMs(timeoutMs),
 		_RequestBodyLimit(requestBodyLimit),
