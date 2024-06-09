@@ -280,6 +280,14 @@ print("TestChunkedBody")
 TestChunkedBody()
 
 print()
+print("TestBody - Big")
+TestBody(5000)
+
+print()
+print("TestChunkedBody - Big")
+TestChunkedBody(5000)
+
+print()
 
 if success:
 		print(f"{GREEN}All tests passed{ENDC}")
