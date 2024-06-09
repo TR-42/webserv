@@ -145,7 +145,7 @@ PollEventResultType ClientSocket::_processPollIn(
 		CS_WARN()
 			<< "httpRequest.pushRequestRaw() failed(HTTPError): " << e.what()
 			<< std::endl;
-		if (this - httpRequest.isServerRunningConfigSet()) {
+		if (this->httpRequest.isServerRunningConfigSet()) {
 			this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
 		} else {
 			this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
@@ -155,7 +155,7 @@ PollEventResultType ClientSocket::_processPollIn(
 		CS_WARN()
 			<< "httpRequest.pushRequestRaw() failed(Exception): " << e.what()
 			<< std::endl;
-		if (this - httpRequest.isServerRunningConfigSet()) {
+		if (this->httpRequest.isServerRunningConfigSet()) {
 			this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
 		} else {
 			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
@@ -218,8 +218,8 @@ PollEventResultType ClientSocket::_processPollIn(
 			return PollEventResult::OK;
 		}
 
-		const std::vector<std::string> &allowedMethods = this->httpRequest.getRouteConfig().getMethods();
-		if (!allowedMethods.empty() && std::find(allowedMethods.begin(), allowedMethods.end(), this->httpRequest.getMethod()) == allowedMethods.end()) {
+		const std::set<std::string> &allowedMethods = this->httpRequest.getRouteConfig().getMethods();
+		if (!allowedMethods.empty() && allowedMethods.find(this->httpRequest.getMethod()) == allowedMethods.end()) {
 			CS_WARN()
 				<< "Method not allowed"
 				<< std::endl;
@@ -264,7 +264,7 @@ PollEventResultType ClientSocket::_processPollIn(
 		CS_WARN()
 			<< "pickService() failed(HTTPError): " << e.what()
 			<< std::endl;
-		if (this - httpRequest.isServerRunningConfigSet()) {
+		if (this->httpRequest.isServerRunningConfigSet()) {
 			this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
 		} else {
 			this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
@@ -274,7 +274,7 @@ PollEventResultType ClientSocket::_processPollIn(
 		CS_WARN()
 			<< "pickService() failed(Exception): " << e.what()
 			<< std::endl;
-		if (this - httpRequest.isServerRunningConfigSet()) {
+		if (this->httpRequest.isServerRunningConfigSet()) {
 			this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
 		} else {
 			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
@@ -379,7 +379,7 @@ void ClientSocket::_processPollService(
 		CS_WARN()
 			<< "service.onEventGot() failed(HTTPError): " << e.what()
 			<< std::endl;
-		if (this - httpRequest.isServerRunningConfigSet()) {
+		if (this->httpRequest.isServerRunningConfigSet()) {
 			this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
 		} else {
 			this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
@@ -389,7 +389,7 @@ void ClientSocket::_processPollService(
 		CS_WARN()
 			<< "service.onEventGot() failed(Exception): " << e.what()
 			<< std::endl;
-		if (this - httpRequest.isServerRunningConfigSet()) {
+		if (this->httpRequest.isServerRunningConfigSet()) {
 			this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
 		} else {
 			this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());
@@ -425,7 +425,7 @@ void ClientSocket::_processPollService(
 						CS_WARN()
 							<< "pickService() failed(HTTPError): " << e.what()
 							<< std::endl;
-						if (this - httpRequest.isServerRunningConfigSet()) {
+						if (this->httpRequest.isServerRunningConfigSet()) {
 							this->_setResponse(e.toResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider(), this->logger));
 						} else {
 							this->_setResponse(e.toResponse(this->_listenConfigList[0].getErrorPageProvider(), this->logger));
@@ -435,7 +435,7 @@ void ClientSocket::_processPollService(
 						CS_WARN()
 							<< "pickService() failed(Exception): " << e.what()
 							<< std::endl;
-						if (this - httpRequest.isServerRunningConfigSet()) {
+						if (this->httpRequest.isServerRunningConfigSet()) {
 							this->_setResponse(this->httpRequest.getServerRunningConfig().getErrorPageProvider().internalServerError());
 						} else {
 							this->_setResponse(this->_listenConfigList[0].getErrorPageProvider().internalServerError());

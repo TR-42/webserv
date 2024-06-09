@@ -17,7 +17,8 @@ typedef std::vector<HttpRouteConfig> RouteListType;
 
 class ServerConfig
 {
-	DECL_VAR_REF_GETTER_SETTER(std::vector<std::string>, ServerNameList)
+	DECL_VAR_REF_GETTER_SETTER(std::string, Key)
+	DECL_VAR_REF_GETTER_SETTER(std::set<std::string>, ServerNameList)
 	DECL_VAR_GETTER_SETTER(uint16_t, Port)
 	DECL_VAR_GETTER_SETTER(size_t, TimeoutMs)
 	DECL_VAR_REF_GETTER_SETTER(std::size_t, RequestBodyLimit)
@@ -31,7 +32,8 @@ class ServerConfig
 	ServerConfig &operator=(const ServerConfig &from);
 
 	ServerConfig(
-		const std::vector<std::string> &serverNameList,
+		const std::string &key,
+		const std::set<std::string> &serverNameList,
 		uint16_t port,
 		size_t timeoutMs,
 		std::size_t requestBodyLimit,
@@ -41,7 +43,7 @@ class ServerConfig
 
 	friend bool operator==(const ServerConfig &lhs, const ServerConfig &rhs)
 	{
-		return (EQ(ServerNameList) && EQ(Port) && EQ(RequestBodyLimit) && EQ(ErrorPageMap) && EQ(RouteList));
+		return (EQ(Key) && EQ(ServerNameList) && EQ(Port) && EQ(RequestBodyLimit) && EQ(ErrorPageMap) && EQ(RouteList));
 	}
 
 	friend bool operator!=(const ServerConfig &lhs, const ServerConfig &rhs)
