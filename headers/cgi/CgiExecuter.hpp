@@ -18,7 +18,6 @@ class CgiExecuter
 	size_t _writtenCount;
 
 	void _childProcessFunc(
-		std::vector<Pollable *> &pollableList,
 		std::string workingDir,
 		int fdReadFromParent,
 		int fdWriteToParent,
@@ -39,8 +38,7 @@ class CgiExecuter
 		int fdWriteToCgi,
 		int fdReadFromParent,
 		int fdReadFromCgi,
-		int fdWriteToParent,
-		std::vector<Pollable *> &pollableList
+		int fdWriteToParent
 	);
 	virtual ~CgiExecuter();
 
@@ -48,12 +46,8 @@ class CgiExecuter
 		struct pollfd &pollFd
 	) const;
 
-	PollEventResultType onEventGot(
-		short revents
-	);
 	virtual PollEventResultType onEventGot(
-		short revents,
-		std::vector<Pollable *> &pollableList
+		short revents
 	);
 
 	pid_t getPid() const;

@@ -590,7 +590,7 @@ ClientSocket::ClientSocket(
 		_IsHeaderValidationCompleted(false),
 		_timeoutChecker(now, logger)
 {
-	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0) {
+	if (fcntl(fd, F_SETFL, O_NONBLOCK | O_CLOEXEC) < 0) {
 		LS_ERROR()
 			<< "fcntl() failed to set flags: " << std::strerror(errno)
 			<< std::endl;
