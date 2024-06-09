@@ -178,8 +178,7 @@ CgiService::CgiService(
 		fdWriteToCgi,
 		fdReadFromParent,
 		fdReadFromCgi,
-		fdWriteToParent,
-		pollableList
+		fdWriteToParent
 	);
 	env::EnvManager::freeEnvp(&argv);
 	env::EnvManager::freeEnvp(&envp);

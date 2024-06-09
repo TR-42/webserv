@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -134,6 +135,14 @@ ServerSocket *ServerSocket::createServerSocket(
 	LS_DEBUG()
 		<< "ServerSocket listen with backlog: " << ACCEPT_BACKLOG
 		<< std::endl;
+
+	if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) {
+		LS_ERROR()
+			<< "Failed to set FD_CLOEXEC"
+			<< std::endl;
+		close(fd);
+		return NULL;
+	}
 
 	LS_INFO()
 		<< "ServerSocket created: fd=" << fd

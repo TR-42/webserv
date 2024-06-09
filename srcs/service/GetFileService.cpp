@@ -54,7 +54,7 @@ GetFileService::GetFileService(
 		return;
 	}
 
-	this->_fd = open(filePath.c_str(), O_RDONLY | O_NONBLOCK);
+	this->_fd = open(filePath.c_str(), O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 	if (this->_fd < 0) {
 		errno_t err = errno;
 		this->_response = this->_errorPageProvider.internalServerError();

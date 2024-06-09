@@ -25,8 +25,7 @@ CgiExecuter::CgiExecuter(
 	int fdWriteToCgi,
 	int fdReadFromParent,
 	int fdReadFromCgi,
-	int fdWriteToParent,
-	std::vector<Pollable *> &pollableList
+	int fdWriteToParent
 ) : _requestBody(requestBody),
 		_fdWriteToCgi(fdWriteToCgi),
 		_pid(-1),
@@ -53,7 +52,6 @@ CgiExecuter::CgiExecuter(
 		// child process
 		// noreturn
 		this->_childProcessFunc(
-			pollableList,
 			workingDir,
 			fdReadFromParent,
 			fdWriteToParent,
@@ -86,7 +84,6 @@ CgiExecuter &CgiExecuter::operator=(
 }
 
 __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
-	std::vector<Pollable *> &pollableList,
 	std::string workingDir,
 	int fdReadFromParent,
 	int fdWriteToParent,
@@ -95,16 +92,6 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 )
 {
 	C_DEBUG("child process started");
-	size_t pollableListSize = pollableList.size();
-	for (size_t i = 0; i < pollableListSize; i++) {
-		if (pollableList[i] == NULL) {
-			continue;
-		}
-		pollableList[i]->setIsDisposingFromChildProcess(true);
-		delete pollableList[i];
-		pollableList[i] = NULL;
-	}
-	pollableList.clear();
 
 	CS_DEBUG()
 		<< "Working directory changing to " << workingDir
@@ -202,14 +189,6 @@ PollEventResultType CgiExecuter::onEventGot(
 	}
 
 	return PollEventResult::OK;
-}
-PollEventResultType CgiExecuter::onEventGot(
-	short revents,
-	std::vector<Pollable *> &pollableList
-)
-{
-	(void)pollableList;
-	return this->onEventGot(revents);
 }
 
 pid_t CgiExecuter::getPid() const
