@@ -108,6 +108,7 @@ int main(int argc, const char *argv[])
 {
 	__size_check();
 
+#ifdef DEBUG
 	std::ofstream logFile;
 	std::string logFilePath("./logs/webserv." + webserv::utils::getIso8601ShortTimeStr() + ".log");
 	try {
@@ -118,11 +119,13 @@ int main(int argc, const char *argv[])
 	}
 
 	webserv::Logger logger(logFile);
+#else
+	webserv::Logger logger;
+#endif
 	webserv::utils::ErrorPageProvider errorPageProvider;
 
 	generatePidFile(argv[0], logger);
 
-	std::cout << "Hello, World!" << std::endl;
 	L_LOG("argv: " + get_argv_str(argc, argv));
 
 	webserv::ListenConfig listenConfig;
