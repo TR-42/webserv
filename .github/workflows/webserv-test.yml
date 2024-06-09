@@ -74,7 +74,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: make -j${{ env.BUILD_PARALLEL }}
-      - run: make leaks -j${{ env.BUILD_PARALLEL }}
       - run: leaks -q --atExit -- ./webserv &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
