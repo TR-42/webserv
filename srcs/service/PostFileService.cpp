@@ -79,7 +79,7 @@ PostFileService::PostFileService(
 
 		this->_fd = open(
 			filePath.c_str(),
-			O_WRONLY | O_CREAT | O_TRUNC,
+			O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK,
 			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH
 		);
 	} else {
@@ -89,7 +89,7 @@ PostFileService::PostFileService(
 			return;
 		}
 
-		this->_fd = open(filePath.c_str(), O_WRONLY | O_TRUNC);
+		this->_fd = open(filePath.c_str(), O_WRONLY | O_TRUNC | O_NONBLOCK);
 	}
 
 	if (this->_fd < 0) {
