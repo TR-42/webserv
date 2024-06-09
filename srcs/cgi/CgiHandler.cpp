@@ -6,6 +6,8 @@
 #include <iostream>
 #include <macros.hpp>
 
+#define READ_BUF_SIZE (256 * 256 * 256)
+
 namespace webserv
 {
 
@@ -19,6 +21,7 @@ CgiHandler::CgiHandler(
 	std::string *localRedirectLocation
 ) : Pollable(fdReadFromCgi),
 		logger(logger),
+		_readBuf(NULL),
 		_errorPageProvider(errorPageProvider),
 		_isAnyResponseReceived(false),
 		_cgiResponse(logger, errorPageProvider),
@@ -33,6 +36,7 @@ CgiHandler::CgiHandler(
 	const CgiHandler &src
 ) : Pollable(src.getFD()),
 		logger(src.logger),
+		_readBuf(NULL),
 		_errorPageProvider(src._errorPageProvider),
 		_cgiResponse(src._cgiResponse)
 {
@@ -50,6 +54,11 @@ CgiHandler &CgiHandler::operator=(
 CgiHandler::~CgiHandler()
 {
 	C_DEBUG("CgiHandler destructor");
+	if (this->_readBuf != NULL) {
+		delete[] this->_readBuf;
+		this->_readBuf = NULL;
+	}
+
 	if (this->_cgiServiceCgiHandlerField != NULL) {
 		*(this->_cgiServiceCgiHandlerField) = NULL;
 	}
@@ -91,8 +100,21 @@ PollEventResultType CgiHandler::onEventGot(
 		return PollEventResult::OK;
 	}
 
-	char buf[4096];
-	ssize_t readResult = read(this->getFD(), buf, sizeof(buf));
+	if (this->_readBuf == NULL) {
+		try {
+			this->_readBuf = new uint8_t[READ_BUF_SIZE];
+		} catch (const std::exception &e) {
+			CS_ERROR()
+				<< "Failed to allocate memory for CGI read buffer: " << e.what() << std::endl;
+
+			*(this->_cgiServiceHttpResponseField) = this->_errorPageProvider.internalServerError();
+			*(this->_cgiServiceCgiHandlerField) = NULL;
+			this->_cgiServiceCgiHandlerField = NULL;
+			this->_cgiServiceHttpResponseField = NULL;
+			return PollEventResult::DISPOSE_REQUEST;
+		}
+	}
+	ssize_t readResult = read(this->getFD(), this->_readBuf, READ_BUF_SIZE);
 	if (readResult < 0) {
 		const errno_t errorNum = errno;
 		CS_ERROR()
@@ -106,7 +128,7 @@ PollEventResultType CgiHandler::onEventGot(
 	}
 
 	if (readResult == 0) {
-		C_ERROR("CGI read complete");
+		C_DEBUG("CGI read complete");
 		if (this->_cgiResponse.getMode() == CgiResponseMode::LOCAL_REDIRECT) {
 			*(this->_isLocalRedirect) = true;
 			*(this->_localRedirectLocation) = this->_cgiResponse.getLocation();
@@ -123,7 +145,7 @@ PollEventResultType CgiHandler::onEventGot(
 
 	CS_LOG() << "Read from CGI length: " << readResult << std::endl;
 	this->_isAnyResponseReceived = true;
-	this->_cgiResponse.pushResponseRaw(std::vector<uint8_t>(buf, buf + readResult));
+	this->_cgiResponse.pushResponseRaw(this->_readBuf, readResult);
 	return PollEventResult::OK;
 }
 

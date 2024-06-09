@@ -15,7 +15,7 @@
 #include <utils/UUIDv7.hpp>
 #include <utils/to_string.hpp>
 
-#define RECV_BUFFER_SIZE 1024
+#define RECV_BUFFER_SIZE (256 * 256 * 256)
 #define WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES (128 * 1024 * 1024)
 
 namespace webserv
@@ -98,10 +98,20 @@ PollEventResultType ClientSocket::_processPollIn(
 	std::vector<Pollable *> &pollableList
 )
 {
-	char buffer[RECV_BUFFER_SIZE];
+	if (this->_readBuf == NULL) {
+		try {
+			this->_readBuf = new uint8_t[RECV_BUFFER_SIZE];
+		} catch (const std::exception &e) {
+			CS_FATAL()
+				<< "Failed to allocate memory for read buffer: " << e.what()
+				<< std::endl;
+			return PollEventResult::ERROR;
+		}
+	}
+
 	ssize_t recvSize = recv(
 		this->getFD(),
-		buffer,
+		this->_readBuf,
 		RECV_BUFFER_SIZE,
 		0
 	);
@@ -121,6 +131,11 @@ PollEventResultType ClientSocket::_processPollIn(
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 
+	CS_LOG()
+		<< "Received " << recvSize << " bytes"
+		<< "(total: " << this->httpRequest.getTotalRequestSize() + recvSize << " bytes)"
+		<< std::endl;
+
 	if (this->httpRequest.isParseCompleted()) {
 		CS_DEBUG()
 			<< "Request parse already completed"
@@ -129,7 +144,7 @@ PollEventResultType ClientSocket::_processPollIn(
 	}
 
 	try {
-		bool pushResult = this->httpRequest.pushRequestRaw(std::vector<uint8_t>(buffer, buffer + recvSize));
+		bool pushResult = this->httpRequest.pushRequestRaw(this->_readBuf, recvSize);
 		if (!pushResult) {
 			CS_WARN()
 				<< "httpRequest.pushRequestRaw() failed"
@@ -250,6 +265,9 @@ PollEventResultType ClientSocket::_processPollIn(
 		<< "Body size: " << this->httpRequest.getBody().getContentLength()
 		<< " (chunked: " << std::boolalpha << this->httpRequest.getBody().getIsChunked() << ")"
 		<< std::endl;
+
+	delete[] this->_readBuf;
+	this->_readBuf = NULL;
 
 	try {
 		this->_service = pickService(
@@ -559,6 +577,11 @@ ClientSocket::~ClientSocket()
 		this->_service = NULL;
 	}
 
+	if (this->_readBuf != NULL) {
+		delete[] this->_readBuf;
+		this->_readBuf = NULL;
+	}
+
 	CS_INFO()
 		<< "ClientSocket(fd:" << this->getFD() << ")"
 		<< " destroying"
@@ -583,6 +606,7 @@ ClientSocket::ClientSocket(
 ) : Pollable(fd),
 		_listenConfigList(listenConfigList),
 		logger(logger, logger.getCustomId() + ", Connection=" + Pollable::getUUID().toString()),
+		_readBuf(NULL),
 		httpRequest(this->logger),
 		_IsResponseSet(false),
 		_service(NULL),

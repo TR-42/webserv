@@ -26,4 +26,9 @@ env | grep -i 'HTTP_' | sort
 
 echo
 
-cat
+FNAME=$(mktemp $TMPDIR/cgi.XXXXXX)
+cat > $FNAME
+
+cat $FNAME
+
+rm -f $FNAME

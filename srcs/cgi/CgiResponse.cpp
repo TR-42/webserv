@@ -128,18 +128,22 @@ bool CgiResponse::pushResponseRaw(
 	const std::vector<uint8_t> &responseRaw
 )
 {
+	return this->pushResponseRaw(responseRaw.data(), responseRaw.size());
+}
+bool webserv::CgiResponse::pushResponseRaw(const uint8_t *responseRaw, size_t responseRawSize)
+{
 	if (this->_IsResponseHeaderParsed) {
 		if (this->_mode != CgiResponseMode::DOCUMENT && this->_mode != CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT) {
 			return false;
 		}
 
-		return this->_ResponseBody.pushData(responseRaw.data(), responseRaw.size());
+		return this->_ResponseBody.pushData(responseRaw, responseRawSize);
 	}
 
 	this->_UnparsedResponseRaw.insert(
 		_UnparsedResponseRaw.end(),
-		responseRaw.begin(),
-		responseRaw.end()
+		responseRaw,
+		responseRaw + responseRawSize
 	);
 
 	while (true) {

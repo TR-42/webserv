@@ -33,6 +33,7 @@ class CgiResponse
 	const MessageBody &getResponseBody() const;
 
 	bool pushResponseRaw(const std::vector<uint8_t> &responseRaw);
+	bool pushResponseRaw(const uint8_t *responseRaw, size_t responseRawSize);
 
  private:
 	Logger logger;

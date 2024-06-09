@@ -294,7 +294,7 @@ ServiceEventResultType CgiService::onEventGot(
 	short revents
 )
 {
-	if (IS_POLL_ANY_ERROR(revents)) {
+	if (IS_POLL_ANY_ERROR(revents) && !IS_POLLHUP(revents)) {
 		// 子プロセスの終了によるエラーの場合は、サービス自体を終了する
 		C_DEBUG("IS_POLL_ANY_ERROR(revents)");
 		if (this->_pid <= 0) {

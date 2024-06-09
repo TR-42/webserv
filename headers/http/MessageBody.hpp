@@ -46,6 +46,7 @@ class MessageBody
 			_currentChunkSize(0),
 			_uncompletedChunk()
 	{
+		_uncompletedChunk.reserve(isChunked ? (256 * 256) : contentLength);
 	}
 
 	MessageBody(

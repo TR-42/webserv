@@ -21,6 +21,7 @@ class ClientSocket : public Pollable
  private:
 	const ServerRunningConfigListType &_listenConfigList;
 	Logger logger;
+	uint8_t *_readBuf;
 	HttpRequest httpRequest;
 	std::vector<uint8_t> httpResponseBuffer;
 	bool _IsResponseSet;

@@ -72,7 +72,14 @@ bool HttpRequest::pushRequestRaw(
 	const std::vector<uint8_t> &requestRaw
 )
 {
-	if (requestRaw.size() == 0) {
+	return this->pushRequestRaw(requestRaw.data(), requestRaw.size());
+}
+bool HttpRequest::pushRequestRaw(
+	const uint8_t *requestRaw,
+	size_t requestRawSize
+)
+{
+	if (requestRawSize == 0) {
 		C_DEBUG("requestRaw was empty");
 		return true;
 	}
@@ -83,7 +90,7 @@ bool HttpRequest::pushRequestRaw(
 	}
 
 	// バッファサイズ的にオーバーフローは考えられないため、チェックしない
-	this->_TotalRequestSize += requestRaw.size();
+	this->_TotalRequestSize += requestRawSize;
 	if (REQUEST_MAX_SIZE < this->_TotalRequestSize) {
 		C_WARN("Request size is too large");
 		throw http::exception::RequestEntityTooLarge();
@@ -91,7 +98,7 @@ bool HttpRequest::pushRequestRaw(
 
 	if (this->_IsRequestHeaderParsed == false) {
 		C_DEBUG("_IsRequestHeaderParsed was false");
-		this->_UnparsedRequestRaw.insert(this->_UnparsedRequestRaw.end(), requestRaw.begin(), requestRaw.end());
+		this->_UnparsedRequestRaw.insert(this->_UnparsedRequestRaw.end(), requestRaw, requestRaw + requestRawSize);
 
 		C_DEBUG("pickLine executing...");
 		std::vector<uint8_t> *requestRawLine = utils::pickLine(this->_UnparsedRequestRaw);
@@ -176,9 +183,11 @@ bool HttpRequest::pushRequestRaw(
 			<< ", Host: " << this->_Host
 			<< std::endl;
 
-		return this->_Body.pushData(this->_UnparsedRequestRaw.data(), this->_UnparsedRequestRaw.size());
+		bool result = this->_Body.pushData(this->_UnparsedRequestRaw.data(), this->_UnparsedRequestRaw.size());
+		this->_UnparsedRequestRaw.clear();
+		return result;
 	} else {
-		return this->_Body.pushData(requestRaw.data(), requestRaw.size());
+		return this->_Body.pushData(requestRaw, requestRawSize);
 	}
 
 	C_DEBUG("return true");
