@@ -128,6 +128,7 @@ DEPS_DEBUG	=	$(addprefix $(DEPS_DEBUG_DIR)/, $(SRC_FILES:.cpp=.d))
 # ref: https://qiita.com/dmystk/items/3f82b1eb763c9b9b47e8
 
 all: $(NAME)
+bonus: all
 
 $(NAME): $(OBJS)
 	$(CXX) $(LINKS) $(CFLAGS) $(INCLUDES) $^ -o $@
@@ -195,6 +196,7 @@ re: fclean all
 
 .PHONY:\
 	all\
+	bonus\
 	leaks\
 	clean\
 	fclean\
