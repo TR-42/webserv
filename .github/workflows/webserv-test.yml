@@ -67,3 +67,17 @@ jobs:
         with:
           name: debug-${{ matrix.os }}-log
           path: logs/${{ steps.latest-log.outputs.file }}
+
+  test-python-http-leaks:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -j${{ env.BUILD_PARALLEL }}
+      - run: leaks -q --atExit -- ./webserv &
+        id: exec-webserv
+      - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
+      - run: python3 test-ci/http-test.py
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
+        run: kill $(pgrep webserv)
+        continue-on-error: true
