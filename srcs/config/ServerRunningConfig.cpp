@@ -182,6 +182,9 @@ HttpRouteConfig ServerRunningConfig::pickRouteConfig(
 		++i
 	) {
 		const HttpRouteConfig &routeConfig = this->_routeList[i];
+		if (pathSegmentList.size() < routeConfig.getRequestPathSegmentList().size()) {
+			continue;
+		}
 		size_t pathRuleLength = getMatchedLength(pathSegmentList, routeConfig.getRequestPathSegmentList());
 		if (pathRuleLength != 0) {
 			CS_DEBUG()
