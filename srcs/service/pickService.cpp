@@ -129,7 +129,7 @@ ServiceBase *pickService(
 				logger
 			);
 		}
-	} else if (request.getMethod() == "POST") {
+	} else if (request.getMethod() == "POST" || request.getMethod() == "PUT") {
 		L_INFO("PostFileService selected");
 		if (requestedFileInfo.getStatBuf().st_mode & S_IWUSR) {
 			return new PostFileService(
