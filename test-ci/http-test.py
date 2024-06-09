@@ -146,6 +146,7 @@ def TestPathInfo():
 def TestBody(count = 100):
 	BODY_STR_LIST = ["Hello, World!", "from Python"] * count
 	BODY_STR = "\n".join(BODY_STR_LIST)
+	print(f"Body length: {len(BODY_STR)}")
 	conn = http.client.HTTPConnection(host)
 	conn.request(
 		"POST",
@@ -203,6 +204,7 @@ def TestBody(count = 100):
 def TestChunkedBody(count = 100):
 	BODY_STR_LIST = ["Hello, World!", "from Python"] * count
 	BODY_STR = "\n".join(BODY_STR_LIST)
+	print(f"Body length: {len(BODY_STR)}")
 	conn = http.client.HTTPConnection(host)
 	conn.request(
 		"POST",
