@@ -18,7 +18,7 @@
 #define METHOD_GET "GET"
 #define METHOD_HEAD "HEAD"
 #define METHOD_POST "POST"
-#define METHOD_PUT "DELETE"
+#define METHOD_PUT "PUT"
 
 namespace webserv
 {
