@@ -190,7 +190,7 @@ HttpRouteConfig ServerRunningConfig::pickRouteConfig(
 				<< std::endl;
 		}
 		bool isMethodMatched = routeConfig.getMethods().empty() || routeConfig.getMethods().find(method) != routeConfig.getMethods().end();
-		bool isCurrentRouteMethodMatched = i != 0 && (matchedRouteConfig->getMethods().empty() || matchedRouteConfig->getMethods().find(method) != routeConfig.getMethods().end());
+		bool isCurrentRouteMethodMatched = i != 0 && (matchedRouteConfig->getMethods().empty() || matchedRouteConfig->getMethods().find(method) != matchedRouteConfig->getMethods().end());
 		if (matchedPathRuleLength < pathRuleLength || (!isCurrentRouteMethodMatched && isMethodMatched)) {
 			matchedPathRuleLength = pathRuleLength;
 			matchedRouteConfig = &(this->_routeList[i]);
