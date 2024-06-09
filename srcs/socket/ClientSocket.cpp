@@ -214,24 +214,6 @@ PollEventResultType ClientSocket::_processPollIn(
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestTimeout());
 			return PollEventResult::OK;
 		}
-	} else if (this->httpRequest.isRequestHeaderParsed() && this->httpRequest.getBody().getIsChunked()) {
-		// ここに来る時点で、セット済みであるはずである
-		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
-		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().getContentLength())) {
-			CS_WARN()
-				<< "Request size limit exceeded"
-				<< std::endl;
-			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
-			return PollEventResult::OK;
-		}
-
-		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().getContentLength()) {
-			CS_WARN()
-				<< "Request body size is too large"
-				<< std::endl;
-			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
-			return PollEventResult::OK;
-		}
 
 		const std::set<std::string> &allowedMethods = this->httpRequest.getRouteConfig().getMethods();
 		if (!allowedMethods.empty() && allowedMethods.find(this->httpRequest.getMethod()) == allowedMethods.end()) {
@@ -249,6 +231,24 @@ PollEventResultType ClientSocket::_processPollIn(
 			HttpResponse response = errorPageProvider.getErrorPage(redirect.getCode());
 			response.getHeaders().addValue("Location", redirect.getTo());
 			this->_setResponse(response);
+			return PollEventResult::OK;
+		}
+	} else if (this->httpRequest.isRequestHeaderParsed() && this->httpRequest.getBody().getIsChunked()) {
+		// ここに来る時点で、セット済みであるはずである
+		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
+		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().getContentLength())) {
+			CS_WARN()
+				<< "Request size limit exceeded"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
+			return PollEventResult::OK;
+		}
+
+		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().getContentLength()) {
+			CS_WARN()
+				<< "Request body size is too large"
+				<< std::endl;
+			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
 			return PollEventResult::OK;
 		}
 	}
