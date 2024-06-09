@@ -14,6 +14,7 @@ class CgiHandler : public Pollable
 {
  private:
 	Logger logger;
+	uint8_t *_readBuf;
 	const utils::ErrorPageProvider &_errorPageProvider;
 	bool _isAnyResponseReceived;
 	CgiResponse _cgiResponse;

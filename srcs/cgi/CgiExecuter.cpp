@@ -177,10 +177,11 @@ PollEventResultType CgiExecuter::onEventGot(
 	this->_writtenCount += writtenCount;
 	CS_DEBUG()
 		<< "written "
-		<< writtenCount
+		<< this->_writtenCount
 		<< " / "
 		<< this->_requestBody.size()
 		<< " bytes to CGI"
+		<< ", current writtenCount=" << writtenCount
 		<< std::endl;
 
 	if (this->isWriteToCgiCompleted()) {

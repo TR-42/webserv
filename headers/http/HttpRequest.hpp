@@ -61,6 +61,10 @@ class HttpRequest
 	bool pushRequestRaw(
 		const std::vector<uint8_t> &requestRaw
 	);
+	bool pushRequestRaw(
+		const uint8_t *requestRaw,
+		size_t requestRawSize
+	);
 
 	const std::string &getMethod() const;
 	const std::string &getPath() const;
@@ -81,9 +85,11 @@ class HttpRequest
 	void setPath(const std::string &path);
 
 	inline const HttpRouteConfig &getRouteConfig() const { return this->_routeConfig; }
+	inline size_t getTotalRequestSize() const { return this->_TotalRequestSize; }
 
  private:
-	bool parseRequestLine(
+	bool
+	parseRequestLine(
 		const std::vector<uint8_t> &requestRawLine
 	);
 
