@@ -127,7 +127,11 @@ DEPS_DEBUG	=	$(addprefix $(DEPS_DEBUG_DIR)/, $(SRC_FILES:.cpp=.d))
 
 # ref: https://qiita.com/dmystk/items/3f82b1eb763c9b9b47e8
 
-all: $(NAME)
+all:
+	@echo "=== creating directory ==="
+	@$(MAKE) dir > /dev/null
+	@echo "=== Building $(NAME) ==="
+	@$(MAKE) $(NAME)
 bonus: all
 
 $(NAME): $(OBJS)
