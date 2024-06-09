@@ -191,7 +191,7 @@ HttpRouteConfig ServerRunningConfig::pickRouteConfig(
 		}
 		bool isMethodMatched = routeConfig.getMethods().empty() || routeConfig.getMethods().find(method) != routeConfig.getMethods().end();
 		bool isCurrentRouteMethodMatched = i != 0 && (matchedRouteConfig->getMethods().empty() || matchedRouteConfig->getMethods().find(method) != routeConfig.getMethods().end());
-		if (matchedPathRuleLength < pathRuleLength && (!isCurrentRouteMethodMatched && isMethodMatched)) {
+		if (matchedPathRuleLength < pathRuleLength || (!isCurrentRouteMethodMatched && isMethodMatched)) {
 			matchedPathRuleLength = pathRuleLength;
 			matchedRouteConfig = &(this->_routeList[i]);
 			C_DEBUG("-> Matched path rule updated");
