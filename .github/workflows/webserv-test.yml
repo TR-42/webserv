@@ -30,8 +30,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      # `500` という数字はtimeoutMsでしか使用していないため、面倒なのでこのような指定にしている
+      - run: sed 's/500/5000/g' < ./webserv.yaml > config.yaml
       - run: make -j${{ env.BUILD_PARALLEL }}
-      - run: sudo ./webserv &
+      - run: sudo ./webserv config.yaml &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
@@ -47,8 +49,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      # `500` という数字はtimeoutMsでしか使用していないため、面倒なのでこのような指定にしている
+      - run: sed 's/500/5000/g' < ./webserv.yaml > config.yaml
       - run: make debug -j${{ env.BUILD_PARALLEL }}
-      - run: sudo ./debug &
+      - run: sudo ./debug config.yaml &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
