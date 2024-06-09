@@ -25,7 +25,8 @@ CgiExecuter::CgiExecuter(
 	int fdWriteToCgi,
 	int fdReadFromParent,
 	int fdReadFromCgi,
-	int fdWriteToParent
+	int fdWriteToParent,
+	std::vector<Pollable *> &pollableList
 ) : _requestBody(requestBody),
 		_fdWriteToCgi(fdWriteToCgi),
 		_pid(-1),
@@ -52,6 +53,7 @@ CgiExecuter::CgiExecuter(
 		// child process
 		// noreturn
 		this->_childProcessFunc(
+			pollableList,
 			workingDir,
 			fdReadFromParent,
 			fdWriteToParent,
@@ -84,6 +86,7 @@ CgiExecuter &CgiExecuter::operator=(
 }
 
 __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
+	std::vector<Pollable *> &pollableList,
 	std::string workingDir,
 	int fdReadFromParent,
 	int fdWriteToParent,
@@ -127,8 +130,18 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 	int result = execve(argv[0], argv, envp);
 	errno_t err = errno;
 	CS_ERROR() << "execve() failed with code " << result << ": " << std::strerror(err) << std::endl;
-	delete[] argv;
-	delete[] envp;
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	size_t pollableListSize = pollableList.size();
+	for (size_t i = 0; i < pollableListSize; i++) {
+		if (pollableList[i] == NULL) {
+			continue;
+		}
+		pollableList[i]->setIsDisposingFromChildProcess(true);
+		delete pollableList[i];
+		pollableList[i] = NULL;
+	}
+	pollableList.clear();
 	std::exit(1);
 }
 
