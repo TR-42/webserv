@@ -36,7 +36,7 @@ ServiceBase *pickService(
 	);
 
 	if (requestedFileInfo.getIsNotFound()) {
-		if (request.getMethod() == "POST") {
+		if (request.getMethod() == "POST" || request.getMethod() == "PUT") {
 			L_INFO("NotFound && POST -> PostFileService selected");
 			return new PostFileService(
 				request,
