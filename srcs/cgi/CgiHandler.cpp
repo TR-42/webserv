@@ -54,6 +54,11 @@ CgiHandler &CgiHandler::operator=(
 CgiHandler::~CgiHandler()
 {
 	C_DEBUG("CgiHandler destructor");
+	if (this->_readBuf != NULL) {
+		delete[] this->_readBuf;
+		this->_readBuf = NULL;
+	}
+
 	if (this->_cgiServiceCgiHandlerField != NULL) {
 		*(this->_cgiServiceCgiHandlerField) = NULL;
 	}
@@ -147,10 +152,6 @@ PollEventResultType CgiHandler::onEventGot(
 void CgiHandler::setDisposeRequested()
 {
 	C_DEBUG("CgiHandler::setDisposeRequested()");
-	if (this->_readBuf != NULL) {
-		delete[] this->_readBuf;
-		this->_readBuf = NULL;
-	}
 	this->_cgiServiceCgiHandlerField = NULL;
 	this->_cgiServiceHttpResponseField = NULL;
 	this->_isLocalRedirect = NULL;
