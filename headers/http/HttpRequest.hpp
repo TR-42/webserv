@@ -105,12 +105,22 @@ class HttpRequest
 	void setPath(const std::string &path);
 	bool reloadRouteConfig()
 	{
-		if (this->serverRunningConfig == nullptr) {
+		if (this->serverRunningConfig == NULL) {
 			return false;
 		}
 		this->_routeConfig = this->serverRunningConfig->pickRouteConfig(
 			this->_PathSegmentList,
 			this->_Method
+		);
+		if (this->_requestedFileInfo != NULL) {
+			delete this->_requestedFileInfo;
+			this->_requestedFileInfo = NULL;
+		}
+		this->_requestedFileInfo = new RequestedFileInfo(
+			this->_PathSegmentList,
+			this->_Path[this->_Path.length() - 1] == '/',
+			this->_routeConfig,
+			this->logger
 		);
 		return true;
 	}
