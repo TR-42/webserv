@@ -16,6 +16,8 @@
 
 #define REQUEST_MAX_SIZE (512 * 1024 * 1024)
 
+#define WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES (128 * 1024 * 1024)
+
 #define METHOD_GET "GET"
 #define METHOD_DELETE "DELETE"
 #define METHOD_HEAD "HEAD"
@@ -391,6 +393,38 @@ void HttpRequest::updatePath(
 	}
 	this->setPath(path);
 	this->reloadRouteConfig();
+}
+
+bool HttpRequest::isSizeLimitExceeded() const
+{
+	size_t contentLength = this->_Body.getIsChunked() ? this->_Body.size() : this->_Body.getContentLength();
+	if (this->serverRunningConfig->getRequestBodyLimit() < contentLength) {
+		CS_WARN()
+			<< "Request body size limit exceeded(ServerConfig): "
+			<< "Limit=" << this->serverRunningConfig->getRequestBodyLimit()
+			<< ", ContentLength=" << contentLength
+			<< std::endl;
+		return true;
+	}
+	if (this->_routeConfig.getRequestBodyLimit() < contentLength) {
+		CS_WARN()
+			<< "Request body size limit exceeded(RouteConfig): "
+			<< "Limit=" << this->_routeConfig.getRequestBodyLimit()
+			<< ", ContentLength=" << contentLength
+			<< std::endl;
+		return true;
+	}
+
+	if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < contentLength) {
+		CS_WARN()
+			<< "Request body size limit exceeded(WEBSERV): "
+			<< "Limit=" << WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES
+			<< ", ContentLength=" << contentLength
+			<< std::endl;
+		return true;
+	}
+
+	return false;
 }
 
 }	 // namespace webserv

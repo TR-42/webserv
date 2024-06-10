@@ -17,7 +17,6 @@
 #include <utils/to_string.hpp>
 
 #define RECV_BUFFER_SIZE (256 * 256 * 256)
-#define WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES (128 * 1024 * 1024)
 
 namespace webserv
 {
@@ -189,17 +188,9 @@ PollEventResultType ClientSocket::_processPollIn(
 		);
 
 		// chunkedの場合も一旦チェック
-		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().getContentLength())) {
+		if (this->httpRequest.isSizeLimitExceeded()) {
 			CS_WARN()
 				<< "Request size limit exceeded"
-				<< std::endl;
-			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
-			return PollEventResult::OK;
-		}
-
-		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().getContentLength()) {
-			CS_WARN()
-				<< "Request body size is too large"
 				<< std::endl;
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
 			return PollEventResult::OK;
@@ -237,17 +228,9 @@ PollEventResultType ClientSocket::_processPollIn(
 	} else if (this->httpRequest.isRequestHeaderParsed() && this->httpRequest.getBody().getIsChunked()) {
 		// ここに来る時点で、セット済みであるはずである
 		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
-		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().size())) {
+		if (this->httpRequest.isSizeLimitExceeded()) {
 			CS_WARN()
 				<< "Request size limit exceeded"
-				<< std::endl;
-			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
-			return PollEventResult::OK;
-		}
-
-		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().size()) {
-			CS_WARN()
-				<< "Request body size is too large"
 				<< std::endl;
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
 			return PollEventResult::OK;

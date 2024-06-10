@@ -111,17 +111,6 @@ bool webserv::ServerRunningConfig::isServerNameMatch(
 	return this->_serverNameList.find(serverNameLower) != this->_serverNameList.end();
 }
 
-bool webserv::ServerRunningConfig::isSizeLimitExceeded(
-	const size_t contentLength
-) const
-{
-	if (this->_requestBodyLimit < contentLength) {
-		return true;
-	}
-
-	return false;
-}
-
 static size_t getMatchedLength(
 	const std::vector<std::string> &requestedPathSegList,
 	const std::vector<std::string> &pathRuleSegList

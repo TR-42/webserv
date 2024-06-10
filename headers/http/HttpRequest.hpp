@@ -91,6 +91,8 @@ class HttpRequest
 	inline const HttpRouteConfig &getRouteConfig() const { return this->_routeConfig; }
 	inline size_t getTotalRequestSize() const { return this->_TotalRequestSize; }
 
+	bool isSizeLimitExceeded() const;
+
  private:
 	bool
 	parseRequestLine(
