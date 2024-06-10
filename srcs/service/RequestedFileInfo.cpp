@@ -36,7 +36,7 @@ RequestedFileInfo::RequestedFileInfo(
 
 	size_t reqPathSegListSize = requestedPathSegList.size();
 	size_t configReqPathSegListSize = routeConfig.getRequestPathSegmentList().size();
-	if (reqPathSegListSize < configReqPathSegListSize || (reqPathSegListSize == configReqPathSegListSize && !isRequestEndWithSlash)) {
+	if (reqPathSegListSize < configReqPathSegListSize) {
 		L_ERROR("Invalid Argument (path length error)");
 		this->_IsNotFound = true;
 		return;

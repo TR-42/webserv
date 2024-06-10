@@ -22,7 +22,7 @@ namespace webserv
 DECL_VALIDATOR(ListenConfig);
 DECL_VALIDATOR_ARG(ServerConfigListType, uint16_t port);
 DECL_VALIDATOR_ARG(ServerConfig, size_t index, std::set<std::string> &serverNameSet);
-DECL_VALIDATOR_ARG(HttpRouteConfig, size_t index, std::set<std::string> &requestPathSet);
+DECL_VALIDATOR_ARG(HttpRouteConfig, size_t index);
 DECL_VALIDATOR(HttpRedirectConfig);
 DECL_VALIDATOR(CgiConfigListType);
 DECL_VALIDATOR_ARG(CgiConfig, std::set<std::string> &extSet);
@@ -114,20 +114,16 @@ DECL_VALIDATOR_ARG(ServerConfig, size_t index, std::set<std::string> &serverName
 	{
 		std::set<std::string> requestPathSet;
 		for (size_t i = 0; i < config.getRouteList().size(); ++i) {
-			validateHttpRouteConfig(config.getRouteList()[i], errorMessageList, nodeInfo, i, requestPathSet);
+			validateHttpRouteConfig(config.getRouteList()[i], errorMessageList, nodeInfo, i);
 		}
 	}
 }
 
-DECL_VALIDATOR_ARG(HttpRouteConfig, size_t index, std::set<std::string> &requestPathSet)
+DECL_VALIDATOR_ARG(HttpRouteConfig, size_t index)
 {
 	std::string nodeInfo(parentNodeInfo + ": HttpRouteConfig[" + utils::to_string(index) + "]");
 	if (index == 0 && config.getRequestPath() != "/") {
 		errorMessageList.push_back(nodeInfo + ": First route must be /");
-	} else {
-		if (!requestPathSet.insert(config.getRequestPath()).second) {
-			errorMessageList.push_back(nodeInfo + ": Duplicate request path: " + config.getRequestPath());
-		}
 	}
 
 	if (config.getDocumentRoot().empty() == config.getRedirect().getTo().empty()) {

@@ -6,9 +6,9 @@
 
 #define DEFAULT_REQUEST_TIMEOUT_MS (100)
 #ifdef DEBUG
-#define SOCKET_TIMEOUT_MS (10 * 1000)
+#define SOCKET_TIMEOUT_MS (600 * 1000)
 #else
-#define SOCKET_TIMEOUT_MS (1 * 1000)
+#define SOCKET_TIMEOUT_MS (120 * 1000)
 #endif
 
 namespace webserv
