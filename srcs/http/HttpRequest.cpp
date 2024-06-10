@@ -70,6 +70,9 @@ HttpRequest::~HttpRequest()
 	if (this->serverRunningConfig != NULL) {
 		delete this->serverRunningConfig;
 	}
+	if (this->_requestedFileInfo != NULL) {
+		delete this->_requestedFileInfo;
+	}
 }
 
 bool HttpRequest::pushRequestRaw(
