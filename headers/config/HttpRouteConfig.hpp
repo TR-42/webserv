@@ -28,6 +28,7 @@ class HttpRouteConfig
 	DECL_VAR_REF_GETTER_SETTER(CgiConfigListType, CgiConfigList)
 	DECL_VAR_REF_GETTER(std::vector<std::string>, RequestPathSegmentList)
 	DECL_VAR_REF_GETTER_SETTER(ContentTypeMapType, ContentTypeMap)
+	DECL_VAR_GETTER_SETTER(size_t, RequestBodyLimit)
 
  public:
 	HttpRouteConfig();
@@ -39,7 +40,8 @@ class HttpRouteConfig
 		bool IsDocumentListingEnabled,
 		const std::vector<std::string> &IndexFileList,
 		const CgiConfigListType &CgiConfigList,
-		const ContentTypeMapType &ContentTypeMap
+		const ContentTypeMapType &ContentTypeMap,
+		const size_t &RequestBodyLimit
 	);
 	HttpRouteConfig(const HttpRouteConfig &from);
 	virtual ~HttpRouteConfig();
@@ -49,7 +51,7 @@ class HttpRouteConfig
 
 	friend bool operator==(const HttpRouteConfig &lhs, const HttpRouteConfig &rhs)
 	{
-		return (EQ(RequestPath) && EQ(Methods) && EQ(Redirect) && EQ(DocumentRoot) && EQ(IsDocumentListingEnabled) && EQ(IndexFileList) && EQ(CgiConfigList) && EQ(ContentTypeMap));
+		return (EQ(RequestPath) && EQ(Methods) && EQ(Redirect) && EQ(DocumentRoot) && EQ(IsDocumentListingEnabled) && EQ(IndexFileList) && EQ(CgiConfigList) && EQ(ContentTypeMap) && EQ(RequestBodyLimit));
 	}
 
 	friend bool operator!=(const HttpRouteConfig &lhs, const HttpRouteConfig &rhs)
