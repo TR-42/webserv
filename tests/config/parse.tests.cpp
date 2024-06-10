@@ -3,6 +3,7 @@
 
 #include <config/ListenConfig.hpp>
 #include <config/parseListenConfig.hpp>
+#include <constants.hpp>
 #include <service/RequestedFileInfo.hpp>
 #include <yaml/YamlParser.hpp>
 
@@ -151,7 +152,8 @@ TEST_F(ParseTests, parseListenConfig)
 			false,
 			std::vector<std::string>(),
 			std::vector<CgiConfig>(),
-			ContentTypeMapType()
+			ContentTypeMapType(),
+			SIZE_MAX
 		);
 
 		ServerConfig server2(
@@ -176,7 +178,8 @@ TEST_F(ParseTests, parseListenConfig)
 			false,
 			std::vector<std::string>(),
 			std::vector<CgiConfig>(),
-			ContentTypeMapType()
+			ContentTypeMapType(),
+			SIZE_MAX
 		);
 
 		ServerConfig server3(
