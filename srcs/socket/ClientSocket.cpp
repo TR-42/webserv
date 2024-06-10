@@ -9,6 +9,7 @@
 #include <service/CgiService.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
+#include <service/RequestedFileInfo.hpp>
 #include <service/pickService.hpp>
 #include <socket/ClientSocket.hpp>
 #include <utils/ErrorPageProvider.hpp>
@@ -426,7 +427,7 @@ void ClientSocket::_processPollService(
 					CS_DEBUG()
 						<< "Local redirect: " << cgiService->getLocalRedirectLocation()
 						<< std::endl;
-					this->httpRequest.setPath(cgiService->getLocalRedirectLocation());
+					this->httpRequest.updatePath(cgiService->getLocalRedirectLocation());
 					delete this->_service;
 					this->_service = NULL;
 

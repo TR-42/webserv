@@ -4,6 +4,7 @@
 #include <http/exception/NotImplemented.hpp>
 #include <http/exception/RequestEntityTooLarge.hpp>
 #include <iostream>
+#include <service/RequestedFileInfo.hpp>
 #include <stdexcept>
 #include <utils/normalizePath.hpp>
 #include <utils/pickLine.hpp>
@@ -40,7 +41,8 @@ HttpRequest::HttpRequest(
 		_Version(1, 1),
 		_IsRequestLineParsed(false),
 		_IsRequestHeaderParsed(false),
-		serverRunningConfig(NULL)
+		serverRunningConfig(NULL),
+		_requestedFileInfo(NULL)
 {
 }
 
@@ -58,7 +60,8 @@ HttpRequest::HttpRequest(
 		_IsRequestHeaderParsed(src._IsRequestHeaderParsed),
 		_Host(src._Host),
 		_NormalizedPath(src._NormalizedPath),
-		serverRunningConfig(new ServerRunningConfig(*src.serverRunningConfig))
+		serverRunningConfig(new ServerRunningConfig(*src.serverRunningConfig)),
+		_requestedFileInfo(new RequestedFileInfo(*src._requestedFileInfo))
 {
 }
 
@@ -254,14 +257,8 @@ bool HttpRequest::parseRequestLine(
 	CS_DEBUG() << "lenToSpacePos2: " << lenToSpacePos2 << std::endl;
 	this->_Path = std::string((const char *)pathSegment, lenToSpacePos2);
 	CS_DEBUG() << "PathSegment: `" << this->_Path << "`" << std::endl;
-	separatePathAndQuery(this->_Path, this->_Query);
-	this->_NormalizedPath = utils::normalizePath(this->_Path);
-	this->_PathSegmentList = utils::split(this->_NormalizedPath, '/');
-	CS_DEBUG()
-		<< "Path: `" << this->_Path << "`, "
-		<< "Query: `" << this->_Query << "`, "
-		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
-		<< std::endl;
+
+	this->setPath(this->_Path);
 
 	if (spacePos2 == (requestRawData + newlinePos)) {
 		C_WARN("spacePos2 was NULL -> may be HTTP/0.9");
@@ -340,9 +337,19 @@ bool HttpRequest::isServerRunningConfigSet() const
 	return this->serverRunningConfig != NULL;
 }
 
+bool HttpRequest::isRequestedFileInfoSet() const
+{
+	return this->_requestedFileInfo != NULL;
+}
+
 const ServerRunningConfig &HttpRequest::getServerRunningConfig() const
 {
 	return *this->serverRunningConfig;
+}
+
+const RequestedFileInfo &HttpRequest::getRequestedFileInfo() const
+{
+	return *this->_requestedFileInfo;
 }
 
 void HttpRequest::setServerRunningConfig(
@@ -372,6 +379,18 @@ void HttpRequest::setPath(
 		<< "Query: `" << this->_Query << "`, "
 		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
 		<< std::endl;
+}
+
+void HttpRequest::updatePath(
+	const std::string &path
+)
+{
+	if (this->_Path == path) {
+		C_WARN("Path was not updated");
+		return;
+	}
+	this->setPath(path);
+	this->reloadRouteConfig();
 }
 
 }	 // namespace webserv

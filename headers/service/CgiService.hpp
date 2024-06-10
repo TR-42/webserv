@@ -6,7 +6,6 @@
 #include <EnvManager.hpp>
 #include <cgi/CgiExecuter.hpp>
 #include <cgi/CgiHandler.hpp>
-#include <service/RequestedFileInfo.hpp>
 #include <service/ServiceBase.hpp>
 #include <types.hpp>
 
@@ -25,7 +24,6 @@ class CgiService : public ServiceBase
  public:
 	CgiService(
 		const HttpRequest &request,
-		const RequestedFileInfo &requestedFileInfo,
 		uint16_t serverPort,
 		const struct sockaddr &clientAddr,
 		const utils::ErrorPageProvider &errorPageProvider,

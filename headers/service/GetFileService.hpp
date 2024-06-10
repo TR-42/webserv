@@ -5,7 +5,6 @@
 #include <Logger.hpp>
 #include <http/HttpRequest.hpp>
 #include <http/HttpResponse.hpp>
-#include <service/RequestedFileInfo.hpp>
 #include <utils/ErrorPageProvider.hpp>
 
 #include "./ServiceBase.hpp"
@@ -23,7 +22,6 @@ class GetFileService : public ServiceBase
  public:
 	GetFileService(
 		const HttpRequest &request,
-		const RequestedFileInfo &requestedFileInfo,
 		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);

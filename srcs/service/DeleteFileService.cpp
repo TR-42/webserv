@@ -15,11 +15,12 @@ namespace webserv
 
 DeleteFileService::DeleteFileService(
 	const HttpRequest &request,
-	const RequestedFileInfo &requestedFileInfo,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger)
 {
+	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
+
 	std::string filePath(requestedFileInfo.getTargetFilePath());
 
 	// ファイルが存在すること等はRequestedFileInfoで確認済みのため、ここでは確認しない。

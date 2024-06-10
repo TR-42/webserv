@@ -29,13 +29,14 @@ static std::string getDirName(const std::string &path)
 
 PostFileService::PostFileService(
 	const HttpRequest &request,
-	const RequestedFileInfo &requestedFileInfo,
 	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : ServiceBase(request, errorPageProvider, logger),
 		_fd(-1),
 		_writtenSize(0)
 {
+	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
+
 	std::string filePath(requestedFileInfo.getTargetFilePath());
 
 	// ディレクトリにファイルを作成することはできない

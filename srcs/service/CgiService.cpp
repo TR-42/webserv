@@ -81,7 +81,6 @@ static inline std::string _dirname(
 
 CgiService::CgiService(
 	const HttpRequest &request,
-	const RequestedFileInfo &requestedFileInfo,
 	uint16_t serverPort,
 	const struct sockaddr &clientAddr,
 	const utils::ErrorPageProvider &errorPageProvider,
@@ -96,6 +95,7 @@ CgiService::CgiService(
 {
 	C_DEBUG("initializing...");
 
+	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
 	const CgiConfig &cgiConfig = requestedFileInfo.getCgiConfig();
 	const std::string &cgiPath = cgiConfig.getCgiExecutableFullPath();
 
