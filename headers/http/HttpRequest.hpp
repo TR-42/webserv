@@ -84,7 +84,7 @@ class HttpRequest
 	bool isRequestedFileInfoSet() const;
 	const ServerRunningConfig &getServerRunningConfig() const;
 	const RequestedFileInfo &getRequestedFileInfo() const;
-	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
+	void setServerRunningConfig(const ServerRunningConfigListType &serverRunningConfigList);
 
 	void updatePath(const std::string &path);
 

@@ -21,12 +21,6 @@
 namespace webserv
 {
 
-static const ServerRunningConfig &pickServerConfig(
-	const ServerRunningConfigListType &listenConfigList,
-	const HttpRequest &request,
-	const Logger &logger
-);
-
 PollEventResultType ClientSocket::onEventGot(
 	int fd,
 	short revents,
@@ -181,11 +175,8 @@ PollEventResultType ClientSocket::_processPollIn(
 	if (!this->_IsHeaderValidationCompleted && this->httpRequest.isRequestHeaderParsed()) {
 		this->_IsHeaderValidationCompleted = true;
 
-		const ServerRunningConfig &serverRunningConfig = pickServerConfig(
-			this->_listenConfigList,
-			this->httpRequest,
-			this->logger
-		);
+		httpRequest.setServerRunningConfig(this->_listenConfigList);
+		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
 
 		// chunkedの場合も一旦チェック
 		if (this->httpRequest.isSizeLimitExceeded()) {
@@ -195,8 +186,6 @@ PollEventResultType ClientSocket::_processPollIn(
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
 			return PollEventResult::OK;
 		}
-
-		httpRequest.setServerRunningConfig(serverRunningConfig);
 
 		this->_timeoutChecker.setTimeoutMs(serverRunningConfig.getTimeoutMs());
 		if (this->_timeoutChecker.isTimeouted(now)) {
@@ -299,35 +288,6 @@ PollEventResultType ClientSocket::_processPollIn(
 	this->_processPollService(0, pollableList);
 	return PollEventResult::OK;
 }
-
-static const ServerRunningConfig &pickServerConfig(
-	const ServerRunningConfigListType &listenConfigList,
-	const HttpRequest &request,
-	const Logger &logger
-)
-{
-	if (listenConfigList.empty()) {
-		L_FATAL("No ServerConfig found");
-		throw std::runtime_error("No ServerConfig found");
-	}
-
-	if (request.getHost().empty()) {
-		return listenConfigList[0];
-	}
-
-	for (
-		ServerRunningConfigListType::const_iterator itConfig = listenConfigList.begin();
-		itConfig != listenConfigList.end();
-		++itConfig
-	) {
-		if (itConfig->isServerNameMatch(request.getHost())) {
-			return *itConfig;
-		}
-	}
-
-	// Hostが一致するServerConfigが見つからなかった場合、一番最初に記述されていた設定に従う
-	return listenConfigList[0];
-};
 
 PollEventResultType ClientSocket::_processPollOut()
 {

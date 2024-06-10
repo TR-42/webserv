@@ -357,14 +357,43 @@ const RequestedFileInfo &HttpRequest::getRequestedFileInfo() const
 	return *this->_requestedFileInfo;
 }
 
+static const ServerRunningConfig &pickServerConfig(
+	const ServerRunningConfigListType &listenConfigList,
+	const HttpRequest &request,
+	const Logger &logger
+)
+{
+	if (listenConfigList.empty()) {
+		L_FATAL("No ServerConfig found");
+		throw std::runtime_error("No ServerConfig found");
+	}
+
+	if (request.getHost().empty()) {
+		return listenConfigList[0];
+	}
+
+	for (
+		ServerRunningConfigListType::const_iterator itConfig = listenConfigList.begin();
+		itConfig != listenConfigList.end();
+		++itConfig
+	) {
+		if (itConfig->isServerNameMatch(request.getHost())) {
+			return *itConfig;
+		}
+	}
+
+	// Hostが一致するServerConfigが見つからなかった場合、一番最初に記述されていた設定に従う
+	return listenConfigList[0];
+};
+
 void HttpRequest::setServerRunningConfig(
-	const ServerRunningConfig &serverRunningConfig
+	const ServerRunningConfigListType &listenConfigList
 )
 {
 	if (this->serverRunningConfig != NULL) {
 		delete this->serverRunningConfig;
 	}
-	this->serverRunningConfig = new ServerRunningConfig(serverRunningConfig);
+	this->serverRunningConfig = new ServerRunningConfig(pickServerConfig(listenConfigList, *this, this->logger));
 	this->reloadRouteConfig();
 }
 
