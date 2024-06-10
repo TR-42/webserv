@@ -22,7 +22,6 @@ class GetFileService : public ServiceBase
  public:
 	GetFileService(
 		const HttpRequest &request,
-		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
 	virtual ~GetFileService();

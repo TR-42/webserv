@@ -6,10 +6,8 @@ namespace webserv
 
 ServiceBase::ServiceBase(
 	const HttpRequest &request,
-	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
 ) : _request(request),
-		_errorPageProvider(errorPageProvider),
 		logger(logger),
 		_isDisposingFromChildProcess(false)
 {

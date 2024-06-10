@@ -22,7 +22,6 @@ class PostFileService : public ServiceBase
  public:
 	PostFileService(
 		const HttpRequest &request,
-		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
 	virtual ~PostFileService();

@@ -5,7 +5,6 @@
 #include <Logger.hpp>
 #include <http/HttpRequest.hpp>
 #include <http/HttpResponse.hpp>
-#include <utils/ErrorPageProvider.hpp>
 
 #include "./ServiceEventResult.hpp"
 
@@ -18,7 +17,6 @@ class ServiceBase
 	ServiceBase(
 		const ServiceBase &src
 	) : _request(src._request),
-			_errorPageProvider(src._errorPageProvider),
 			logger(src.logger)
 	{
 		throw std::runtime_error("ServiceBase copy constructor is not allowed");
@@ -33,14 +31,12 @@ class ServiceBase
  protected:
 	const HttpRequest &_request;
 	HttpResponse _response;
-	const utils::ErrorPageProvider &_errorPageProvider;
 	const Logger &logger;
 	bool _isDisposingFromChildProcess;
 
  public:
 	ServiceBase(
 		const HttpRequest &request,
-		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
 	virtual ~ServiceBase();
@@ -57,6 +53,10 @@ class ServiceBase
 
 	bool isDisposingFromChildProcess() const;
 	void setIsDisposingFromChildProcess(bool value);
+	inline const utils::ErrorPageProvider &getErrorPageProvider() const
+	{
+		return this->_request.getServerRunningConfig().getErrorPageProvider();
+	}
 };
 
 }	 // namespace webserv

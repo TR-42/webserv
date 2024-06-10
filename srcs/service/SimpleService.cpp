@@ -8,9 +8,8 @@ namespace webserv
 SimpleService::SimpleService(
 	const HttpRequest &request,
 	const HttpResponse &response,
-	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
-) : ServiceBase(request, errorPageProvider, logger)
+) : ServiceBase(request, logger)
 {
 	this->_response = response;
 }

@@ -29,9 +29,8 @@ static std::string getDirName(const std::string &path)
 
 PostFileService::PostFileService(
 	const HttpRequest &request,
-	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
-) : ServiceBase(request, errorPageProvider, logger),
+) : ServiceBase(request, logger),
 		_fd(-1),
 		_writtenSize(0)
 {
@@ -43,7 +42,7 @@ PostFileService::PostFileService(
 	// AutoIndexファイルへの書き込みは許可しない
 	// PathInfoがあるということは、目的でないファイルである可能性があるため、許可しない
 	if (requestedFileInfo.getIsDirectory() || requestedFileInfo.getIsAutoIndexFile() || !requestedFileInfo.getCgiPathInfo().empty()) {
-		this->_response = this->_errorPageProvider.methodNotAllowed();
+		this->_response = this->getErrorPageProvider().methodNotAllowed();
 		LS_INFO() << "Method not allowed: " << filePath << std::endl;
 		return;
 	}
@@ -54,7 +53,7 @@ PostFileService::PostFileService(
 		struct stat statBuf;
 		if (stat(dirPath.c_str(), &statBuf) != 0) {
 			errno_t err = errno;
-			this->_response = this->_errorPageProvider.notFound();
+			this->_response = this->getErrorPageProvider().notFound();
 			LS_INFO()
 				<< "Parent Directory Not Found: " << requestedFileInfo.getDocumentRoot()
 				<< " (err: " << std::strerror(err) << ")"
@@ -73,7 +72,7 @@ PostFileService::PostFileService(
 			<< "Last modified: " << utils::getHttpTimeStr(statBuf.st_mtime)
 			<< std::endl;
 		if (access(dirPath.c_str(), W_OK) != 0) {
-			this->_response = this->_errorPageProvider.permissionDenied();
+			this->_response = this->getErrorPageProvider().permissionDenied();
 			LS_INFO() << "Permission denied: " << filePath << std::endl;
 			return;
 		}
@@ -85,7 +84,7 @@ PostFileService::PostFileService(
 		);
 	} else {
 		if (access(filePath.c_str(), W_OK) != 0) {
-			this->_response = this->_errorPageProvider.permissionDenied();
+			this->_response = this->getErrorPageProvider().permissionDenied();
 			LS_INFO() << "Permission denied: " << filePath << std::endl;
 			return;
 		}
@@ -96,9 +95,9 @@ PostFileService::PostFileService(
 	if (this->_fd < 0) {
 		errno_t err = errno;
 		if (err == EACCES) {
-			this->_response = this->_errorPageProvider.permissionDenied();
+			this->_response = this->getErrorPageProvider().permissionDenied();
 		} else {
-			this->_response = this->_errorPageProvider.internalServerError();
+			this->_response = this->getErrorPageProvider().internalServerError();
 		}
 		LS_ERROR()
 			<< "Failed to open file: " << filePath
@@ -159,7 +158,7 @@ ServiceEventResultType PostFileService::onEventGot(
 	if (writtenLength < 0) {
 		const errno_t errorNum = errno;
 		CS_ERROR() << "Failed to write: " << std::strerror(errorNum) << std::endl;
-		this->_response = this->_errorPageProvider.internalServerError();
+		this->_response = this->getErrorPageProvider().internalServerError();
 
 		return ServiceEventResult::COMPLETE;
 	}

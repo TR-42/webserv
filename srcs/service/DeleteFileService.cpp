@@ -15,9 +15,8 @@ namespace webserv
 
 DeleteFileService::DeleteFileService(
 	const HttpRequest &request,
-	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
-) : ServiceBase(request, errorPageProvider, logger)
+) : ServiceBase(request, logger)
 {
 	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
 
@@ -30,10 +29,10 @@ DeleteFileService::DeleteFileService(
 	if (deleteResult != 0) {
 		const errno_t errorNum = errno;
 		CS_ERROR() << "Failed to read file (" << filePath << "): " << std::strerror(errorNum) << std::endl;
-		this->_response = this->_errorPageProvider.internalServerError();
+		this->_response = this->getErrorPageProvider().internalServerError();
 		return;
 	}
-	this->_response = this->_errorPageProvider.noContent();
+	this->_response = this->getErrorPageProvider().noContent();
 	LS_INFO() << "File deleted: " << filePath << std::endl;
 }
 

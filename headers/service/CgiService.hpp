@@ -26,7 +26,6 @@ class CgiService : public ServiceBase
 		const HttpRequest &request,
 		uint16_t serverPort,
 		const struct sockaddr &clientAddr,
-		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger,
 		std::vector<Pollable *> &pollableList
 	);

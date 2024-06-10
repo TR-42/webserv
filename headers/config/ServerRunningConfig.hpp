@@ -51,7 +51,7 @@ class ServerRunningConfig
 		return this->_timeoutMs;
 	}
 
-	inline utils::ErrorPageProvider getErrorPageProvider() const
+	inline const utils::ErrorPageProvider &getErrorPageProvider() const
 	{
 		return this->_errorPageProvider;
 	}
