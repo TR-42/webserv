@@ -160,8 +160,9 @@ static std::string pathSegListToStr(
 	return pathStr;
 }
 
-HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
-	const std::vector<std::string> &pathSegmentList
+HttpRouteConfig ServerRunningConfig::pickRouteConfig(
+	const std::vector<std::string> &pathSegmentList,
+	const std::string &method
 ) const
 {
 	const HttpRouteConfig *matchedRouteConfig = &(this->_routeList[0]);
@@ -181,6 +182,9 @@ HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
 		++i
 	) {
 		const HttpRouteConfig &routeConfig = this->_routeList[i];
+		if (pathSegmentList.size() < routeConfig.getRequestPathSegmentList().size()) {
+			continue;
+		}
 		size_t pathRuleLength = getMatchedLength(pathSegmentList, routeConfig.getRequestPathSegmentList());
 		if (pathRuleLength != 0) {
 			CS_DEBUG()
@@ -188,7 +192,9 @@ HttpRouteConfig webserv::ServerRunningConfig::pickRouteConfig(
 				<< routeConfig.getRequestPath()
 				<< std::endl;
 		}
-		if (matchedPathRuleLength < pathRuleLength) {
+		bool isMethodMatched = routeConfig.getMethods().empty() || routeConfig.getMethods().find(method) != routeConfig.getMethods().end();
+		bool isCurrentRouteMethodMatched = i != 0 && (matchedRouteConfig->getMethods().empty() || matchedRouteConfig->getMethods().find(method) != matchedRouteConfig->getMethods().end());
+		if (matchedPathRuleLength < pathRuleLength || (!isCurrentRouteMethodMatched && isMethodMatched)) {
 			matchedPathRuleLength = pathRuleLength;
 			matchedRouteConfig = &(this->_routeList[i]);
 			C_DEBUG("-> Matched path rule updated");
