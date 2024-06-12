@@ -27,13 +27,13 @@ namespace webserv
 
 GetFileService::GetFileService(
 	const HttpRequest &request,
-	const RequestedFileInfo &requestedFileInfo,
-	const webserv::utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger
-) : ServiceBase(request, errorPageProvider, logger),
-		_isDirectory(requestedFileInfo.getIsDirectory()),
+) : ServiceBase(request, logger),
+		_isDirectory(request.getRequestedFileInfo().getIsDirectory()),
 		_fd(-1)
 {
+	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
+
 	std::string filePath(requestedFileInfo.getTargetFilePath());
 
 	// ファイルが存在すること等はRequestedFileInfoで確認済みのため、ここでは確認しない。
@@ -42,14 +42,14 @@ GetFileService::GetFileService(
 		if (requestedFileInfo.getIsAutoIndexAllowed()) {
 			this->generateFileList(filePath, request.getNormalizedPath());
 		} else {
-			this->_response = this->_errorPageProvider.notFound();
+			this->_response = this->getErrorPageProvider().notFound();
 			LS_INFO() << "Document listing is disabled: " << filePath << std::endl;
 		}
 		return;
 	}
 
 	if (access(filePath.c_str(), R_OK) != 0) {
-		this->_response = this->_errorPageProvider.permissionDenied();
+		this->_response = this->getErrorPageProvider().permissionDenied();
 		LS_INFO() << "Permission denied: " << filePath << std::endl;
 		return;
 	}
@@ -57,7 +57,7 @@ GetFileService::GetFileService(
 	this->_fd = open(filePath.c_str(), O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 	if (this->_fd < 0) {
 		errno_t err = errno;
-		this->_response = this->_errorPageProvider.internalServerError();
+		this->_response = this->getErrorPageProvider().internalServerError();
 		LS_ERROR()
 			<< "Failed to open file: " << filePath
 			<< " (err: " << std::strerror(err) << ")"
@@ -112,7 +112,7 @@ ServiceEventResultType GetFileService::onEventGot(
 	if (readSize < 0) {
 		const errno_t errorNum = errno;
 		CS_ERROR() << "Failed to read file: " << std::strerror(errorNum) << std::endl;
-		this->_response = this->_errorPageProvider.internalServerError();
+		this->_response = this->getErrorPageProvider().internalServerError();
 
 		return ServiceEventResult::COMPLETE;
 	}
@@ -160,7 +160,7 @@ void GetFileService::generateFileList(const std::string &filePath, const std::st
 		closedir(dir);
 	} else {
 		errno_t err = errno;
-		this->_response = this->_errorPageProvider.internalServerError();
+		this->_response = this->getErrorPageProvider().internalServerError();
 		LS_ERROR()
 			<< "Failed to open directory: " << filePath
 			<< " (err: " << std::strerror(err) << ")"

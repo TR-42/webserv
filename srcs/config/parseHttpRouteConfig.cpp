@@ -6,6 +6,7 @@
 #include <config/parseCgiConfig.hpp>
 #include <config/parseHttpRedirectConfig.hpp>
 #include <config/parseHttpRouteConfig.hpp>
+#include <constants.hpp>
 #include <stdexcept>
 #include <utils/stoul.hpp>
 #include <yaml/MappingNode.hpp>
@@ -19,6 +20,7 @@
 #define YAML_KEY_INDEX_FILES "index_files"
 #define YAML_KEY_CGI "cgi"
 #define YAML_KEY_CONTENT_TYPE "content_type"
+#define YAML_KEY_REQUEST_BODY_LIMIT "request_body_limit"
 
 namespace webserv
 {
@@ -69,6 +71,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 	std::vector<std::string> yaml_index_files;
 	std::vector<CgiConfig> yaml_cgi;
 	ContentTypeMapType yaml_content_type;
+	size_t yaml_request_body_limit = SIZE_MAX;
 
 	if (yaml_request_path.empty() || yaml_request_path[0] != '/')
 		throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_REQUEST_PATH " must start with a '/'");
@@ -132,6 +135,12 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		}
 	}
 
+	if (node.has(YAML_KEY_REQUEST_BODY_LIMIT)) {
+		unsigned long requestBodyLimit_ulong;
+		if (!utils::stoul(yaml::getScalarNode(node, YAML_KEY_REQUEST_BODY_LIMIT).getValue(), requestBodyLimit_ulong))
+			throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_REQUEST_BODY_LIMIT " must be a positive integer");
+	}
+
 	return HttpRouteConfig(
 		yaml_request_path,
 		yaml_methods,
@@ -140,7 +149,8 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		yaml_document_listing,
 		yaml_index_files,
 		yaml_cgi,
-		yaml_content_type
+		yaml_content_type,
+		yaml_request_body_limit
 	);
 }
 

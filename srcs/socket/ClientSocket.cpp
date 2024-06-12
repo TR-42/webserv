@@ -9,6 +9,7 @@
 #include <service/CgiService.hpp>
 #include <service/DeleteFileService.hpp>
 #include <service/GetFileService.hpp>
+#include <service/RequestedFileInfo.hpp>
 #include <service/pickService.hpp>
 #include <socket/ClientSocket.hpp>
 #include <utils/ErrorPageProvider.hpp>
@@ -16,16 +17,9 @@
 #include <utils/to_string.hpp>
 
 #define RECV_BUFFER_SIZE (256 * 256 * 256)
-#define WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES (128 * 1024 * 1024)
 
 namespace webserv
 {
-
-static const ServerRunningConfig &pickServerConfig(
-	const ServerRunningConfigListType &listenConfigList,
-	const HttpRequest &request,
-	const Logger &logger
-);
 
 PollEventResultType ClientSocket::onEventGot(
 	int fd,
@@ -181,30 +175,17 @@ PollEventResultType ClientSocket::_processPollIn(
 	if (!this->_IsHeaderValidationCompleted && this->httpRequest.isRequestHeaderParsed()) {
 		this->_IsHeaderValidationCompleted = true;
 
-		const ServerRunningConfig &serverRunningConfig = pickServerConfig(
-			this->_listenConfigList,
-			this->httpRequest,
-			this->logger
-		);
+		httpRequest.setServerRunningConfig(this->_listenConfigList);
+		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
 
 		// chunkedの場合も一旦チェック
-		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().getContentLength())) {
+		if (this->httpRequest.isSizeLimitExceeded()) {
 			CS_WARN()
 				<< "Request size limit exceeded"
 				<< std::endl;
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
 			return PollEventResult::OK;
 		}
-
-		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().getContentLength()) {
-			CS_WARN()
-				<< "Request body size is too large"
-				<< std::endl;
-			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
-			return PollEventResult::OK;
-		}
-
-		httpRequest.setServerRunningConfig(serverRunningConfig);
 
 		this->_timeoutChecker.setTimeoutMs(serverRunningConfig.getTimeoutMs());
 		if (this->_timeoutChecker.isTimeouted(now)) {
@@ -236,17 +217,9 @@ PollEventResultType ClientSocket::_processPollIn(
 	} else if (this->httpRequest.isRequestHeaderParsed() && this->httpRequest.getBody().getIsChunked()) {
 		// ここに来る時点で、セット済みであるはずである
 		const ServerRunningConfig &serverRunningConfig = this->httpRequest.getServerRunningConfig();
-		if (serverRunningConfig.isSizeLimitExceeded(this->httpRequest.getBody().size())) {
+		if (this->httpRequest.isSizeLimitExceeded()) {
 			CS_WARN()
 				<< "Request size limit exceeded"
-				<< std::endl;
-			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
-			return PollEventResult::OK;
-		}
-
-		if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < this->httpRequest.getBody().size()) {
-			CS_WARN()
-				<< "Request body size is too large"
 				<< std::endl;
 			this->_setResponse(serverRunningConfig.getErrorPageProvider().requestEntityTooLarge());
 			return PollEventResult::OK;
@@ -315,35 +288,6 @@ PollEventResultType ClientSocket::_processPollIn(
 	this->_processPollService(0, pollableList);
 	return PollEventResult::OK;
 }
-
-static const ServerRunningConfig &pickServerConfig(
-	const ServerRunningConfigListType &listenConfigList,
-	const HttpRequest &request,
-	const Logger &logger
-)
-{
-	if (listenConfigList.empty()) {
-		L_FATAL("No ServerConfig found");
-		throw std::runtime_error("No ServerConfig found");
-	}
-
-	if (request.getHost().empty()) {
-		return listenConfigList[0];
-	}
-
-	for (
-		ServerRunningConfigListType::const_iterator itConfig = listenConfigList.begin();
-		itConfig != listenConfigList.end();
-		++itConfig
-	) {
-		if (itConfig->isServerNameMatch(request.getHost())) {
-			return *itConfig;
-		}
-	}
-
-	// Hostが一致するServerConfigが見つからなかった場合、一番最初に記述されていた設定に従う
-	return listenConfigList[0];
-};
 
 PollEventResultType ClientSocket::_processPollOut()
 {
@@ -426,7 +370,7 @@ void ClientSocket::_processPollService(
 					CS_DEBUG()
 						<< "Local redirect: " << cgiService->getLocalRedirectLocation()
 						<< std::endl;
-					this->httpRequest.setPath(cgiService->getLocalRedirectLocation());
+					this->httpRequest.updatePath(cgiService->getLocalRedirectLocation());
 					delete this->_service;
 					this->_service = NULL;
 

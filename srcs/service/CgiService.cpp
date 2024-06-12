@@ -81,13 +81,11 @@ static inline std::string _dirname(
 
 CgiService::CgiService(
 	const HttpRequest &request,
-	const RequestedFileInfo &requestedFileInfo,
 	uint16_t serverPort,
 	const struct sockaddr &clientAddr,
-	const utils::ErrorPageProvider &errorPageProvider,
 	const Logger &logger,
 	std::vector<Pollable *> &pollableList
-) : ServiceBase(request, errorPageProvider, logger),
+) : ServiceBase(request, logger),
 		_pid(-1),
 		_cgiExecuter(NULL),
 		_cgiHandler(NULL),
@@ -96,6 +94,7 @@ CgiService::CgiService(
 {
 	C_DEBUG("initializing...");
 
+	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
 	const CgiConfig &cgiConfig = requestedFileInfo.getCgiConfig();
 	const std::string &cgiPath = cgiConfig.getCgiExecutableFullPath();
 
@@ -208,7 +207,7 @@ CgiService::CgiService(
 	}
 
 	this->_cgiHandler = new CgiHandler(
-		errorPageProvider,
+		this->getErrorPageProvider(),
 		logger,
 		fdReadFromCgi,
 		&(this->_cgiHandler),
@@ -224,7 +223,7 @@ CgiService::CgiService(
 	pollableList.push_back(this->_cgiHandler);
 
 	// レスポンスが返ってこなかった場合等はInternalServerErrorなので、あらかじめここで設定しておく
-	this->_response = errorPageProvider.internalServerError();
+	this->_response = this->getErrorPageProvider().internalServerError();
 
 	C_DEBUG("initialized");
 }

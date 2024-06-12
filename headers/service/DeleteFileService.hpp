@@ -13,8 +13,6 @@ class DeleteFileService : public ServiceBase
  public:
 	DeleteFileService(
 		const HttpRequest &request,
-		const RequestedFileInfo &requestedFileInfo,
-		const webserv::utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
 	virtual ~DeleteFileService();

@@ -4,6 +4,7 @@
 #include <http/exception/NotImplemented.hpp>
 #include <http/exception/RequestEntityTooLarge.hpp>
 #include <iostream>
+#include <service/RequestedFileInfo.hpp>
 #include <stdexcept>
 #include <utils/normalizePath.hpp>
 #include <utils/pickLine.hpp>
@@ -14,6 +15,8 @@
 #include "http/HttpFieldMap.hpp"
 
 #define REQUEST_MAX_SIZE (512 * 1024 * 1024)
+
+#define WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES (128 * 1024 * 1024)
 
 #define METHOD_GET "GET"
 #define METHOD_DELETE "DELETE"
@@ -40,7 +43,8 @@ HttpRequest::HttpRequest(
 		_Version(1, 1),
 		_IsRequestLineParsed(false),
 		_IsRequestHeaderParsed(false),
-		serverRunningConfig(NULL)
+		serverRunningConfig(NULL),
+		_requestedFileInfo(NULL)
 {
 }
 
@@ -58,7 +62,8 @@ HttpRequest::HttpRequest(
 		_IsRequestHeaderParsed(src._IsRequestHeaderParsed),
 		_Host(src._Host),
 		_NormalizedPath(src._NormalizedPath),
-		serverRunningConfig(new ServerRunningConfig(*src.serverRunningConfig))
+		serverRunningConfig(new ServerRunningConfig(*src.serverRunningConfig)),
+		_requestedFileInfo(new RequestedFileInfo(*src._requestedFileInfo))
 {
 }
 
@@ -66,6 +71,9 @@ HttpRequest::~HttpRequest()
 {
 	if (this->serverRunningConfig != NULL) {
 		delete this->serverRunningConfig;
+	}
+	if (this->_requestedFileInfo != NULL) {
+		delete this->_requestedFileInfo;
 	}
 }
 
@@ -254,14 +262,8 @@ bool HttpRequest::parseRequestLine(
 	CS_DEBUG() << "lenToSpacePos2: " << lenToSpacePos2 << std::endl;
 	this->_Path = std::string((const char *)pathSegment, lenToSpacePos2);
 	CS_DEBUG() << "PathSegment: `" << this->_Path << "`" << std::endl;
-	separatePathAndQuery(this->_Path, this->_Query);
-	this->_NormalizedPath = utils::normalizePath(this->_Path);
-	this->_PathSegmentList = utils::split(this->_NormalizedPath, '/');
-	CS_DEBUG()
-		<< "Path: `" << this->_Path << "`, "
-		<< "Query: `" << this->_Query << "`, "
-		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
-		<< std::endl;
+
+	this->setPath(this->_Path);
 
 	if (spacePos2 == (requestRawData + newlinePos)) {
 		C_WARN("spacePos2 was NULL -> may be HTTP/0.9");
@@ -340,23 +342,59 @@ bool HttpRequest::isServerRunningConfigSet() const
 	return this->serverRunningConfig != NULL;
 }
 
+bool HttpRequest::isRequestedFileInfoSet() const
+{
+	return this->_requestedFileInfo != NULL;
+}
+
 const ServerRunningConfig &HttpRequest::getServerRunningConfig() const
 {
 	return *this->serverRunningConfig;
 }
 
+const RequestedFileInfo &HttpRequest::getRequestedFileInfo() const
+{
+	return *this->_requestedFileInfo;
+}
+
+static const ServerRunningConfig &pickServerConfig(
+	const ServerRunningConfigListType &listenConfigList,
+	const HttpRequest &request,
+	const Logger &logger
+)
+{
+	if (listenConfigList.empty()) {
+		L_FATAL("No ServerConfig found");
+		throw std::runtime_error("No ServerConfig found");
+	}
+
+	if (request.getHost().empty()) {
+		return listenConfigList[0];
+	}
+
+	for (
+		ServerRunningConfigListType::const_iterator itConfig = listenConfigList.begin();
+		itConfig != listenConfigList.end();
+		++itConfig
+	) {
+		if (itConfig->isServerNameMatch(request.getHost())) {
+			return *itConfig;
+		}
+	}
+
+	// Hostが一致するServerConfigが見つからなかった場合、一番最初に記述されていた設定に従う
+	return listenConfigList[0];
+};
+
 void HttpRequest::setServerRunningConfig(
-	const ServerRunningConfig &serverRunningConfig
+	const ServerRunningConfigListType &listenConfigList
 )
 {
 	if (this->serverRunningConfig != NULL) {
 		delete this->serverRunningConfig;
 	}
-	this->serverRunningConfig = new ServerRunningConfig(serverRunningConfig);
-	this->_routeConfig = this->serverRunningConfig->pickRouteConfig(
-		this->_PathSegmentList,
-		this->_Method
-	);
+	this->serverRunningConfig = new ServerRunningConfig(pickServerConfig(listenConfigList, *this, this->logger));
+	this->reloadRouteConfig();
 }
 
 void HttpRequest::setPath(
@@ -372,6 +410,50 @@ void HttpRequest::setPath(
 		<< "Query: `" << this->_Query << "`, "
 		<< "NormalizedPath: `" << this->_NormalizedPath << "`"
 		<< std::endl;
+}
+
+void HttpRequest::updatePath(
+	const std::string &path
+)
+{
+	if (this->_Path == path) {
+		C_WARN("Path was not updated");
+		return;
+	}
+	this->setPath(path);
+	this->reloadRouteConfig();
+}
+
+bool HttpRequest::isSizeLimitExceeded() const
+{
+	size_t contentLength = this->_Body.getIsChunked() ? this->_Body.size() : this->_Body.getContentLength();
+	if (this->serverRunningConfig->getRequestBodyLimit() < contentLength) {
+		CS_WARN()
+			<< "Request body size limit exceeded(ServerConfig): "
+			<< "Limit=" << this->serverRunningConfig->getRequestBodyLimit()
+			<< ", ContentLength=" << contentLength
+			<< std::endl;
+		return true;
+	}
+	if (this->_routeConfig.getRequestBodyLimit() < contentLength) {
+		CS_WARN()
+			<< "Request body size limit exceeded(RouteConfig): "
+			<< "Limit=" << this->_routeConfig.getRequestBodyLimit()
+			<< ", ContentLength=" << contentLength
+			<< std::endl;
+		return true;
+	}
+
+	if (WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES < contentLength) {
+		CS_WARN()
+			<< "Request body size limit exceeded(WEBSERV): "
+			<< "Limit=" << WEBSERV_HTTP_REQUEST_BODY_SIZE_MAX_BYTES
+			<< ", ContentLength=" << contentLength
+			<< std::endl;
+		return true;
+	}
+
+	return false;
 }
 
 }	 // namespace webserv

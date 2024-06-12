@@ -36,7 +36,6 @@ class ServerRunningConfig
 	virtual ~ServerRunningConfig();
 
 	bool isServerNameMatch(const std::string &serverName) const;
-	bool isSizeLimitExceeded(const size_t contentLength) const;
 	HttpRouteConfig pickRouteConfig(
 		const std::vector<std::string> &pathSegmentList,
 		const std::string &method
@@ -52,9 +51,14 @@ class ServerRunningConfig
 		return this->_timeoutMs;
 	}
 
-	inline utils::ErrorPageProvider getErrorPageProvider() const
+	inline const utils::ErrorPageProvider &getErrorPageProvider() const
 	{
 		return this->_errorPageProvider;
+	}
+
+	inline size_t getRequestBodyLimit() const
+	{
+		return this->_requestBodyLimit;
 	}
 };
 

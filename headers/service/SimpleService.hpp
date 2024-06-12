@@ -20,7 +20,6 @@ class SimpleService : public ServiceBase
 	SimpleService(
 		const HttpRequest &request,
 		const HttpResponse &response,
-		const utils::ErrorPageProvider &errorPageProvider,
 		const Logger &logger
 	);
 	virtual ~SimpleService();

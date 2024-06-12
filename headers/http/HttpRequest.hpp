@@ -11,6 +11,7 @@
 #include "./MessageBody.hpp"
 #include "config/ServerRunningConfig.hpp"
 #include "http/HttpFieldMap.hpp"
+#include "service/RequestedFileInfo.hpp"
 
 namespace webserv
 {
@@ -41,6 +42,7 @@ class HttpRequest
 	// 正規化されて分割されたパスが入る
 	std::vector<std::string> _PathSegmentList;
 	ServerRunningConfig *serverRunningConfig;
+	RequestedFileInfo *_requestedFileInfo;
 	HttpRouteConfig _routeConfig;
 
 	std::vector<uint8_t> _UnparsedRequestRaw;
@@ -79,13 +81,17 @@ class HttpRequest
 	std::string getNormalizedPath() const;
 	const std::vector<std::string> &getPathSegmentList() const;
 	bool isServerRunningConfigSet() const;
+	bool isRequestedFileInfoSet() const;
 	const ServerRunningConfig &getServerRunningConfig() const;
-	void setServerRunningConfig(const ServerRunningConfig &serverRunningConfig);
+	const RequestedFileInfo &getRequestedFileInfo() const;
+	void setServerRunningConfig(const ServerRunningConfigListType &serverRunningConfigList);
 
-	void setPath(const std::string &path);
+	void updatePath(const std::string &path);
 
 	inline const HttpRouteConfig &getRouteConfig() const { return this->_routeConfig; }
 	inline size_t getTotalRequestSize() const { return this->_TotalRequestSize; }
+
+	bool isSizeLimitExceeded() const;
 
  private:
 	bool
@@ -98,6 +104,28 @@ class HttpRequest
 	);
 
 	std::string requestText;
+	void setPath(const std::string &path);
+	bool reloadRouteConfig()
+	{
+		if (this->serverRunningConfig == NULL) {
+			return false;
+		}
+		this->_routeConfig = this->serverRunningConfig->pickRouteConfig(
+			this->_PathSegmentList,
+			this->_Method
+		);
+		if (this->_requestedFileInfo != NULL) {
+			delete this->_requestedFileInfo;
+			this->_requestedFileInfo = NULL;
+		}
+		this->_requestedFileInfo = new RequestedFileInfo(
+			this->_PathSegmentList,
+			this->_Path[this->_Path.length() - 1] == '/',
+			this->_routeConfig,
+			this->logger
+		);
+		return true;
+	}
 };
 
 }	 // namespace webserv

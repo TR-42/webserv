@@ -28,20 +28,13 @@ ServiceBase *pickService(
 		<< "Picking service for route: " << routeConfig.getRequestPath()
 		<< std::endl;
 
-	RequestedFileInfo requestedFileInfo(
-		request.getPathSegmentList(),
-		request.getPath()[request.getPath().length() - 1] == '/',
-		routeConfig,
-		logger
-	);
+	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
 
 	if (requestedFileInfo.getIsNotFound()) {
 		if (request.getMethod() == "POST") {
 			L_INFO("NotFound && POST -> PostFileService selected");
 			return new PostFileService(
 				request,
-				requestedFileInfo,
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		} else {
@@ -49,7 +42,6 @@ ServiceBase *pickService(
 			return new SimpleService(
 				request,
 				request.getServerRunningConfig().getErrorPageProvider().notFound(),
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		}
@@ -61,10 +53,8 @@ ServiceBase *pickService(
 		if (isExecutable) {
 			return new CgiService(
 				request,
-				requestedFileInfo,
 				serverPort,
 				clientAddr,
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger,
 				pollableList
 			);
@@ -73,7 +63,6 @@ ServiceBase *pickService(
 			return new SimpleService(
 				request,
 				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		}
@@ -84,8 +73,6 @@ ServiceBase *pickService(
 		if (requestedFileInfo.getStatBuf().st_mode & S_IRUSR) {
 			return new GetFileService(
 				request,
-				requestedFileInfo,
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		} else {
@@ -93,7 +80,6 @@ ServiceBase *pickService(
 			return new SimpleService(
 				request,
 				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		}
@@ -105,7 +91,6 @@ ServiceBase *pickService(
 		return new SimpleService(
 			request,
 			request.getServerRunningConfig().getErrorPageProvider().methodNotAllowed(),
-			request.getServerRunningConfig().getErrorPageProvider(),
 			logger
 		);
 	}
@@ -116,8 +101,6 @@ ServiceBase *pickService(
 		if (requestedFileInfo.getStatBuf().st_mode & S_IWUSR) {
 			return new DeleteFileService(
 				request,
-				requestedFileInfo,
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		} else {
@@ -125,7 +108,6 @@ ServiceBase *pickService(
 			return new SimpleService(
 				request,
 				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		}
@@ -134,8 +116,6 @@ ServiceBase *pickService(
 		if (requestedFileInfo.getStatBuf().st_mode & S_IWUSR) {
 			return new PostFileService(
 				request,
-				requestedFileInfo,
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		} else {
@@ -143,7 +123,6 @@ ServiceBase *pickService(
 			return new SimpleService(
 				request,
 				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
-				request.getServerRunningConfig().getErrorPageProvider(),
 				logger
 			);
 		}

@@ -25,7 +25,8 @@ HttpRouteConfig::HttpRouteConfig(
 		_IndexFileList(from._IndexFileList),
 		_CgiConfigList(from._CgiConfigList),
 		_RequestPathSegmentList(from._RequestPathSegmentList),
-		_ContentTypeMap(from._ContentTypeMap)
+		_ContentTypeMap(from._ContentTypeMap),
+		_RequestBodyLimit(from._RequestBodyLimit)
 {
 }
 
@@ -45,6 +46,7 @@ HttpRouteConfig &HttpRouteConfig::operator=(
 	this->_CgiConfigList = from._CgiConfigList;
 	this->_RequestPathSegmentList = from._RequestPathSegmentList;
 	this->_ContentTypeMap = from._ContentTypeMap;
+	this->_RequestBodyLimit = from._RequestBodyLimit;
 
 	return *this;
 }
@@ -68,14 +70,16 @@ HttpRouteConfig::HttpRouteConfig(
 	bool IsDocumentListingEnabled,
 	const std::vector<std::string> &IndexFileList,
 	const CgiConfigListType &CgiConfigList,
-	const ContentTypeMapType &ContentTypeMap
+	const ContentTypeMapType &ContentTypeMap,
+	const size_t &RequestBodyLimit
 ) : _Methods(Methods),
 		_Redirect(Redirect),
 		_DocumentRoot(DocumentRoot),
 		_IsDocumentListingEnabled(IsDocumentListingEnabled),
 		_IndexFileList(IndexFileList),
 		_CgiConfigList(CgiConfigList),
-		_ContentTypeMap(ContentTypeMap)
+		_ContentTypeMap(ContentTypeMap),
+		_RequestBodyLimit(RequestBodyLimit)
 {
 	this->setRequestPath(RequestPath);
 }
