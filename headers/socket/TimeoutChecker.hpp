@@ -4,7 +4,7 @@
 #include <ctime>
 #include <stdexcept>
 
-#define DEFAULT_REQUEST_TIMEOUT_MS (100)
+#define DEFAULT_REQUEST_TIMEOUT_MS (10000)
 #ifdef DEBUG
 #define SOCKET_TIMEOUT_MS (600 * 1000)
 #else
