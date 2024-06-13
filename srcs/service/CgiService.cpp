@@ -115,10 +115,11 @@ CgiService::CgiService(
 	env::EnvManager envManager(cgiConfig.getEnvPreset());
 	envManager.set("GATEWAY_INTERFACE", "CGI/1.1");
 	// /abc/index.php/extra/def の場合、PATH_INFOは /extra/def
-	envManager.set("PATH_INFO", requestedFileInfo.getCgiPathInfo());
+	envManager.set("PATH_INFO", request.getPath());
 	envManager.set("PATH_TRANSLATED", pathTranslated);
 	envManager.set("QUERY_STRING", request.getQuery());
 	envManager.set("REQUEST_METHOD", request.getMethod());
+	envManager.set("REQUEST_URI", request.getPath());
 	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /abc/index.php
 	// /abc の場合、SCRIPT_NAMEは /abc/index.php
 	envManager.set("SCRIPT_NAME", requestedFileInfo.getCgiScriptName());
