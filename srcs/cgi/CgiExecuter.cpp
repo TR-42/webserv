@@ -17,7 +17,7 @@ namespace webserv
 #define PIPE_WRITE 1
 
 CgiExecuter::CgiExecuter(
-	const std::vector<uint8_t> &requestBody,
+	const MessageBody &requestBody,
 	char **argv,
 	char **envp,
 	const std::string &workingDir,
@@ -27,7 +27,8 @@ CgiExecuter::CgiExecuter(
 	int fdReadFromCgi,
 	int fdWriteToParent,
 	std::vector<Pollable *> &pollableList
-) : _requestBody(requestBody),
+) : _requestBody(requestBody.data()),
+		_requestBodySize(requestBody.size()),
 		_fdWriteToCgi(fdWriteToCgi),
 		_pid(-1),
 		logger(logger),
@@ -36,7 +37,7 @@ CgiExecuter::CgiExecuter(
 	CS_DEBUG()
 		<< "initializing... "
 		<< "workingDir=" << workingDir
-		<< ", requestBodyLength=" << this->_requestBody.size()
+		<< ", requestBodyLength=" << this->_requestBodySize
 		<< std::endl;
 
 	this->_pid = fork();
@@ -147,6 +148,11 @@ __attribute__((noreturn)) void CgiExecuter::_childProcessFunc(
 
 CgiExecuter::~CgiExecuter()
 {
+	if (this->_requestBody != NULL) {
+		delete[] this->_requestBody;
+		this->_requestBody = NULL;
+	}
+
 	if (0 <= this->_fdWriteToCgi) {
 		close(this->_fdWriteToCgi);
 		CS_DEBUG()
@@ -173,13 +179,13 @@ PollEventResultType CgiExecuter::onEventGot(
 		return PollEventResult::OK;
 	}
 
-	size_t sizeToWrite = this->_requestBody.size() - this->_writtenCount;
+	size_t sizeToWrite = this->_requestBodySize - this->_writtenCount;
 	if (INT_MAX < sizeToWrite) {
 		sizeToWrite = INT_MAX;
 	}
 	ssize_t writtenCount = write(
 		this->_fdWriteToCgi,
-		this->_requestBody.data() + this->_writtenCount,
+		this->_requestBody + this->_writtenCount,
 		sizeToWrite
 	);
 
@@ -194,7 +200,7 @@ PollEventResultType CgiExecuter::onEventGot(
 		<< "written "
 		<< this->_writtenCount
 		<< " / "
-		<< this->_requestBody.size()
+		<< this->_requestBodySize
 		<< " bytes to CGI"
 		<< ", current writtenCount=" << writtenCount
 		<< std::endl;
@@ -214,7 +220,7 @@ pid_t CgiExecuter::getPid() const
 
 bool CgiExecuter::isWriteToCgiCompleted() const
 {
-	return this->_requestBody.size() <= this->_writtenCount;
+	return this->_requestBodySize <= this->_writtenCount;
 }
 
 }	 // namespace webserv

@@ -169,7 +169,7 @@ CgiService::CgiService(
 
 	std::string workingDir = _dirname(requestedFileInfo.getTargetFilePath());
 	this->_cgiExecuter = new CgiExecuter(
-		request.getBody().getBody(),
+		request.getBody(),
 		argv,
 		envp,
 		workingDir,
