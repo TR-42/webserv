@@ -30,6 +30,17 @@ ServiceBase *pickService(
 
 	const RequestedFileInfo &requestedFileInfo = request.getRequestedFileInfo();
 
+	if (requestedFileInfo.getIsCgi()) {
+		L_INFO("CgiService selected");
+		return new CgiService(
+			request,
+			serverPort,
+			clientAddr,
+			logger,
+			pollableList
+		);
+	}
+
 	if (requestedFileInfo.getIsNotFound()) {
 		if (request.getMethod() == "POST") {
 			L_INFO("NotFound && POST -> PostFileService selected");
@@ -42,27 +53,6 @@ ServiceBase *pickService(
 			return new SimpleService(
 				request,
 				request.getServerRunningConfig().getErrorPageProvider().notFound(),
-				logger
-			);
-		}
-	}
-
-	if (requestedFileInfo.getIsCgi()) {
-		L_INFO("CgiService selected");
-		bool isExecutable = (requestedFileInfo.getStatBuf().st_mode & (S_IRUSR | S_IXUSR)) == (S_IRUSR | S_IXUSR);
-		if (isExecutable) {
-			return new CgiService(
-				request,
-				serverPort,
-				clientAddr,
-				logger,
-				pollableList
-			);
-		} else {
-			L_INFO("Permission denied");
-			return new SimpleService(
-				request,
-				request.getServerRunningConfig().getErrorPageProvider().permissionDenied(),
 				logger
 			);
 		}
