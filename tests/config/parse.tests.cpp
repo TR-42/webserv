@@ -115,6 +115,7 @@ TEST_F(ParseTests, parseListenConfig)
 		"    42Tokyo.jp:",
 		"  port: 8080",
 		"  timeoutMs: 100",
+		"  requestBodyLimit: 100",
 		"  routeList:",
 		"    route2-1:",
 		"      request_path: /",
@@ -124,6 +125,7 @@ TEST_F(ParseTests, parseListenConfig)
 		"    42Tokyo.jp:",
 		"  port: 8081",
 		"  timeoutMs: 100",
+		"  requestBodyLimit: 100",
 		"  routeList:",
 		"    route3-1:",
 		"      request_path: /",
@@ -161,7 +163,7 @@ TEST_F(ParseTests, parseListenConfig)
 			std::set<std::string>{"42tokyo.jp"},
 			8080,
 			100,
-			0,
+			100,
 			ErrorPageMapType(),
 			std::vector<HttpRouteConfig>{route2_1}
 		);
@@ -187,7 +189,7 @@ TEST_F(ParseTests, parseListenConfig)
 			std::set<std::string>{"42tokyo.jp"},
 			8081,
 			100,
-			0,
+			100,
 			ErrorPageMapType(),
 			std::vector<HttpRouteConfig>{route3_1}
 		);

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <macros.hpp>
+#include <utils/to_string.hpp>
 
 #define READ_BUF_SIZE (256 * 256 * 256)
 
@@ -130,7 +131,7 @@ PollEventResultType CgiHandler::onEventGot(
 	if (readResult == 0) {
 		C_DEBUG("CGI read complete");
 		CS_DEBUG()
-			<< "Mode: " << this->_cgiResponse.getMode()
+			<< "Mode: " << utils::to_string(this->_cgiResponse.getMode())
 			<< ", BodySize: " << this->_cgiResponse.getResponseBody().size()
 			<< ", Status: " << this->_cgiResponse.getStatusCode()
 			<< ", Reason: " << this->_cgiResponse.getReasonPhrase()
