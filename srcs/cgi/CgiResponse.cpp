@@ -92,17 +92,21 @@ std::vector<uint8_t> CgiResponse::generateResponsePacket(
 HttpResponse CgiResponse::getHttpResponse() const
 {
 	if (!this->_IsResponseHeaderParsed) {
+		C_WARN("Response header is not parsed");
 		return this->_errorPageProvider.internalServerError();
 	}
 	if (this->_mode == CgiResponseMode::LOCAL_REDIRECT) {
+		C_WARN("Local redirect is not supported");
 		return this->_errorPageProvider.internalServerError();
 	}
 
 	if (this->_mode == CgiResponseMode::CLIENT_REDIRECT && !this->_ResponseBody.empty()) {
+		C_WARN("Client redirect with body is not supported");
 		return this->_errorPageProvider.internalServerError();
 	}
 
 	if (!this->_ResponseBody.getIsEndWithEOF() && !this->_ResponseBody.getIsProcessComplete()) {
+		C_WARN("Response body is not complete");
 		return this->_errorPageProvider.internalServerError();
 	}
 
