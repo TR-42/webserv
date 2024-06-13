@@ -49,18 +49,13 @@ RequestedFileInfo::RequestedFileInfo(
 	// (通常ファイルへのリクエストの場合は処理されない)
 	this->_findIndexFile(routeConfig, logger);
 
-	if (this->_IsNotFound) {
-		L_LOG("Process End");
-		return;
-	}
-
 	// (ディレクトリへのリクエストの場合は処理されない)
 	this->_pickFileExtensionWithoutDot(logger);
 	this->_pickCgiConfig(routeConfig, logger);
 
 	// ファイルに対するリクエストの場合にのみCgiPathInfoが設定されている
 	bool isCgiPathInfoAvailable = !this->_CgiPathInfo.empty();
-	this->_IsNotFound = !this->_IsCgi && isCgiPathInfoAvailable;
+	this->_IsNotFound = !this->_IsCgi && (isCgiPathInfoAvailable || this->_IsNotFound);
 
 	this->_ContentType = this->_getContentType(routeConfig);
 
@@ -125,10 +120,12 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 				<< "File (or directory) not found: " << path
 				<< " (err: " << std::strerror(err) << ")"
 				<< std::endl;
-			return false;
+			if (err != ENOENT) {
+				return false;
+			}
 		}
 
-		if (!S_ISDIR(statBuf.st_mode) && !S_ISREG(statBuf.st_mode)) {
+		if (!this->_IsNotFound && (!S_ISDIR(statBuf.st_mode) && !S_ISREG(statBuf.st_mode))) {
 			this->_IsNotFound = true;
 			LS_INFO()
 				<< "not a regular file or directory: " << path
@@ -136,7 +133,7 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 			return false;
 		}
 
-		if (S_ISDIR(statBuf.st_mode)) {
+		if (!this->_IsNotFound && S_ISDIR(statBuf.st_mode)) {
 			this->_IsDirectory = true;
 			this->_StatBuf = statBuf;
 			LS_LOG()
@@ -144,7 +141,12 @@ bool RequestedFileInfo::_checkTargetFilePathStat(
 				<< std::endl;
 		} else {
 			this->_IsDirectory = false;
-			this->_StatBuf = statBuf;
+
+			if (this->_IsNotFound) {
+				std::memset(&this->_StatBuf, 0, sizeof(this->_StatBuf));
+			} else {
+				this->_StatBuf = statBuf;
+			}
 			this->_FileName = requestedPathSegList[i];
 			this->_TargetFilePathWithoutDocumentRoot = joinPath(requestedPathSegList, configReqPathSegListSize, i - configReqPathSegListSize + 1);
 			this->_CgiScriptName = joinPath(requestedPathSegList, 0, i + 1);
