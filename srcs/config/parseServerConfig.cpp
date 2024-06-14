@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <config/parseHttpRouteConfig.hpp>
 #include <config/parseServerConfig.hpp>
+#include <constants.hpp>
 #include <cstring>
 #include <stdexcept>
 #include <utils/stoul.hpp>
@@ -46,7 +47,7 @@ ServerConfig parseServerConfig(const yaml::MappingNode &node, const std::string 
 	std::set<std::string> serverNameList;
 	uint16_t port;
 	size_t timeoutMs = 100;
-	std::size_t requestBodyLimit = 0;
+	std::size_t requestBodyLimit = SIZE_MAX;
 	ErrorPageMapType errorPageMap;
 	RouteListType routeList;
 

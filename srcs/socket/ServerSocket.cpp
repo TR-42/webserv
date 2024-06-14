@@ -113,6 +113,16 @@ ServerSocket *ServerSocket::createServerSocket(
 	LS_DEBUG()
 		<< "ServerSocket created: fd=" << fd
 		<< std::endl;
+	int yes = 1;
+	int ret = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+	if (ret < 0) {
+		errno_t err = errno;
+		LS_ERROR()
+			<< "setsockopt() failed: " << std::strerror(err)
+			<< std::endl;
+		close(fd);
+		return NULL;
+	}
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		errno_t err = errno;
 		LS_ERROR()

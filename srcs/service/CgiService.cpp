@@ -115,10 +115,11 @@ CgiService::CgiService(
 	env::EnvManager envManager(cgiConfig.getEnvPreset());
 	envManager.set("GATEWAY_INTERFACE", "CGI/1.1");
 	// /abc/index.php/extra/def の場合、PATH_INFOは /extra/def
-	envManager.set("PATH_INFO", requestedFileInfo.getCgiPathInfo());
+	envManager.set("PATH_INFO", request.getPath());
 	envManager.set("PATH_TRANSLATED", pathTranslated);
 	envManager.set("QUERY_STRING", request.getQuery());
 	envManager.set("REQUEST_METHOD", request.getMethod());
+	envManager.set("REQUEST_URI", request.getPath());
 	// /abc/index.php/extra/def の場合、SCRIPT_NAMEは /abc/index.php
 	// /abc の場合、SCRIPT_NAMEは /abc/index.php
 	envManager.set("SCRIPT_NAME", requestedFileInfo.getCgiScriptName());
@@ -294,29 +295,6 @@ ServiceEventResultType CgiService::onEventGot(
 	short revents
 )
 {
-	if (IS_POLL_ANY_ERROR(revents) && !IS_POLLHUP(revents)) {
-		// 子プロセスの終了によるエラーの場合は、サービス自体を終了する
-		C_DEBUG("IS_POLL_ANY_ERROR(revents)");
-		if (this->_pid <= 0) {
-			C_ERROR("this->_pid <= 0");
-			return ServiceEventResult::ERROR;
-		}
-
-		int status;
-		int waitResult = waitpid(this->_pid, &status, WNOHANG);
-		if (waitResult < 0) {
-			errno_t err = errno;
-			CS_ERROR() << "waitpid() failed: " << std::strerror(err) << std::endl;
-			return ServiceEventResult::ERROR;
-		} else if (waitResult == 0) {
-			CS_DEBUG() << "waitpid() returned 0 -> handle it in CgiExecuter" << std::endl;
-		} else {
-			CS_INFO() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
-			this->_pid = -1;
-			return ServiceEventResult::ERROR;
-		}
-	}
-
 	if (this->_cgiHandler == NULL) {
 		if (this->_pid <= 0) {
 			C_DEBUG("this->_pid <= 0");
@@ -360,6 +338,19 @@ ServiceEventResultType CgiService::onEventGot(
 	if (this->_cgiExecuter == NULL) {
 		C_DEBUG("this->_cgiExecuter == NULL ... continue");
 		return ServiceEventResult::CONTINUE;
+	}
+
+	if (IS_POLL_ANY_ERROR(revents)) {
+		if (IS_POLLHUP(revents)) {
+			C_INFO("HUP event");
+			delete this->_cgiExecuter;
+			this->_cgiExecuter = NULL;
+			return ServiceEventResult::CONTINUE;
+		}
+		CS_ERROR() << "Error event" << std::endl;
+		this->_cgiHandler->setDisposeRequested();
+		this->_cgiHandler = NULL;
+		return ServiceEventResult::ERROR;
 	}
 
 	PollEventResultType executerResult = this->_cgiExecuter->onEventGot(revents);

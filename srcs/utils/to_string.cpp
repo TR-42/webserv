@@ -102,6 +102,24 @@ std::string to_string(
 	}
 }
 
+std::string to_string(
+	const CgiResponseModeType &mode
+)
+{
+	switch (mode) {
+		case CgiResponseMode::DOCUMENT:
+			return "CgiResponseMode::DOCUMENT";
+		case CgiResponseMode::LOCAL_REDIRECT:
+			return "CgiResponseMode::LOCAL_REDIRECT";
+		case CgiResponseMode::CLIENT_REDIRECT:
+			return "CgiResponseMode::CLIENT_REDIRECT";
+		case CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT:
+			return "CgiResponseMode::CLIENT_REDIRECT_WITH_DOCUMENT";
+		default:
+			return "CgiResponseMode::(unknown mode)";
+	}
+}
+
 }	 // namespace utils
 
 }	 // namespace webserv

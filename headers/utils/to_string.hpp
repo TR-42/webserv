@@ -2,6 +2,7 @@
 
 #include <sys/socket.h>
 
+#include <cgi/CgiResponseMode.hpp>
 #include <poll/PollEventResult.hpp>
 #include <string>
 
@@ -31,6 +32,10 @@ std::string to_string(
 
 std::string to_string(
 	const PollEventResultType &result
+);
+
+std::string to_string(
+	const CgiResponseModeType &mode
 );
 
 }	 // namespace utils
