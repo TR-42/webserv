@@ -146,6 +146,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		unsigned long requestBodyLimit_ulong;
 		if (!utils::stoul(yaml::getScalarNode(node, YAML_KEY_REQUEST_BODY_LIMIT).getValue(), requestBodyLimit_ulong))
 			throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_REQUEST_BODY_LIMIT " must be a positive integer");
+		yaml_request_body_limit = requestBodyLimit_ulong;
 	}
 
 	return HttpRouteConfig(
