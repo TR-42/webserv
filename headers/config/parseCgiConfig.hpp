@@ -5,6 +5,6 @@
 namespace webserv
 {
 
-CgiConfig parseCgiConfig(const yaml::MappingNode &node);
+CgiConfig parseCgiConfig(const yaml::MappingNode &node, const std::string &yamlFilePath);
 
 }	 // namespace webserv

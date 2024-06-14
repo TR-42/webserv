@@ -119,7 +119,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 	if (node.has(YAML_KEY_CGI)) {
 		const yaml::MappingNode &cgi_node = yaml::getMappingNode(node, YAML_KEY_CGI);
 		for (yaml::NodeVector::const_iterator it = cgi_node.getNodes().begin(); it != cgi_node.getNodes().end(); ++it) {
-			yaml_cgi.push_back(parseCgiConfig(yaml::getMappingNode(**it)));
+			yaml_cgi.push_back(parseCgiConfig(yaml::getMappingNode(**it), yamlFilePath));
 		}
 	}
 
