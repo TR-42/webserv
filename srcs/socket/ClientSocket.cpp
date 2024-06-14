@@ -76,8 +76,13 @@ PollEventResultType ClientSocket::onEventGot(
 		CS_DEBUG()
 			<< "POLLIN event"
 			<< std::endl;
-		return this->_processPollIn(now, pollableList);
-	} else if (IS_POLLOUT(revents)) {
+		PollEventResultType result = this->_processPollIn(now, pollableList);
+		if (result != PollEventResult::OK) {
+			return result;
+		}
+		// サービス終了後に (POLLOUTが設定されていて) すぐに返せる場合のため、POLLOUTのチェックも行う
+	}
+	if (this->_IsResponseSet && IS_POLLOUT(revents)) {
 		CS_DEBUG()
 			<< "POLLOUT event"
 			<< std::endl;
@@ -514,7 +519,8 @@ void ClientSocket::setToPollFd(
 	bool isResponseAvailable = this->_IsResponseSet || this->_timeoutChecker.isTimeouted(now);
 
 	if (isResponseAvailable || this->_service == NULL) {
-		pollFd.events = isResponseAvailable ? POLLOUT : POLLIN;
+		// 初回実行でも書き込みを行うため、POLLOUTを設定する
+		pollFd.events = isResponseAvailable ? POLLOUT : (POLLIN | POLLOUT);
 	} else {
 		this->_service->setToPollFd(pollFd);
 	}
