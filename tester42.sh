@@ -9,7 +9,7 @@ CGI_TESTER_NAME="cgi_tester"
 YOUPI_BANENE="YoupiBanane"
 DOCUMENT_ROOT="DocumentRoot"
 PUT_TEST="PutTest"
-POST_BODY="PostBody"
+# POST_BODY="PostBody"
 
 cd $TARGET_ROOT
 

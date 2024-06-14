@@ -6,22 +6,22 @@ server1:
   requestBodyLimit: 134217728
   routeList:
     DocumentRoot:
-      document_root: ./DocumentRoot
+      document_root: ./DocumentRoot/
       document_listing: true
       request_path: /
       methods:
         GET:
     PutTest:
-      document_root: ./PutTest
+      document_root: ./PutTest/
       request_path: /put_test
       methods:
         PUT:
     PostBody:
-      document_root: ./PostBody
+      document_root: ./post_body
       request_path: /post_body
-      requestBodyLimit: 100
+      request_body_limit: 100
     Directory:
-      document_root: ./YoupiBanane
+      document_root: ./YoupiBanane/
       request_path: /directory
       index_files:
         youpi.bad_extension:
