@@ -1,0 +1,33 @@
+server1:
+  serverNameList:
+    localhost:
+  port: 80
+  timeoutMs: 20000
+  requestBodyLimit: 134217728
+  routeList:
+    DocumentRoot:
+      document_root: ./DocumentRoot
+      document_listing: true
+      request_path: /
+      methods:
+        GET:
+    PutTest:
+      document_root: ./PutTest
+      request_path: /put_test
+      methods:
+        PUT:
+    PostBody:
+      document_root: ./PostBody
+      request_path: /post_body
+      requestBodyLimit: 100
+    Directory:
+      document_root: ./YoupiBanane
+      request_path: /directory
+      index_files:
+        youpi.bad_extension:
+      cgi:
+        cgi_tester:
+          extensionWithoutDot: bla
+          cgiExecutableFullPath: ./cgi_tester
+          envPreset:
+            REDIRECT_STATUS: 200
