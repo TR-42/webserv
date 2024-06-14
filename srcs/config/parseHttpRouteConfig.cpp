@@ -98,10 +98,17 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		if (yaml_document_root[0] != '/') {
 			yaml_document_root = yamlFilePath.substr(0, yamlFilePath.find_last_of('/') + 1) + yaml_document_root;
 			char resolved_path[PATH_MAX];
-			if (realpath(yaml_document_root.c_str(), resolved_path) == NULL) {
-				throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path");
+			if (realpath(yaml_document_root.c_str(), resolved_path) != NULL) {
+				yaml_document_root = resolved_path;
+			} else {
+				size_t last_slash = yaml_document_root.find_last_of('/');
+				if (last_slash == std::string::npos)
+					throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path");
+				std::string parent_path = yaml_document_root.substr(0, last_slash);
+				if (realpath(parent_path.c_str(), resolved_path) == NULL)
+					throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path (also parent path is invalid)");
+				yaml_document_root = std::string(resolved_path) + yaml_document_root.substr(last_slash);
 			}
-			yaml_document_root = resolved_path;
 		}
 	}
 
