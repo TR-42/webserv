@@ -14,6 +14,13 @@
 namespace webserv
 {
 
+static void toLower(std::string &str)
+{
+	for (size_t i = 0; i < str.size(); ++i) {
+		str[i] = std::tolower(str[i]);
+	}
+}
+
 RequestedFileInfo::RequestedFileInfo(
 	const std::vector<std::string> &requestedPathSegList,
 	const bool isRequestEndWithSlash,
@@ -268,9 +275,8 @@ void RequestedFileInfo::_pickFileExtensionWithoutDot(
 		return;
 	}
 
-	std::string fileExtensionWithoutDot = this->_FileName.substr(dotPos + 1);
-	std::transform(fileExtensionWithoutDot.begin(), fileExtensionWithoutDot.end(), fileExtensionWithoutDot.begin(), ::tolower);
-	this->_FileExtensionWithoutDot = fileExtensionWithoutDot;
+	this->_FileExtensionWithoutDot = this->_FileName.substr(dotPos + 1);
+	toLower(this->_FileExtensionWithoutDot);
 
 	LS_DEBUG()
 		<< "File extension without dot: `" << this->_FileExtensionWithoutDot << "`"
