@@ -5,6 +5,8 @@ env:
   SLEEP_BEFORE_TEST: 5
   TEST_DIR: tests_build
   TEST_BIN: webserv-test
+  RELEASE_BIN: webserv
+  DEBUG_BIN: debug
 
 jobs:
   make-test:
@@ -22,7 +24,36 @@ jobs:
       - run: make -C ./${{ env.TEST_DIR }} -j${{ env.BUILD_PARALLEL }}
       - run: ./${{ env.TEST_DIR }}/${{ env.TEST_BIN }} --gtest_color=yes
 
+  build-release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -j${{ env.BUILD_PARALLEL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.RELEASE_BIN }}-${{ matrix.os }}
+          path: ${{ env.RELEASE_BIN }}
+  build-debug:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - run: make ${{ env.DEBUG_BIN }} -j${{ env.BUILD_PARALLEL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DEBUG_BIN }}-${{ matrix.os }}
+          path: ${{ env.DEBUG_BIN }}
+
   test-python-http:
+    needs:
+      - build-release
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -30,18 +61,32 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            test-ci
+            resources
+            logs
+            webserv.yaml
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.RELEASE_BIN }}-${{ matrix.os }}
+      - run: chmod +x ./${{ env.RELEASE_BIN }}
       # `500` という数字はtimeoutMsでしか使用していないため、面倒なのでこのような指定にしている
       - run: sed 's/500/5000/g' < ./webserv.yaml > config.yaml
-      - run: make -j${{ env.BUILD_PARALLEL }}
-      - run: sudo ./webserv config.yaml &
+      - run: sudo ./${{ env.RELEASE_BIN }} config.yaml 2> webserv.log &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
       - if: always() &&  steps.exec-webserv.outcome == 'success'
-        run: sudo kill $(pgrep webserv)
+        run: sudo kill $(pgrep ${{ env.RELEASE_BIN }})
+        continue-on-error: true
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
+        run: cat webserv.log
         continue-on-error: true
 
   debug-test-python-http:
+    needs:
+      - build-debug
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -49,10 +94,19 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            test-ci
+            resources
+            logs
+            webserv.yaml
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.DEBUG_BIN }}-${{ matrix.os }}
+      - run: chmod +x ./${{ env.DEBUG_BIN }}
       # `500` という数字はtimeoutMsでしか使用していないため、面倒なのでこのような指定にしている
       - run: sed 's/500/5000/g' < ./webserv.yaml > config.yaml
-      - run: make debug -j${{ env.BUILD_PARALLEL }}
-      - run: sudo ./debug config.yaml &
+      - run: sudo ./${{ env.DEBUG_BIN }} config.yaml &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
@@ -73,17 +127,34 @@ jobs:
           path: logs/${{ steps.latest-log.outputs.file }}
 
   test-python-http-leaks:
+    needs:
+      - build-release
     runs-on: macos-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            test-ci
+            resources
+            logs
+            webserv.yaml
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.RELEASE_BIN }}-macos-latest
+      - run: chmod +x ./${{ env.RELEASE_BIN }}
       # `500` という数字はtimeoutMsでしか使用していないため、面倒なのでこのような指定にしている
       - run: sed 's/500/5000/g' < ./webserv.yaml > config.yaml
-      - run: make -j${{ env.BUILD_PARALLEL }}
-      - run: leaks -q --atExit -- ./webserv config.yaml &
+      - run: leaks -q --atExit -- ./${{ env.RELEASE_BIN }} config.yaml > webserv.log 2> leaks.log &
         id: exec-webserv
       - run: sleep ${{ env.SLEEP_BEFORE_TEST }}
       - run: python3 test-ci/http-test.py
       - if: always() &&  steps.exec-webserv.outcome == 'success'
-        run: kill $(pgrep webserv)
+        run: kill $(pgrep ${{ env.RELEASE_BIN }})
+        continue-on-error: true
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
+        run: cat webserv.log
+        continue-on-error: true
+      - if: always() &&  steps.exec-webserv.outcome == 'success'
+        run: cat leaks.log
         continue-on-error: true
