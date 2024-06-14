@@ -202,7 +202,7 @@ CgiService::CgiService(
 	}
 
 	if (this->_cgiExecuter->isWriteToCgiCompleted()) {
-		CS_INFO() << "this->_cgiExecuter->isWriteToCgiCompleted() == true" << std::endl;
+		CS_DEBUG() << "this->_cgiExecuter->isWriteToCgiCompleted() == true" << std::endl;
 		delete this->_cgiExecuter;
 		this->_cgiExecuter = NULL;
 	}
@@ -252,7 +252,7 @@ CgiService::~CgiService()
 		} else if (waitResult == 0) {
 			CS_DEBUG() << "waitpid() returned 0" << std::endl;
 		} else {
-			CS_INFO() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
+			CS_DEBUG() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
 		}
 
 		if (waitResult == 0) {
@@ -261,7 +261,7 @@ CgiService::~CgiService()
 				errno_t err = errno;
 				CS_ERROR() << "kill() failed: " << std::strerror(err) << std::endl;
 			}
-			CS_INFO() << "kill() called with signal" STR(SIGKILL) << std::endl;
+			CS_DEBUG() << "kill() called with signal" STR(SIGKILL) << std::endl;
 
 			waitResult = waitpid(this->_pid, &status, 0);
 			if (waitResult < 0) {
@@ -270,7 +270,7 @@ CgiService::~CgiService()
 			} else if (waitResult == 0) {
 				CS_DEBUG() << "waitpid() retry returned 0" << std::endl;
 			} else {
-				CS_INFO() << "waitpid() retry returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
+				CS_DEBUG() << "waitpid() retry returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
 			}
 		}
 
@@ -323,13 +323,13 @@ ServiceEventResultType CgiService::onEventGot(
 				err = errno;
 				CS_ERROR() << "kill() failed: " << std::strerror(err) << std::endl;
 			}
-			CS_INFO() << "kill() called with signal" STR(SIGKILL) << std::endl;
+			CS_DEBUG() << "kill() called with signal" STR(SIGKILL) << std::endl;
 			return ServiceEventResult::ERROR;
 		} else if (waitResult == 0) {
 			CS_DEBUG() << "waitpid() returned 0" << std::endl;
 			return ServiceEventResult::CONTINUE;
 		} else {
-			CS_INFO() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
+			CS_DEBUG() << "waitpid() returned " << waitResult << " with " << utils::waitResultStatusToString(status) << std::endl;
 			this->_pid = -1;
 			return ServiceEventResult::COMPLETE;
 		}

@@ -181,7 +181,7 @@ ServerSocket::~ServerSocket()
 {
 	// serverFdのcloseは、Socketのデストラクタで行われる
 	// clientSocketのDisposeは、socketListから削除するときに行われる
-	CS_INFO()
+	CS_DEBUG()
 		<< "ServerSocket disposed: fd=" << this->getFD()
 		<< std::endl;
 }

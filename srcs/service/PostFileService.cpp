@@ -43,7 +43,7 @@ PostFileService::PostFileService(
 	// PathInfoがあるということは、目的でないファイルである可能性があるため、許可しない
 	if (requestedFileInfo.getIsDirectory() || requestedFileInfo.getIsAutoIndexFile() || !requestedFileInfo.getCgiPathInfo().empty()) {
 		this->_response = this->getErrorPageProvider().methodNotAllowed();
-		LS_INFO()
+		LS_DEBUG()
 			<< "Method not allowed: " << filePath
 			<< " (Directory: " << std::boolalpha << requestedFileInfo.getIsDirectory()
 			<< ", AutoIndex: " << requestedFileInfo.getIsAutoIndexFile()
@@ -59,7 +59,7 @@ PostFileService::PostFileService(
 		if (stat(dirPath.c_str(), &statBuf) != 0) {
 			errno_t err = errno;
 			this->_response = this->getErrorPageProvider().notFound();
-			LS_INFO()
+			LS_DEBUG()
 				<< "Parent Directory Not Found: " << requestedFileInfo.getDocumentRoot()
 				<< " (err: " << std::strerror(err) << ")"
 				<< std::endl;

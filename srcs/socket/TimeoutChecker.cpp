@@ -16,7 +16,7 @@ TimeoutChecker::TimeoutChecker(
 		logger(logger)
 {
 	this->setTimeoutMs(timeout_ms);
-	CS_INFO()
+	CS_DEBUG()
 		<< "TimeoutMs: " << std::dec << this->_timeout_ms
 		<< std::endl;
 }
@@ -30,7 +30,7 @@ void TimeoutChecker::setTimeoutMs(
 )
 {
 	this->_timeout_ms = std::min(timeout_ms, (size_t)SOCKET_TIMEOUT_MS);
-	CS_INFO()
+	CS_DEBUG()
 		<< "TimeoutMs: " << std::dec << this->_timeout_ms
 		<< "(requested: " << std::dec << timeout_ms << ")"
 		<< std::endl;
