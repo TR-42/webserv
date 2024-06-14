@@ -187,6 +187,11 @@ PollEventResultType ClientSocket::_processPollIn(
 			return PollEventResult::OK;
 		}
 
+		CS_DEBUG()
+			<< "Request Body Limit(Server): " << serverRunningConfig.getRequestBodyLimit()
+			<< ", Request Body Limit(Route): " << this->httpRequest.getRouteConfig().getRequestBodyLimit()
+			<< std::endl;
+
 		this->_timeoutChecker.setTimeoutMs(serverRunningConfig.getTimeoutMs());
 		if (this->_timeoutChecker.isTimeouted(now)) {
 			CS_WARN()

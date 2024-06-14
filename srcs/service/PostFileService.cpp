@@ -43,7 +43,12 @@ PostFileService::PostFileService(
 	// PathInfoがあるということは、目的でないファイルである可能性があるため、許可しない
 	if (requestedFileInfo.getIsDirectory() || requestedFileInfo.getIsAutoIndexFile() || !requestedFileInfo.getCgiPathInfo().empty()) {
 		this->_response = this->getErrorPageProvider().methodNotAllowed();
-		LS_INFO() << "Method not allowed: " << filePath << std::endl;
+		LS_INFO()
+			<< "Method not allowed: " << filePath
+			<< " (Directory: " << std::boolalpha << requestedFileInfo.getIsDirectory()
+			<< ", AutoIndex: " << requestedFileInfo.getIsAutoIndexFile()
+			<< ", PathInfo: " << requestedFileInfo.getCgiPathInfo() << ")"
+			<< std::endl;
 		return;
 	}
 
