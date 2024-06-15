@@ -34,7 +34,7 @@ class GetFileService : public ServiceBase
 		short revents
 	);
 
-	void generateFileList(const std::string &path, const std::string &requestPath);
+	void generateFileList(const std::string &path, const std::string &requestPath, bool isDocumentRoot);
 };
 
 }	 // namespace webserv
