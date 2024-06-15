@@ -29,6 +29,14 @@ PollEventResultType ClientSocket::onEventGot(
 	const struct timespec &now
 )
 {
+	// 送信しきった後、ソケットがcloseされた場合はcloseする
+	if (this->_IsResponseSet && this->httpResponseBuffer.size() == this->_responseBufferOffset && IS_POLLOUT(revents)) {
+		CS_INFO()
+			<< "Response buffer is empty(= EOF sent) && POLLOUT -> dispose"
+			<< std::endl;
+		return PollEventResult::DISPOSE_REQUEST;
+	}
+
 	if (this->_timeoutChecker.isConnectionTimeouted(now)) {
 		CS_WARN()
 			<< "Connection Timeout"
@@ -305,9 +313,22 @@ PollEventResultType ClientSocket::_processPollOut()
 	// POLLOUTの設定仕様上、this->_IsResponseSetがtrueの場合のみこの関数が呼ばれる
 	if (this->httpResponseBuffer.size() == this->_responseBufferOffset) {
 		CS_DEBUG()
-			<< "httpResponseBuffer is empty && can call send() => Connection can be closed"
+			<< "httpResponseBuffer is empty && can call send() => waiting for connection closing"
 			<< std::endl;
-		return PollEventResult::DISPOSE_REQUEST;
+		ssize_t sendSize = send(
+			this->getFD(),
+			NULL,
+			0,
+			MSG_EOF
+		);
+		if (sendSize < 0) {
+			errno_t err = errno;
+			CS_FATAL()
+				<< "send() failed: " << std::strerror(err)
+				<< std::endl;
+			return PollEventResult::ERROR;
+		}
+		return PollEventResult::OK;
 	}
 
 	size_t remainSize = this->httpResponseBuffer.size() - this->_responseBufferOffset;
@@ -323,9 +344,9 @@ PollEventResultType ClientSocket::_processPollOut()
 	);
 
 	if (sendSize < 0) {
-		const char *errorStr = std::strerror(errno);
+		errno_t err = errno;
 		CS_FATAL()
-			<< "send() failed: " << errorStr
+			<< "send() failed: " << std::strerror(err)
 			<< std::endl;
 		return PollEventResult::ERROR;
 	}
