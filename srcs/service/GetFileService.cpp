@@ -40,7 +40,7 @@ GetFileService::GetFileService(
 
 	if (this->_isDirectory) {
 		if (requestedFileInfo.getIsAutoIndexAllowed()) {
-			this->generateFileList(filePath, request.getNormalizedPath());
+			this->generateFileList(filePath, request.getNormalizedPath(), requestedFileInfo.getDocumentRoot() == filePath);
 		} else {
 			this->_response = this->getErrorPageProvider().notFound();
 			LS_INFO() << "Document listing is disabled: " << filePath << std::endl;
@@ -133,14 +133,14 @@ ServiceEventResultType GetFileService::onEventGot(
 	return ServiceEventResult::CONTINUE;
 }
 
-void GetFileService::generateFileList(const std::string &filePath, const std::string &requestPath)
+void GetFileService::generateFileList(const std::string &filePath, const std::string &requestPath, bool isDocumentRoot)
 {
 	DIR *dir;
 	struct dirent *ent;
 	std::vector<std::string> dirVector;
 	std::vector<std::string> fileVector;
 	std::string parentDirLint = "";
-	if (filePath == "./") {
+	if (isDocumentRoot) {
 		parentDirLint = "";
 	} else {
 		parentDirLint = "<li><a href=\"../\">../</a></li>";
