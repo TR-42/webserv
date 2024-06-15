@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <climits>
 #include <config/ServerRunningConfig.hpp>
 #include <cstring>
 #include <macros.hpp>
@@ -302,17 +303,22 @@ PollEventResultType ClientSocket::_processPollIn(
 PollEventResultType ClientSocket::_processPollOut()
 {
 	// POLLOUTの設定仕様上、this->_IsResponseSetがtrueの場合のみこの関数が呼ばれる
-	if (this->httpResponseBuffer.empty()) {
+	if (this->httpResponseBuffer.size() == this->_responseBufferOffset) {
 		CS_DEBUG()
 			<< "httpResponseBuffer is empty && can call send() => Connection can be closed"
 			<< std::endl;
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 
+	size_t remainSize = this->httpResponseBuffer.size() - this->_responseBufferOffset;
+	if (INT_MAX < remainSize) {
+		remainSize = INT_MAX;
+	}
+
 	ssize_t sendSize = send(
 		this->getFD(),
-		this->httpResponseBuffer.data(),
-		this->httpResponseBuffer.size(),
+		this->httpResponseBuffer.data() + this->_responseBufferOffset,
+		remainSize,
 		0
 	);
 
@@ -331,10 +337,7 @@ PollEventResultType ClientSocket::_processPollOut()
 		return PollEventResult::DISPOSE_REQUEST;
 	}
 
-	this->httpResponseBuffer.erase(
-		this->httpResponseBuffer.begin(),
-		this->httpResponseBuffer.begin() + sendSize
-	);
+	this->_responseBufferOffset += sendSize;
 
 	return PollEventResult::OK;
 }
@@ -566,6 +569,7 @@ ClientSocket::ClientSocket(
 		logger(logger, logger.getCustomId() + ", Connection=" + Pollable::getUUID().toString()),
 		_readBuf(NULL),
 		httpRequest(this->logger),
+		_responseBufferOffset(0),
 		_IsResponseSet(false),
 		_service(NULL),
 		_clientAddr(clientAddr),

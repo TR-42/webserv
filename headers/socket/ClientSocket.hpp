@@ -24,6 +24,7 @@ class ClientSocket : public Pollable
 	uint8_t *_readBuf;
 	HttpRequest httpRequest;
 	std::vector<uint8_t> httpResponseBuffer;
+	size_t _responseBufferOffset;
 	bool _IsResponseSet;
 	ServiceBase *_service;
 	struct sockaddr _clientAddr;
