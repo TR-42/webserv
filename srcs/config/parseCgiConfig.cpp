@@ -1,3 +1,6 @@
+#include <limits.h>
+#include <stdlib.h>
+
 #include <EnvManager.hpp>
 #include <config/CgiConfig.hpp>
 #include <config/parseCgiConfig.hpp>
@@ -24,7 +27,7 @@ static std::string toLower(const std::string &str)
 	return lower;
 }
 
-CgiConfig parseCgiConfig(const yaml::MappingNode &node)
+CgiConfig parseCgiConfig(const yaml::MappingNode &node, const std::string &yamlFilePath)
 {
 	if (!node.has(YAML_KEY_CGI_FULLPATH) || !node.has(YAML_KEY_EXT))
 		throw std::runtime_error("CgiConfig[" + node.getKey() + "]: " YAML_KEY_CGI_FULLPATH " and " YAML_KEY_EXT " are required");
@@ -36,6 +39,14 @@ CgiConfig parseCgiConfig(const yaml::MappingNode &node)
 		throw std::runtime_error("CgiConfig[" + node.getKey() + "]: " YAML_KEY_CGI_FULLPATH " must be a non-empty string");
 	if (yaml_ext.empty())
 		throw std::runtime_error("CgiConfig[" + node.getKey() + "]: " YAML_KEY_ENV_PRESET " must be a non-empty string");
+
+	if (yaml_cgi_fullpath[0] != '/') {
+		yaml_cgi_fullpath = yamlFilePath.substr(0, yamlFilePath.find_last_of('/') + 1) + yaml_cgi_fullpath;
+		char real_path[PATH_MAX];
+		if (realpath(yaml_cgi_fullpath.c_str(), real_path) == NULL)
+			throw std::runtime_error("CgiConfig[" + node.getKey() + "]: " YAML_KEY_CGI_FULLPATH " must be a valid path");
+		yaml_cgi_fullpath = real_path;
+	}
 
 	env::EnvManager env;
 

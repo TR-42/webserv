@@ -98,10 +98,17 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		if (yaml_document_root[0] != '/') {
 			yaml_document_root = yamlFilePath.substr(0, yamlFilePath.find_last_of('/') + 1) + yaml_document_root;
 			char resolved_path[PATH_MAX];
-			if (realpath(yaml_document_root.c_str(), resolved_path) == NULL) {
-				throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path");
+			if (realpath(yaml_document_root.c_str(), resolved_path) != NULL) {
+				yaml_document_root = resolved_path;
+			} else {
+				size_t last_slash = yaml_document_root.find_last_of('/');
+				if (last_slash == std::string::npos)
+					throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path");
+				std::string parent_path = yaml_document_root.substr(0, last_slash);
+				if (realpath(parent_path.c_str(), resolved_path) == NULL)
+					throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_DOCUMENT_ROOT " is not a valid path (also parent path is invalid)");
+				yaml_document_root = std::string(resolved_path) + yaml_document_root.substr(last_slash);
 			}
-			yaml_document_root = resolved_path;
 		}
 	}
 
@@ -119,7 +126,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 	if (node.has(YAML_KEY_CGI)) {
 		const yaml::MappingNode &cgi_node = yaml::getMappingNode(node, YAML_KEY_CGI);
 		for (yaml::NodeVector::const_iterator it = cgi_node.getNodes().begin(); it != cgi_node.getNodes().end(); ++it) {
-			yaml_cgi.push_back(parseCgiConfig(yaml::getMappingNode(**it)));
+			yaml_cgi.push_back(parseCgiConfig(yaml::getMappingNode(**it), yamlFilePath));
 		}
 	}
 
@@ -139,6 +146,7 @@ HttpRouteConfig parseHttpRouteConfig(const yaml::MappingNode &node, const std::s
 		unsigned long requestBodyLimit_ulong;
 		if (!utils::stoul(yaml::getScalarNode(node, YAML_KEY_REQUEST_BODY_LIMIT).getValue(), requestBodyLimit_ulong))
 			throw std::runtime_error("HttpRouteConfig[" + node.getKey() + "]: " YAML_KEY_REQUEST_BODY_LIMIT " must be a positive integer");
+		yaml_request_body_limit = requestBodyLimit_ulong;
 	}
 
 	return HttpRouteConfig(
