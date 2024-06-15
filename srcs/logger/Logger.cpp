@@ -61,10 +61,10 @@ static void _set_us_str(
 	}
 }
 
-static const std::string
+static const char *
 _get_timestamp()
 {
-	static const std::string DEFAULT_TIMESTAMP_VALUE = DEFAULT_TIMESTAMP_VALUE_DEF;
+	static const char DEFAULT_TIMESTAMP_VALUE[] = DEFAULT_TIMESTAMP_VALUE_DEF;
 	struct timespec ts;
 
 	// 使用可能関数に含まれる
@@ -79,13 +79,13 @@ _get_timestamp()
 	}
 
 	const std::tm tm = *std::gmtime(&t);
-	char buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF)];
+	static char buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF)];
 	size_t tm_body_len = std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm);
 	_set_us_str(buf + tm_body_len, ts.tv_nsec);
 	buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF) - 2] = 'Z';
 	buf[sizeof(DEFAULT_TIMESTAMP_VALUE_DEF) - 1] = '\0';
 
-	return std::string(buf);
+	return buf;
 }
 
 static const std::string _getCustomIdWithSpace(

@@ -115,8 +115,8 @@ LINKS	=\
 INCLUDES	=\
 	-I./headers\
 
-CFLAGS_BASE	=	-Wall -Wextra -Werror -std=c++98 -g
-CFLAGS_DEBUG	=	$(CFLAGS_BASE) -O0 -fsanitize=address -DDEBUG -MMD -MP -MF $(DEPS_DEBUG_DIR)/$*.d
+CFLAGS_BASE	=	-Wall -Wextra -Werror -std=c++98
+CFLAGS_DEBUG	=	$(CFLAGS_BASE) -g -O0 -fsanitize=address -DDEBUG -MMD -MP -MF $(DEPS_DEBUG_DIR)/$*.d
 CFLAGS	=	$(CFLAGS_BASE) -O2 -MMD -MP -MF $(DEPS_DIR)/$*.d
 
 SRCS	=	$(addprefix $(SRCS_DIR)/, $(SRC_FILES))
