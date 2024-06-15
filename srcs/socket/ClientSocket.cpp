@@ -30,11 +30,33 @@ PollEventResultType ClientSocket::onEventGot(
 )
 {
 	// 送信しきった後、ソケットがcloseされた場合はcloseする
-	if (this->_IsEofSent && IS_POLLOUT(revents)) {
+	if (this->_IsEofSent && IS_POLLIN(revents)) {
 		CS_DEBUG()
-			<< "EOF sent && POLLOUT -> dispose"
+			<< "EOF sent && POLLIN -> check recv()"
 			<< std::endl;
-		return PollEventResult::DISPOSE_REQUEST;
+		ssize_t recvSize = recv(
+			this->getFD(),
+			NULL,
+			0,
+			0
+		);
+		if (recvSize < 0) {
+			errno_t err = errno;
+			CS_FATAL()
+				<< "recv() failed: " << std::strerror(err)
+				<< std::endl;
+			return PollEventResult::ERROR;
+		} else if (recvSize == 0) {
+			CS_DEBUG()
+				<< "Connection closed by peer"
+				<< std::endl;
+			return PollEventResult::DISPOSE_REQUEST;
+		} else {
+			CS_WARN()
+				<< "Received " << recvSize << " bytes after EOF sent"
+				<< std::endl;
+			return PollEventResult::DISPOSE_REQUEST;
+		}
 	}
 
 	if (this->_timeoutChecker.isConnectionTimeouted(now)) {
@@ -545,6 +567,10 @@ void ClientSocket::setToPollFd(
 ) const
 {
 	Pollable::setToPollFd(pollFd, now);
+	if (this->_IsEofSent) {
+		pollFd.events = POLLIN;
+		return;
+	}
 	bool isResponseAvailable = this->_IsResponseSet || this->_timeoutChecker.isTimeouted(now);
 
 	if (isResponseAvailable || this->_service == NULL) {
