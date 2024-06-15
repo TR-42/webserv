@@ -315,6 +315,7 @@ PollEventResultType ClientSocket::_processPollOut()
 		CS_DEBUG()
 			<< "httpResponseBuffer is empty && can call send() => waiting for connection closing"
 			<< std::endl;
+#ifdef __APPLE__
 		ssize_t sendSize = send(
 			this->getFD(),
 			NULL,
@@ -329,6 +330,9 @@ PollEventResultType ClientSocket::_processPollOut()
 			return PollEventResult::ERROR;
 		}
 		return PollEventResult::OK;
+#else
+		return PollEventResult::DISPOSE_REQUEST;
+#endif
 	}
 
 	size_t remainSize = this->httpResponseBuffer.size() - this->_responseBufferOffset;
