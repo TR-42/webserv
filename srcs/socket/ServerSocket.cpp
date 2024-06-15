@@ -52,15 +52,17 @@ PollEventResultType ServerSocket::onEventGot(
 		return PollEventResult::ERROR;
 	}
 
+	utils::UUID clientUuid = utils::UUIDv7();
 	CS_INFO()
 		<< "Accepted new connection from "
 		<< utils::to_string(clientAddr)
 		<< " (port: " << ntohs(((struct sockaddr_in *)&clientAddr)->sin_port) << ")"
 		<< " len: " << clientAddrLen
 		<< " family: " << (int)(clientAddr.sa_family)
+		<< " fd: " << clientFd
+		<< " UUID: " << clientUuid.toString()
 		<< std::endl;
 
-	utils::UUID clientUuid = utils::UUIDv7();
 	Pollable *clientSocket = new ClientSocket(
 		clientFd,
 		clientAddr,
