@@ -30,9 +30,9 @@ PollEventResultType ClientSocket::onEventGot(
 )
 {
 	// 送信しきった後、ソケットがcloseされた場合はcloseする
-	if (this->_IsResponseSet && this->httpResponseBuffer.size() == this->_responseBufferOffset && IS_POLLOUT(revents)) {
-		CS_INFO()
-			<< "Response buffer is empty(= EOF sent) && POLLOUT -> dispose"
+	if (this->_IsEofSent && IS_POLLOUT(revents)) {
+		CS_DEBUG()
+			<< "EOF sent && POLLOUT -> dispose"
 			<< std::endl;
 		return PollEventResult::DISPOSE_REQUEST;
 	}
@@ -329,6 +329,7 @@ PollEventResultType ClientSocket::_processPollOut()
 				<< std::endl;
 			return PollEventResult::ERROR;
 		}
+		this->_IsEofSent = true;
 		return PollEventResult::OK;
 #else
 		return PollEventResult::DISPOSE_REQUEST;
@@ -599,7 +600,8 @@ ClientSocket::ClientSocket(
 		_service(NULL),
 		_clientAddr(clientAddr),
 		_IsHeaderValidationCompleted(false),
-		_timeoutChecker(now, logger)
+		_timeoutChecker(now, logger),
+		_IsEofSent(false)
 {
 	if (fcntl(fd, F_SETFL, O_NONBLOCK | O_CLOEXEC) < 0) {
 		LS_ERROR()

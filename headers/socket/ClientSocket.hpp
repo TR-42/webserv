@@ -30,6 +30,7 @@ class ClientSocket : public Pollable
 	struct sockaddr _clientAddr;
 	bool _IsHeaderValidationCompleted;
 	TimeoutChecker _timeoutChecker;
+	bool _IsEofSent;
 
 	PollEventResultType _processPollIn(
 		const struct timespec &now,
