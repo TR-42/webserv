@@ -9,6 +9,7 @@ namespace utils
 UUID::UUID()
 {
 	std::memset(this->uuid, 0, UUID_BYTES_COUNT);
+	this->_uuidStr = _getUUIDString(this->uuid);
 }
 
 UUID::UUID(
@@ -27,6 +28,7 @@ UUID &UUID::operator=(
 	}
 
 	std::memcpy(this->uuid, src.uuid, UUID_BYTES_COUNT);
+	this->_uuidStr = src._uuidStr;
 	return *this;
 }
 
@@ -103,6 +105,8 @@ UUID::UUID(
 
 		this->uuid[i] = (_getValueFromHexChar(src[c1Index]) << 4) | _getValueFromHexChar(src[c2Index]);
 	}
+
+	this->_uuidStr = _getUUIDString(this->uuid);
 }
 
 UUID::UUID(
@@ -110,13 +114,16 @@ UUID::UUID(
 )
 {
 	std::memcpy(this->uuid, src, UUID_BYTES_COUNT);
+	this->_uuidStr = _getUUIDString(this->uuid);
 }
 
 UUID::~UUID()
 {
 }
 
-std::string UUID::toString() const
+std::string UUID::_getUUIDString(
+	const uint8_t *src
+)
 {
 	char buffer[UUID_STRING_LENGTH + 1];
 
@@ -141,11 +148,16 @@ std::string UUID::toString() const
 		}
 		const size_t c2Index = c1Index + 1;
 
-		buffer[c1Index] = "0123456789abcdef"[this->uuid[i] >> 4];
-		buffer[c2Index] = "0123456789abcdef"[this->uuid[i] & 0x0F];
+		buffer[c1Index] = "0123456789abcdef"[src[i] >> 4];
+		buffer[c2Index] = "0123456789abcdef"[src[i] & 0x0F];
 	}
 
 	return std::string(buffer);
+}
+
+std::string UUID::toString() const
+{
+	return this->_uuidStr;
 }
 
 std::ostream &operator<<(

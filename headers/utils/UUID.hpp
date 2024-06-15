@@ -22,6 +22,11 @@ class UUID
 	static const size_t UUID_HYPHEN_POS_3 = 18;
 	static const size_t UUID_HYPHEN_POS_4 = 23;
 	uint8_t uuid[UUID_BYTES_COUNT];
+	std::string _uuidStr;
+
+	static std::string _getUUIDString(
+		const uint8_t *src
+	);
 
 	UUID();
 	UUID(

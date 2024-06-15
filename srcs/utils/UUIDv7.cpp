@@ -69,6 +69,8 @@ void UUIDv7::fromValue(
 	for (size_t i = 0; i < 4; i++) {
 		this->uuid[12 + i] = (randB_Low >> ((3 - i) * 8)) & 0xFF;
 	}
+
+	this->_uuidStr = this->_getUUIDString(this->uuid);
 }
 
 UUIDv7::UUIDv7(
