@@ -241,7 +241,7 @@ bool HttpRequest::parseRequestLine(
 	this->_Method = std::string((const char *)requestRawData, lenToSpacePos1);
 	CS_DEBUG() << "Method: " << this->_Method << std::endl;
 
-	if (this->_Method != METHOD_GET && this->_Method != METHOD_HEAD && this->_Method != METHOD_POST && this->_Method != METHOD_PUT) {
+	if (this->_Method != METHOD_GET && this->_Method != METHOD_HEAD && this->_Method != METHOD_POST && this->_Method != METHOD_PUT && this->_Method != METHOD_DELETE) {
 		C_WARN("Invalid Method");
 		throw http::exception::NotImplemented();
 	}
