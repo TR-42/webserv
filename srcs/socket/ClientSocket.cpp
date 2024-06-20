@@ -612,11 +612,12 @@ ClientSocket::~ClientSocket()
 
 ClientSocket::ClientSocket(
 	int fd,
+	const utils::UUID &uuid,
 	const struct sockaddr &clientAddr,
 	const timespec &now,
 	const ServerRunningConfigListType &listenConfigList,
 	const Logger &logger
-) : Pollable(fd),
+) : Pollable(fd, uuid),
 		_listenConfigList(listenConfigList),
 		logger(logger, logger.getCustomId() + ", Connection=" + Pollable::getUUID().toString()),
 		_readBuf(NULL),

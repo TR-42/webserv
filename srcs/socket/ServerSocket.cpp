@@ -65,6 +65,7 @@ PollEventResultType ServerSocket::onEventGot(
 
 	Pollable *clientSocket = new ClientSocket(
 		clientFd,
+		clientUuid,
 		clientAddr,
 		now,
 		this->_listenConfigList,
