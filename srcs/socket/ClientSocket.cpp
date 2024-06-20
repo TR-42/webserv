@@ -132,10 +132,10 @@ PollEventResultType ClientSocket::_processPollIn(
 		try {
 			this->_readBuf = new uint8_t[RECV_BUFFER_SIZE];
 		} catch (const std::exception &e) {
-			CS_FATAL()
+			CS_WARN()
 				<< "Failed to allocate memory for read buffer: " << e.what()
 				<< std::endl;
-			return PollEventResult::ERROR;
+			return PollEventResult::OK;
 		}
 	}
 
@@ -148,10 +148,10 @@ PollEventResultType ClientSocket::_processPollIn(
 
 	if (recvSize < 0) {
 		const char *errorStr = std::strerror(errno);
-		CS_FATAL()
+		CS_ERROR()
 			<< "recv() failed: " << errorStr
 			<< std::endl;
-		return PollEventResult::ERROR;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	if (recvSize == 0) {
@@ -375,7 +375,7 @@ PollEventResultType ClientSocket::_processPollOut()
 		CS_FATAL()
 			<< "send() failed: " << std::strerror(err)
 			<< std::endl;
-		return PollEventResult::ERROR;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	if (sendSize == 0) {
