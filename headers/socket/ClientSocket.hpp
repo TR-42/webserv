@@ -55,6 +55,7 @@ class ClientSocket : public Pollable
  public:
 	ClientSocket(
 		int fd,
+		const utils::UUID &uuid,
 		const struct sockaddr &clientAddr,
 		const timespec &now,
 		const ServerRunningConfigListType &listenConfigList,

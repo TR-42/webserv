@@ -33,6 +33,7 @@ class Pollable
 
  protected:
 	Pollable(int fd);
+	Pollable(int fd, const utils::UUID &uuid);
 	int getFD() const;
 
  public:

@@ -18,6 +18,18 @@ Pollable::Pollable(
 	}
 }
 
+Pollable::Pollable(
+	int fd,
+	const utils::UUID &uuid
+) : _fd(fd),
+		_uuid(uuid),
+		_isDisposingFromChildProcess(false)
+{
+	if (fd < 0) {
+		throw std::invalid_argument("Invalid FD");
+	}
+}
+
 Pollable::~Pollable()
 {
 	if (0 <= this->_fd) {
