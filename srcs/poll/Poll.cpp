@@ -121,12 +121,6 @@ bool Poll::loop()
 				++removedCount;
 				break;
 
-			case PollEventResult::ERROR:
-				CS_FATAL()
-					<< "Error got from pollable " << pollableUuid
-					<< std::endl;
-				return false;
-
 			default:
 				CS_FATAL()
 					<< "Unknown SockEventResultType: " << utils::to_string(result)

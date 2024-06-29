@@ -95,8 +95,6 @@ std::string to_string(
 			return "PollEventResult::OK";
 		case PollEventResult::DISPOSE_REQUEST:
 			return "PollEventResult::DISPOSE_REQUEST";
-		case PollEventResult::ERROR:
-			return "PollEventResult::ERROR";
 		default:
 			return "PollEventResult::(unknown result)";
 	}

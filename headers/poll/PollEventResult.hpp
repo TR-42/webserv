@@ -17,7 +17,6 @@ enum
 	PollEventResult {
 		OK,
 		DISPOSE_REQUEST,
-		ERROR,
 	};
 
 #if !IS_CPP11

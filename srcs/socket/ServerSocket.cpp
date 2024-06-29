@@ -49,7 +49,7 @@ PollEventResultType ServerSocket::onEventGot(
 		CS_FATAL()
 			<< "accept() failed: " << errorStr
 			<< std::endl;
-		return PollEventResult::ERROR;
+		return PollEventResult::DISPOSE_REQUEST;
 	}
 
 	utils::UUID clientUuid = utils::UUIDv7();
