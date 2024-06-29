@@ -353,19 +353,20 @@ ServiceEventResultType CgiService::onEventGot(
 		return ServiceEventResult::ERROR;
 	}
 
-	PollEventResultType executerResult = this->_cgiExecuter->onEventGot(revents);
+	ServiceEventResultType executerResult = this->_cgiExecuter->onEventGot(revents);
 	switch (executerResult) {
-		case PollEventResult::OK:
+		case ServiceEventResult::CONTINUE:
 			C_DEBUG("Executer OK");
 			return ServiceEventResult::CONTINUE;
 
-		case PollEventResult::ERROR:
+		case ServiceEventResult::ERROR:
 			C_ERROR("Executer ERROR");
 			this->_cgiHandler->setDisposeRequested();
 			this->_cgiHandler = NULL;
 			return ServiceEventResult::ERROR;
 
-		case PollEventResult::DISPOSE_REQUEST:
+		case ServiceEventResult::RESPONSE_READY:
+		case ServiceEventResult::COMPLETE:
 			C_DEBUG("Executer DISPOSE_REQUEST");
 			delete this->_cgiExecuter;
 			this->_cgiExecuter = NULL;

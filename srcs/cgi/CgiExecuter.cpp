@@ -165,12 +165,12 @@ void CgiExecuter::setToPollFd(
 	pollFd.revents = 0;
 }
 
-PollEventResultType CgiExecuter::onEventGot(
+ServiceEventResultType CgiExecuter::onEventGot(
 	short revents
 )
 {
 	if (!IS_POLLOUT(revents)) {
-		return PollEventResult::OK;
+		return ServiceEventResult::CONTINUE;
 	}
 
 	size_t sizeToWrite = this->_requestBody.size() - this->_writtenCount;
@@ -186,7 +186,7 @@ PollEventResultType CgiExecuter::onEventGot(
 	if (writtenCount < 0) {
 		errno_t err = errno;
 		CS_ERROR() << "write() failed: " << std::strerror(err) << std::endl;
-		return PollEventResult::ERROR;
+		return ServiceEventResult::ERROR;
 	}
 
 	this->_writtenCount += writtenCount;
@@ -201,10 +201,10 @@ PollEventResultType CgiExecuter::onEventGot(
 
 	if (this->isWriteToCgiCompleted()) {
 		C_DEBUG("write to CGI completed");
-		return PollEventResult::DISPOSE_REQUEST;
+		return ServiceEventResult::COMPLETE;
 	}
 
-	return PollEventResult::OK;
+	return ServiceEventResult::CONTINUE;
 }
 
 pid_t CgiExecuter::getPid() const

@@ -48,7 +48,7 @@ class CgiExecuter
 		struct pollfd &pollFd
 	) const;
 
-	PollEventResultType onEventGot(
+	ServiceEventResultType onEventGot(
 		short revents
 	);
 
