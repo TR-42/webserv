@@ -45,7 +45,7 @@ PollEventResultType ClientSocket::onEventGot(
 			CS_FATAL()
 				<< "recv() failed: " << std::strerror(err)
 				<< std::endl;
-			return PollEventResult::ERROR;
+			return PollEventResult::DISPOSE_REQUEST;
 		} else if (recvSize == 0) {
 			CS_DEBUG()
 				<< "Connection closed by peer"
@@ -349,7 +349,7 @@ PollEventResultType ClientSocket::_processPollOut()
 			CS_FATAL()
 				<< "send() failed: " << std::strerror(err)
 				<< std::endl;
-			return PollEventResult::ERROR;
+			return PollEventResult::DISPOSE_REQUEST;
 		}
 		this->_IsEofSent = true;
 		return PollEventResult::OK;
